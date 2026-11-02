@@ -4,6 +4,8 @@ Prototype for an Xpulse 200 rider using a Vivo X300 Pro, initially carried in a 
 
 ## Current state
 
+New collaborator: start with [VARUN-HANDOFF.md](VARUN-HANDOFF.md). Version 0.2.0 [cloud build, lint, tests and artifact upload passed](https://github.com/risheekaiyar/ride-ledger/actions/runs/41519934587). Update the existing local installation rather than uninstalling it; export existing rides first.
+
 Version 0.2.0 adds per-recording sensor selection: accelerometer, gyro, rotation vector, gravity, linear acceleration, magnetic field, ambient light and pressure when the device exposes them. Gravity and linear acceleration are Android's estimated/fused sensor outputs; they are not independent proof of road or bike dynamics. Extra sensors increase sampling work and may affect battery use.
 
 Saved rides now show phone-sensor magnitude mean, RMS, peak, effective sample rate and largest gap. Rotation-vector magnitude is explicitly unitless xyz, not lean or an orientation angle. On-change sensors such as light may legitimately have long gaps with no value change. Missing sensors have zero samples and are marked unavailable in metadata; no values are invented. `sensor_summary.json` exports these diagnostics; `events.csv` records initial interactive state and screen-on/off broadcasts. Metadata schema 3 includes sensor range, resolution, registration and reporting mode; raw GPS/motion columns remain compatible with schema 2.

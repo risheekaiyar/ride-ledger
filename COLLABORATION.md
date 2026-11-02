@@ -2,6 +2,8 @@
 
 Repository: https://github.com/risheekaiyar/ride-ledger (private).
 
+Developer starting point: [VARUN-HANDOFF.md](VARUN-HANDOFF.md), covering the current version, build, test evidence, next work and data boundaries.
+
 No invitation has been sent to VarunAiyar. The owner must separately authorize repository access before another account can clone this private source. A paid AI subscription does not grant repository access.
 
 After access is granted, each developer should authenticate GitHub on their own machine, clone the repository, open it in Android Studio or their own coding tool, and work on a feature branch. Submit changes through a pull request so the owner can review them. Do not exchange passwords, API keys or signing keys.

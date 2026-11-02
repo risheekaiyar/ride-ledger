@@ -12,7 +12,7 @@ Mean/RMS/peak describe phone-sensor vector magnitude, not road quality or a ridi
 
 ## Install
 
-1. Copy `dist/ride-ledger-0.1.0-debug.apk` to your phone using USB or your usual file transfer method.
+1. Copy `dist/ride-ledger-0.2.0-debug.apk` to your phone using USB or your usual file transfer method. Install over the earlier local APK; do not routinely uninstall or clear storage, which erases private recordings.
 2. Open the APK in the phone's Files app. If Android asks, allow that file app to install this APK. Follow Android's installation prompts yourself.
 3. Open **Ride Ledger**. Turn on phone Location. Tap **Start commute**, allow notifications, then tap Start again and allow **Precise location / While using the app**. Tap Start once more if prompted. Approximate location is insufficient for this trial.
 4. If a permission was denied permanently, enable it through Android Settings → Apps → Ride Ledger → Permissions or Notifications. The app deliberately requires visible notifications for recording.

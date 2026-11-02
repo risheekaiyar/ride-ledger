@@ -2,6 +2,8 @@
 
 ## Version 0.2.0
 
+Cloud build, lint, unit tests and APK artifact upload also passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41519934587 .
+
 Local APK `dist/ride-ledger-0.2.0-debug.apk`: SHA-256 `FE225C5338A3A424FAEAA7494CC1E062F3CAA097D6B69C07873457C20EE2DEDF`.
 
 Build, lint (no issues) and nine unit tests (six GPS plus three sensor-statistics tests) passed locally. APK signature verified and matches the original local 0.1.0 debug certificate. No new permissions. Additional sensor selection, streaming magnitude/timing summaries, screen-state broadcast logging and availability/range metadata implemented. Android-specific interactions and optional sensors still require a phone test. Historical cloud build evidence below applies to 0.1.0; inspect Actions separately for 0.2.0.
@@ -25,7 +27,7 @@ SHA-256: `1424B0C28122B3F75BE6D088F6236FBE5007A82F3193077A3213BC572D89481E`.
 
 ## Limits of this verification
 
-No APK has been installed or exercised on the Vivo X300 Pro. Notification Stop, permission UI, file picker export, process interruption, immediate start/stop, screen rotation, and screen-off recording have been reviewed in source but are **not device-tested**. GPS unit tests do not exercise Android services or sensors. Local ADB could not start its server in this environment, so it provided no device evidence.
+The owner installed 0.1.0 on the Vivo and supplied short screen-on/off indoor exports. Their files, sample counts and timestamp coverage were checked locally. This supplies limited evidence for short-session recording and export, not calibration, a full commute or every lifecycle interaction. No private recordings are committed. Version 0.2.0's additional options, summary UI and screen-state logger await device testing. GPS/sensor unit tests do not exercise Android services or hardware. Local ADB provided no device evidence.
 
 The service serializes writes/finalization on one worker, keeps recording marked active until destruction to avoid starting over partially closed files, uses a bounded partial wake lock, flushes about every five seconds and does not restart automatically after process death. These choices reduce known failure modes but do not prove runtime reliability on this phone.
 
