@@ -48,6 +48,6 @@ Meta model role for a later hackathon slice: turn computed route/stop statistics
 
 ## Collaboration
 
-Private source repository: https://github.com/risheekaiyar/ride-ledger . User GitHub: risheekaiyar. Brother: VarunAiyar. Local `origin` points to this repository. Source is published using the connected GitHub app; local Git authentication must be configured separately before terminal fetch/push will work. No collaborator invitations sent. Competition eventually requires public source with no personal data; do not change visibility without authorization. See COLLABORATION.md for the remote development workflow.
+Private source repository: https://github.com/risheekaiyar/ride-ledger . User GitHub: risheekaiyar. Brother: VarunAiyar. Local `origin` points to this repository. Source is published using the connected GitHub app; local Git authentication must be configured separately before terminal fetch/push will work. A collaborator invitation was sent to VarunAiyar on November 3, 2026 and was pending acceptance when last checked. Competition eventually requires public source with no personal data; do not change visibility without authorization. See COLLABORATION.md for the remote development workflow.
 
 Competition deadline carried from this conversation: November 4, 2026 at 9pm ET (November 5, 7:30am IST). Available user time 3–4 hours/day. Prioritize working recorder + real test + meaningful evidence over a full social network. Verify team eligibility for human coding contributions; do not assume brother qualifies automatically.
