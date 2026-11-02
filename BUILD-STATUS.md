@@ -1,0 +1,22 @@
+# Build verification — November 3, 2026 (IST)
+
+Local debug APK: `dist/ride-ledger-0.1.0-debug.apk`.
+
+SHA-256: `1424B0C28122B3F75BE6D088F6236FBE5007A82F3193077A3213BC572D89481E`.
+
+- JDK 17.0.20.1, Gradle 8.9, Android Gradle Plugin 8.7.3, compile/target SDK 35, minimum SDK 26.
+- `assembleDebug lintDebug testDebugUnitTest --no-daemon`: **BUILD SUCCESSFUL**.
+- Lint: **No issues found**.
+- GPS filter unit tests: **6 passed; 0 failures/errors/skipped**. Covers good/bad uncertainty, missing uncertainty, stale/future/mock/out-of-order fixes, invalid numeric values, ordinary movement, jitter, long gaps and jumps.
+- Android `apksigner verify --verbose`: **Verifies**, v2 signature, one signer. This is a debug signature; no release key is included in the repository.
+- Android `aapt dump permissions`: location (fine/coarse), location foreground service, foreground service, notifications and wake lock. **No INTERNET or background-location permission**.
+- Gradle wrapper generated. GitHub Actions configured but **not run remotely**.
+- Private source repository created through the browser on November 3: https://github.com/risheekaiyar/ride-ledger . GitHub connection verified with push access after the user configured access; source publication uses that connection. Local `origin` configured, but local Git has no saved authentication. No collaborator invitation sent. Remote CI status must be checked separately from the local successful build above.
+
+## Limits of this verification
+
+No APK has been installed or exercised on the Vivo X300 Pro. Notification Stop, permission UI, file picker export, process interruption, immediate start/stop, screen rotation, and screen-off recording have been reviewed in source but are **not device-tested**. GPS unit tests do not exercise Android services or sensors. Local ADB could not start its server in this environment, so it provided no device evidence.
+
+The service serializes writes/finalization on one worker, keeps recording marked active until destruction to avoid starting over partially closed files, uses a bounded partial wake lock, flushes about every five seconds and does not restart automatically after process death. These choices reduce known failure modes but do not prove runtime reliability on this phone.
+
+Follow PHONE-TEST.md before the office commute. Preserve private route ZIPs locally and never add them to GitHub.

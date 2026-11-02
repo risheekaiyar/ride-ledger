@@ -1,0 +1,14 @@
+tools/
+.gradle/
+**/build/
+local.properties
+.env*
+*.jks
+*.keystore
+captures/
+*.csv
+*.jsonl
+*.gpx
+dist/
+rides/
+*.zip
