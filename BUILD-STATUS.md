@@ -1,5 +1,15 @@
 # Build verification — November 3, 2026 (IST)
 
+## Version 0.2.0
+
+Local APK `dist/ride-ledger-0.2.0-debug.apk`: SHA-256 `FE225C5338A3A424FAEAA7494CC1E062F3CAA097D6B69C07873457C20EE2DEDF`.
+
+Build, lint (no issues) and nine unit tests (six GPS plus three sensor-statistics tests) passed locally. APK signature verified and matches the original local 0.1.0 debug certificate. No new permissions. Additional sensor selection, streaming magnitude/timing summaries, screen-state broadcast logging and availability/range metadata implemented. Android-specific interactions and optional sensors still require a phone test. Historical cloud build evidence below applies to 0.1.0; inspect Actions separately for 0.2.0.
+
+Private walk recordings were inspected locally; no recordings, coordinates or private analysis output are included in source publication.
+
+## Version 0.1.0 historical verification
+
 Local debug APK: `dist/ride-ledger-0.1.0-debug.apk`.
 
 SHA-256: `1424B0C28122B3F75BE6D088F6236FBE5007A82F3193077A3213BC572D89481E`.

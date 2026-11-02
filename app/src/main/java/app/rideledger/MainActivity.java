@@ -13,6 +13,7 @@ import java.util.zip.*;
 public class MainActivity extends Activity {
     private TextView status;
     private Spinner placement;
+    private final java.util.LinkedHashMap<Integer,CheckBox> options=new java.util.LinkedHashMap<>();
     private File selected;
     private final Handler handler = new Handler();
     private final Runnable refresh = new Runnable() {
@@ -34,6 +35,12 @@ public class MainActivity extends Activity {
         placement = new Spinner(this);
         placement.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"Pocket","Bag","Rigid mount"}));
         root.addView(placement);
+        text(root,"Sensor options (availability depends on your phone)",17);
+        for(int type:new int[]{1,4,11,9,10,2,5,6}){
+            CheckBox box=new CheckBox(this);box.setText(RideService.sensorLabel(type));box.setChecked(type!=2&&type!=5);
+            root.addView(box);options.put(type,box);
+        }
+        text(root,"Gravity-removed acceleration describes phone movement. Magnetic field and light are optional diagnostics; pocket light readings may be near zero. Extra sensors can increase battery use.",15);
         text(root,"Pocket/bag motion includes your body's movement. It cannot establish potholes, motorcycle lean, crashes, or riding safety.",15);
         status = text(root,RideService.liveStatus,18);
         button(root,"Start commute",v -> startRide());
@@ -59,6 +66,9 @@ public class MainActivity extends Activity {
             requestPermissions(p.toArray(new String[0]),7);return;
         }
         Intent i=new Intent(this,RideService.class).putExtra("placement",placement.getSelectedItem().toString());
+        int[] types=options.entrySet().stream().filter(e->e.getValue().isChecked()).mapToInt(e->e.getKey()).toArray();
+        if(types.length==0){toast("Select at least one sensor");return;}
+        i.putExtra("sensorTypes",types);
         try{startForegroundService(i);}catch(RuntimeException e){toast("Cannot start recorder. Keep the app visible, check permissions and retry.");}
     }
     @Override public void onRequestPermissionsResult(int r,String[] p,int[] g){super.onRequestPermissionsResult(r,p,g);if(r==7)toast("Permissions updated. Tap Start commute again. Precise location is required for this test.");if(r==8)toast("Enable notifications in Android app settings, then tap Start. This keeps Stop accessible while the screen is locked.");}
@@ -68,7 +78,18 @@ public class MainActivity extends Activity {
         String[] names=Arrays.stream(list).map(File::getName).toArray(String[]::new);
         new AlertDialog.Builder(this).setTitle("Saved rides").setItems(names,(d,n)->{
             File f=new File(list[n],"summary.json");String content;
-            try{content=new String(java.nio.file.Files.readAllBytes(f.toPath()),java.nio.charset.StandardCharsets.UTF_8);}catch(Exception e){content="Recording is incomplete or still active. Raw samples remain available.";}
+            try{content=new String(java.nio.file.Files.readAllBytes(f.toPath()),java.nio.charset.StandardCharsets.UTF_8);
+                File details=new File(list[n],"sensor_summary.json");
+                if(details.exists()){
+                    org.json.JSONArray rows=new org.json.JSONArray(new String(java.nio.file.Files.readAllBytes(details.toPath()),java.nio.charset.StandardCharsets.UTF_8));
+                    StringBuilder readable=new StringBuilder("Phone sensor measurements\n");
+                    for(int j=0;j<rows.length();j++){org.json.JSONObject row=rows.getJSONObject(j);
+                        readable.append(row.getString("label")).append(": ").append(row.getLong("samples")).append(" samples");
+                        if(row.getLong("samples")>0)readable.append(String.format(Locale.US,"\nMean %.2f · RMS %.2f · peak %.2f %s\n%.1f Hz · largest gap %.3f s",row.getDouble("mean_magnitude"),row.getDouble("rms_magnitude"),row.getDouble("peak_magnitude"),row.getString("unit"),row.getDouble("effective_hz"),row.getDouble("max_gap_seconds")));
+                        readable.append("\n\n");}
+                    content=readable+"Phone motion only; no calibrated road or riding score.\n\nRecording details:\n"+content;
+                }
+            }catch(Exception e){content="Recording is incomplete or still active. Raw samples remain available.";}
             new AlertDialog.Builder(this).setTitle(names[n]).setMessage(content).setPositiveButton("OK",null).show();
         }).show();
     }

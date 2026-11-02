@@ -4,6 +4,12 @@ Prototype for an Xpulse 200 rider using a Vivo X300 Pro, initially carried in a 
 
 ## Current state
 
+Version 0.2.0 adds per-recording sensor selection: accelerometer, gyro, rotation vector, gravity, linear acceleration, magnetic field, ambient light and pressure when the device exposes them. Gravity and linear acceleration are Android's estimated/fused sensor outputs; they are not independent proof of road or bike dynamics. Extra sensors increase sampling work and may affect battery use.
+
+Saved rides now show phone-sensor magnitude mean, RMS, peak, effective sample rate and largest gap. Rotation-vector magnitude is explicitly unitless xyz, not lean or an orientation angle. On-change sensors such as light may legitimately have long gaps with no value change. Missing sensors have zero samples and are marked unavailable in metadata; no values are invented. `sensor_summary.json` exports these diagnostics; `events.csv` records initial interactive state and screen-on/off broadcasts. Metadata schema 3 includes sensor range, resolution, registration and reporting mode; raw GPS/motion columns remain compatible with schema 2.
+
+The 0.2.0 local build, lint and nine unit tests passed. The new options, screen-event logger and on-phone summary still require device testing. Install `dist/ride-ledger-0.2.0-debug.apk` over the earlier local build; export rides first and do not uninstall unless those exports are safe. The earlier 0.1.0 artifact remains available for comparison.
+
 Debug APK built locally on November 3, 2026. `assembleDebug`, `lintDebug`, and all six GPS-filter unit tests passed. APK signature/permission verification is recorded in BUILD-STATUS.md. On-device and screen-off testing are still required. See [PHONE-TEST.md](PHONE-TEST.md) for install and five-minute walk instructions.
 
 Capabilities implemented in source: location foreground service with visible notification and Stop action; GPS fixes with accuracy, mock and age flags; accelerometer, gyro, rotation vector (xyz plus optional scalar/heading accuracy) and pressure when available; private internal storage; buffered CSV writes; metadata and end summary; user-selected ZIP export through Android document picker. No auto-start or background-location permission. Four-hour recording limit. Process death may retain previously flushed files but leave no final summary. Unavailable sensor components are empty CSV fields. Motion is capped at approximately 25 Hz per sensor; GPS requests are approximately 1 Hz, without a guaranteed delivery rate.

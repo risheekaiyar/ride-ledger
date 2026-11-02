@@ -18,7 +18,28 @@ public class RideService extends Service implements SensorEventListener, Locatio
     private SensorManager sensors;
     private LocationManager locations;
     private PowerManager.WakeLock wake;
-    private BufferedWriter gps,motion;
+    private BufferedWriter gps,motion,events;
+    private int[] requestedTypes={1,4,11,9,10,6};
+    private final HashMap<Integer,SensorStats> stats=new HashMap<>();
+    private boolean screenReceiverRegistered;
+    private final BroadcastReceiver screenReceiver=new BroadcastReceiver(){
+        @Override public void onReceive(Context context,Intent intent){
+            long elapsed=SystemClock.elapsedRealtimeNanos(),wall=System.currentTimeMillis();
+            String event=Intent.ACTION_SCREEN_OFF.equals(intent.getAction())?"screen_off":"screen_on";
+            worker.post(()->writeEvent(elapsed,wall,event));
+        }
+    };
+    public static String sensorLabel(int type){switch(type){
+        case 1:return "Accelerometer (includes gravity)";case 4:return "Gyroscope (phone rotation rate)";
+        case 11:return "Rotation vector (phone orientation)";case 9:return "Gravity vector";
+        case 10:return "Linear acceleration (gravity removed)";case 2:return "Magnetic field";
+        case 5:return "Ambient light";case 6:return "Air pressure (if available)";default:return "Sensor "+type;
+    }}
+    private static String unit(int type){switch(type){case 1:case 9:case 10:return "m/s²";case 4:return "rad/s";case 2:return "µT";case 5:return "lx";case 6:return "hPa";default:return "unitless xyz (not an angle)";}}
+    private void writeEvent(long elapsed,long wall,String event){
+        if(events==null||closing)return;
+        try{events.write(elapsed+","+wall+","+event+"\n");}catch(IOException e){finish("storage_error");}
+    }
     private File folder;
     private long startWall,startElapsed,lastFlush;
     private long gpsCount=0,sensorCount=0,rejected=0;
@@ -37,6 +58,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
         if(intent!=null&&"STOP".equals(intent.getAction())){worker.post(()->finish("user_stopped"));return START_NOT_STICKY;}
         if(running||closing)return START_NOT_STICKY;
         placement=intent==null?"Unknown":intent.getStringExtra("placement");
+        if(intent!=null&&intent.hasExtra("sensorTypes"))requestedTypes=intent.getIntArrayExtra("sensorTypes");
         try{
             Intent open=new Intent(this,MainActivity.class);
             PendingIntent pi=PendingIntent.getActivity(this,0,open,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
@@ -54,12 +76,23 @@ public class RideService extends Service implements SensorEventListener, Locatio
             folder=new File(new File(getFilesDir(),"rides"),name);if(!folder.mkdirs())throw new IOException("Cannot create recording");
             gps=new BufferedWriter(new FileWriter(new File(folder,"gps.csv")));
             motion=new BufferedWriter(new FileWriter(new File(folder,"motion.csv")));
+            events=new BufferedWriter(new FileWriter(new File(folder,"events.csv")));
+            events.write("elapsed_ns,epoch_ms,event\n");
+            IntentFilter screenFilter=new IntentFilter();screenFilter.addAction(Intent.ACTION_SCREEN_ON);screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
+            if(Build.VERSION.SDK_INT>=33)registerReceiver(screenReceiver,screenFilter,Context.RECEIVER_NOT_EXPORTED);else registerReceiver(screenReceiver,screenFilter);
+            screenReceiverRegistered=true;
+            writeEvent(SystemClock.elapsedRealtimeNanos(),System.currentTimeMillis(),((PowerManager)getSystemService(POWER_SERVICE)).isInteractive()?"initial_screen_on":"initial_screen_off");
             gps.write("fix_epoch_ms,fix_elapsed_ns,latitude_deg,longitude_deg,accuracy_m,speed_mps,speed_accuracy_mps,bearing_deg,altitude_m,accepted,mock,age_seconds\n");
             motion.write("sensor_elapsed_ns,received_epoch_ms,type,x,y,z,w,heading_accuracy_rad,accuracy\n");
-            JSONObject meta=new JSONObject().put("schema_version",2).put("placement",placement).put("device",Build.MANUFACTURER+" "+Build.MODEL).put("android_sdk",Build.VERSION.SDK_INT).put("started_epoch_ms",startWall).put("started_elapsed_ns",SystemClock.elapsedRealtimeNanos()).put("status","recording; summary.json indicates finalization").put("note","Raw phone motion in device axes. Acceleration m/s^2 includes gravity; gyro rad/s; pressure hPa in x only; rotation vector xyz plus optional w and heading accuracy in radians. Empty fields mean unavailable. Not calibrated road roughness or motorcycle lean.");
+            JSONObject meta=new JSONObject().put("schema_version",3).put("app_version","0.2.0").put("placement",placement).put("device",Build.MANUFACTURER+" "+Build.MODEL).put("android_sdk",Build.VERSION.SDK_INT).put("started_epoch_ms",startWall).put("started_elapsed_ns",SystemClock.elapsedRealtimeNanos()).put("status","recording; summary.json indicates finalization").put("note","Device axes: accelerometer includes gravity; linear acceleration excludes estimated gravity; gyro rad/s; magnetic field µT; light lx and pressure hPa in x only. Rotation vector xyz plus optional w and heading accuracy radians. Sensor summaries use xyz magnitude (x only for scalar sensors), NOT orientation angle. No calibrated road roughness or motorcycle lean. Screen events record Android broadcasts, not continuous display monitoring.");
             JSONArray available=new JSONArray();
-            for(int type:new int[]{Sensor.TYPE_ACCELEROMETER,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_ROTATION_VECTOR,Sensor.TYPE_PRESSURE}){
-                Sensor s=sensors.getDefaultSensor(type);if(s!=null){boolean registered=sensors.registerListener(this,s,40000,worker);available.put(new JSONObject().put("type",type).put("name",s.getName()).put("registered",registered));}
+            for(int type:requestedTypes){
+                if(!Arrays.asList(1,4,11,9,10,2,5,6).contains(type))continue;
+                Sensor s=sensors.getDefaultSensor(type);boolean registered=s!=null&&sensors.registerListener(this,s,40000,worker);
+                JSONObject info=new JSONObject().put("type",type).put("label",sensorLabel(type)).put("unit",unit(type)).put("name",s==null?"unavailable":s.getName()).put("available",s!=null).put("registered",registered);
+                if(s!=null)info.put("maximum_range",s.getMaximumRange()).put("resolution",s.getResolution()).put("reporting_mode",s.getReportingMode());
+                available.put(info);
+                if(registered)stats.put(type,new SensorStats());
             }
             meta.put("sensors",available);writeJson("metadata.json",meta);
             if(!locations.isProviderEnabled(LocationManager.GPS_PROVIDER))throw new IOException("GPS disabled");
@@ -71,8 +104,10 @@ public class RideService extends Service implements SensorEventListener, Locatio
             worker.postDelayed(heartbeat,5000);
         }catch(Exception e){finish("setup_failed");liveStatus="Recording stopped: check GPS, permissions, and available storage. Any samples were retained.";}
     }
-    private final Runnable heartbeat=new Runnable(){public void run(){if(!running||closing)return;try{flush();}catch(IOException e){finish("storage_error");return;}if(SystemClock.elapsedRealtime()-startElapsed>4*60*60*1000L){finish("four_hour_limit");return;}worker.postDelayed(this,5000);}};
-    private void flush()throws IOException{if(gps!=null)gps.flush();if(motion!=null)motion.flush();lastFlush=SystemClock.elapsedRealtime();}
+    private final Runnable heartbeat=new Runnable(){public void run(){if(!running||closing)return;try{flush();}catch(IOException e){finish("storage_error");return;}
+        liveStatus=String.format(Locale.US,"Recording · %d seconds\n%d GPS fixes · %d phone sensor samples\nGPS distance preview %.2f km; unreliable indoors",(SystemClock.elapsedRealtime()-startElapsed)/1000,gpsCount,sensorCount,distance/1000);
+        if(SystemClock.elapsedRealtime()-startElapsed>4*60*60*1000L){finish("four_hour_limit");return;}worker.postDelayed(this,5000);}};
+    private void flush()throws IOException{if(gps!=null)gps.flush();if(motion!=null)motion.flush();if(events!=null)events.flush();lastFlush=SystemClock.elapsedRealtime();}
     @Override public void onLocationChanged(Location l){
         if(closing||gps==null)return;
         try{
@@ -92,14 +127,21 @@ public class RideService extends Service implements SensorEventListener, Locatio
             StringBuilder row=new StringBuilder().append(e.timestamp).append(',').append(System.currentTimeMillis()).append(',').append(e.sensor.getType());
             for(int i=0;i<5;i++){row.append(',');if(i<e.values.length)row.append(Float.toString(e.values[i]));}
             motion.write(row.append(',').append(e.accuracy).append('\n').toString());sensorCount++;
+            SensorStats measurement=stats.get(e.sensor.getType());if(measurement!=null)measurement.add(e.timestamp,e.values);
         }catch(IOException ex){finish("storage_error");}
     }
     private void writeJson(String name,JSONObject obj)throws Exception{try(FileWriter f=new FileWriter(new File(folder,name))){f.write(obj.toString(2));}}
     private void finish(String reason){
         if(closing)return;closing=true;worker.removeCallbacks(heartbeat);
         sensors.unregisterListener(this);try{locations.removeUpdates(this);}catch(Exception ignored){}
+        if(screenReceiverRegistered){unregisterReceiver(screenReceiver);screenReceiverRegistered=false;}
         boolean saved=true;
         try{flush();}catch(Exception error){saved=false;}try{if(gps!=null)gps.close();}catch(Exception error){saved=false;}try{if(motion!=null)motion.close();}catch(Exception error){saved=false;}
+        try{if(events!=null)events.close();}catch(Exception error){saved=false;}
+        try{JSONArray diagnostics=new JSONArray();for(int type:requestedTypes){SensorStats s=stats.get(type);if(s==null)s=new SensorStats();
+            diagnostics.put(new JSONObject().put("type",type).put("label",sensorLabel(type)).put("unit",unit(type)).put("samples",s.count).put("mean_magnitude",s.mean()).put("rms_magnitude",s.rms()).put("peak_magnitude",s.peak).put("effective_hz",s.hz()).put("max_gap_seconds",s.maxGapSeconds).put("gaps_over_one_second",s.gapsOverOneSecond));}
+            if(folder!=null)try(FileWriter out=new FileWriter(new File(folder,"sensor_summary.json"))){out.write(diagnostics.toString(2));}
+        }catch(Exception error){saved=false;}
         try{if(folder!=null)writeJson("summary.json",new JSONObject().put("schema_version",2).put("ended_epoch_ms",System.currentTimeMillis()).put("elapsed_seconds",(SystemClock.elapsedRealtime()-startElapsed)/1000).put("estimated_distance_m",Math.round(distance)).put("gps_samples",gpsCount).put("flagged_gps_samples",rejected).put("motion_samples",sensorCount).put("end_reason",saved?reason:"storage_error").put("placement",placement).put("note","Distance is a preliminary GPS estimate; jitter filtering may undercount. Pocket motion is not road-condition evidence."));else saved=false;}catch(Exception error){saved=false;}
         if(wake!=null&&wake.isHeld())wake.release();
         liveStatus=(saved?"Saved locally · ":"Storage error; retained files may be incomplete · ")+reason+"\n"+gpsCount+" GPS fixes, "+sensorCount+" motion samples. Export from Saved rides.";

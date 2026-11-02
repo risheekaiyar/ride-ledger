@@ -2,6 +2,14 @@
 
 This is a debug prototype. A successful build does not prove that your phone records reliably with its screen locked.
 
+## Version 0.2.0 sensor test
+
+Install `dist/ride-ledger-0.2.0-debug.apk` over the previous local APK, after exporting your recordings. Choose sensors before Start: accelerometer, gyro, rotation, gravity and linear acceleration are useful for a motion test; magnetic field and light are optional. Pressure is recorded only if available. There are no additional Android permissions in this update.
+
+While stationary, record 30 seconds on a table, then 30 seconds of gentle phone movement, then leave it still again. Repeat a short walk with the screen locked, using the same placement. Stop and view saved rides for a sensor summary. Exported ZIPs additionally contain `sensor_summary.json` and `events.csv`; the latter should contain the screen transition and ongoing sensor rows should cover the interval. A light sensor in a pocket can read near zero or produce no changes. Never infer sensor gaps from on-change sensors alone.
+
+Mean/RMS/peak describe phone-sensor vector magnitude, not road quality or a riding score. Accelerometer magnitude includes gravity (roughly 9.8 m/s² at rest), linear acceleration ideally approaches zero at rest but can retain bias/filtering error, and gyro measures phone rotation rate in rad/s. Magnetic fields can be distorted indoors or near metal; light measures illumination at the phone, not the road. Optional outputs must be validated on this phone before interpreting them.
+
 ## Install
 
 1. Copy `dist/ride-ledger-0.1.0-debug.apk` to your phone using USB or your usual file transfer method.
