@@ -44,3 +44,7 @@ Concrete external blockers observed during continuation:
 - Calibration validation needs labelled real rides; provider-specific adapters need representative exports; true terrain/satellite replay needs a selected licensed source and access.
 
 Resume after these prerequisites are supplied. Do not claim eligibility, sensor accuracy, provider compatibility or hardware behavior from mock/browser tests. Regular tested pushes to UI-Improvement are authorized.
+
+User steering: keep improving aesthetics and technical data-reading functions while the user sleeps. Missing Meta credentials or hardware block only the corresponding live/hardware checks, not independent UI, analysis, import, export or test improvements. Do not mark the entire goal blocked on those prerequisites while useful independent work remains. Continue tested commits and remote pushes.
+
+Latest UI/analysis iteration adds the ride instrument panel, time-weighted speed histogram, coverage/unknown-time breakdown, gap-aware traces, source-elevation view, clear missing-sensor states and mobile Settings access. GPX summary cards distinguish geometric estimates from unknown source accuracy. Use scripts/telemetry-smoke.cjs for regression checks. Further independent work can improve import robustness, chart accessibility, ride list/garage layouts, local ride comparisons, story composition and technical calculations without provider credentials.
