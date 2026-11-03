@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{fromPoints}=require('../web/portable.js');
+const p=(lon,time,segment=0)=>({lon,lat:12,time:1700000000000+time*1000,segment});
+test('GPX retains missing sensor provenance and excludes gaps',()=>{const r=fromPoints([p(77,0),p(77.0001,10),p(78,100)]);assert(r.distanceKm>0&&r.distanceKm<.02);assert.equal(r.distanceReliable,false);assert.equal(r.placement,'Unknown');assert.equal(r.track[2][3],null);assert.equal(r.events.length,0);});
+test('segment boundaries do not create teleport distance',()=>{const r=fromPoints([p(77,0),p(78,10,1)]);assert.equal(r.distanceKm,0);});
+test('untimed and invalid GPX cannot impersonate recorded rides',()=>{assert.throws(()=>fromPoints([p(77,0),p(77,0)]));assert.throws(()=>fromPoints([p(77,0),p(181,10)]));});
+test('GPX identity is stable, content-based and separate from native start-time IDs',()=>{const points=[p(77,0),p(77.0001,10)];const r=fromPoints(points);assert.notEqual(r.id,String(points[0].time));assert.equal(r.id,fromPoints(points,'renamed.gpx').id);assert.notEqual(r.id,fromPoints([p(77,0),p(77.0002,10)]).id);require('../web/analysis.js').validateBackup({type:'odo-backup',version:1,rides:[r]});});

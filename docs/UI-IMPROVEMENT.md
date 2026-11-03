@@ -1,0 +1,31 @@
+# Odo ride studio
+
+The UI-Improvement branch adds a warm charcoal/orange design with editorial typography, a prominent Odo companion entry, mobile controls, a rider-context editor, road-observation labels and a motorsport poster exporter (9:16, 4:5, 1:1). PNGs contain rounded distance and duration; route silhouettes are explicit opt-in because even an unlabelled shape can reveal locations. Sharing uses the device share sheet when supported and download otherwise. Nothing is posted automatically.
+
+## Imports and measurement
+
+Ride Ledger ZIP imports remain supported. Timed GPX track exports from manufacturer apps, Calimoto and similar tools can be imported when those apps provide GPX. This is file interoperability, not an authenticated provider connection. Route-only planning GPX, missing timestamps, invalid coordinates, nonmonotonic times and tracks over 24 hours are rejected. GPX records use deterministic content IDs in a separate namespace from native start-time IDs; renaming an export does not duplicate it. Source GPS accuracy is unknown, gaps are excluded from geometric distance, and imported trips begin unclassified. No ABS, fuel, tyre pressure or calibrated bike lean is invented. GPX has no raw phone motion.
+
+Phone placement, bike identity/type and mount stability are rider-entered context. The Android record form captures these before starting and stores them in ZIP metadata; the analysis pipeline preserves them. Existing deterministic filtering remains responsible for measurements. This change does not validate a new sensor-fusion or calibration algorithm. Road-memory labels belong to the rider and are not independently confirmed potholes. They persist locally; automatic longitudinal road-memory learning is not implemented.
+
+## Meta at runtime
+
+The local Node server calls only Meta `muse-spark-1.3` through `https://api.meta.ai/v1/responses`, with `store:false`, bounded input, a request allowance, a timeout and schema validation. The model explains deterministic ride evidence, considers bike/placement/mount context and rider observations, and proposes a follow-up question. A comparison includes a second ride only if recurring label, placement, known bike identity, phone model and bike type match, with stable mounts reported for both. This is a comparability gate, not physical calibration. Bike identity and phone model remain local and are not sent to Meta. Exact route, timestamp, raw samples and freeform ride notes are excluded from the evidence packet. The user previews the fields before sending; the typed question is sent as written. Model output remains evidence-linked and is escaped for display.
+
+Configure `ODO_META_API_KEY` securely on the server and an explicit `ODO_META_MAX_REQUESTS` allowance. Run `node scripts/serve.cjs`. The environment used for this implementation had neither variable, so provider requests were tested with the existing mock, not a live API call. The allowance is in-memory and resets on restart. There is no production authentication or persistent billing control; keep this server loopback-only.
+
+Demo: import a ride, classify it, set its bike/phone context, label a candidate observation, choose **Debrief with Odo**, review the packet and submit. Show the Meta response and linked evidence alongside the locally calculated values. A demo with the model disabled does not establish hackathon runtime eligibility. No non-Meta runtime models are called. Bounded follow-up conversation is implemented: the last two question/summary pairs are previewed and sent as untrusted history. The current evidence is authoritative; conversations reset when the evidence changes. Clicking an observation’s evidence link opens that ride. Conversations stay in memory until reload. A model-directed tool loop remains future work.
+
+## Platform limits
+
+Android includes an explicitly enabled overlay shortcut with a foreground notification and dismissal action. It opens Odo; it does not embed chat over other apps. Overlay permission is granted in system settings. Hardware validation is still required. iOS has no equivalent arbitrary cross-app overlay. The current Android WebView remains offline for model use; a secure reachable companion backend and authenticated native transport must be implemented before claiming Meta runs inside the APK.
+
+Existing route replay and tilted MapLibre maps remain available. This is not a terrain mesh, satellite flyover or video exporter. Direct manufacturer/CaliMoto account sync, community accounts, real-time routing and bike telemetry require separate integrations and representative exports or API access.
+
+## Validation
+
+`node --test --test-isolation=none scripts/*.test.cjs`
+
+`source /workspace/ride-ledger-tools/activate.sh && ./gradlew assembleDebug lintDebug testDebugUnitTest --no-daemon --max-workers=4`
+
+Run `node scripts/ui-smoke.cjs` with Playwright, `/usr/bin/chromium` and the local server on port 4178. Browser checks cover mobile overflow, GPX import, mocked Meta follow-ups and evidence navigation, story formats and the native recording-context bridge contract. Earlier browser checks also exercised PNG download and road-memory empty states. Physical sensor accuracy, overlay lifecycle and phone sharing need on-device trials. No environment draft changes or publication are part of this code task.

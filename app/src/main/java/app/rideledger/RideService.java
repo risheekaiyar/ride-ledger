@@ -46,7 +46,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
     private double distance=0;
     private Location previous;
     private volatile boolean closing=false;
-    private String placement="Pocket",activityType="unclassified";
+    private String placement="Pocket",activityType="unclassified",rideContext="{}";
     private final HashMap<Integer,Long> lastSample=new HashMap<>();
     @Override public void onCreate(){
         super.onCreate();thread=new HandlerThread("ride-recorder");thread.start();worker=new Handler(thread.getLooper());
@@ -59,6 +59,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
         if(running||closing)return START_NOT_STICKY;
         placement=intent==null?"Unknown":intent.getStringExtra("placement");
         activityType=intent==null?"unclassified":intent.getStringExtra("activityType");
+        rideContext=intent==null?null:intent.getStringExtra("rideContext");
         if(intent!=null&&intent.hasExtra("sensorTypes"))requestedTypes=intent.getIntArrayExtra("sensorTypes");
         try{
             Intent open=new Intent(this,DashboardActivity.class);
@@ -86,6 +87,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
             gps.write("fix_epoch_ms,fix_elapsed_ns,latitude_deg,longitude_deg,accuracy_m,speed_mps,speed_accuracy_mps,bearing_deg,altitude_m,accepted,mock,age_seconds\n");
             motion.write("sensor_elapsed_ns,received_epoch_ms,type,x,y,z,w,heading_accuracy_rad,accuracy\n");
             JSONObject meta=new JSONObject().put("schema_version",3).put("app_version","0.3.0").put("activity_type",activityType==null?"unclassified":activityType).put("placement",placement).put("device",Build.MANUFACTURER+" "+Build.MODEL).put("android_sdk",Build.VERSION.SDK_INT).put("started_epoch_ms",startWall).put("started_elapsed_ns",SystemClock.elapsedRealtimeNanos()).put("status","recording; summary.json indicates finalization").put("note","Device axes: accelerometer includes gravity; linear acceleration excludes estimated gravity; gyro rad/s; magnetic field µT; light lx and pressure hPa in x only. Rotation vector xyz plus optional w and heading accuracy radians. Sensor summaries use xyz magnitude (x only for scalar sensors), NOT orientation angle. No calibrated road roughness or motorcycle lean. Screen events record Android broadcasts, not continuous display monitoring.");
+            if(rideContext!=null)meta.put("ride_context",new JSONObject(rideContext));
             JSONArray available=new JSONArray();
             for(int type:requestedTypes){
                 if(!Arrays.asList(1,4,11,9,10,2,5,6).contains(type))continue;

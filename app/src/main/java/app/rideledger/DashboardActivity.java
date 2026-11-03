@@ -25,6 +25,7 @@ public class DashboardActivity extends Activity {
     private boolean widgetPending=false,destroyed=false;
     private String pendingPlacement;
     private String activityType="ride";
+    private String recordingContext="{}";
     private int[] pendingTypes;
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
@@ -70,7 +71,7 @@ public class DashboardActivity extends Activity {
         if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)needed.add(Manifest.permission.POST_NOTIFICATIONS);
         if(!needed.isEmpty()){requestPermissions(needed.toArray(new String[0]),12);return;}
         getPreferences(0).edit().putString("placement",placement).apply();
-        try{startForegroundService(new Intent(this,RideService.class).putExtra("placement",placement).putExtra("sensorTypes",types).putExtra("activityType",activityType));toast("Recording started. Stop after parking.");}catch(Exception e){toast("Start failed. Keep the app visible and check permissions.");}
+        try{startForegroundService(new Intent(this,RideService.class).putExtra("placement",placement).putExtra("sensorTypes",types).putExtra("activityType",activityType).putExtra("rideContext",recordingContext));toast("Recording started. Stop after parking.");}catch(Exception e){toast("Start failed. Keep the app visible and check permissions.");}
     }
     private void stopRide(){if(RideService.running)startService(new Intent(this,RideService.class).setAction("STOP"));}
     @Override public void onRequestPermissionsResult(int code,String[] permissions,int[] results){super.onRequestPermissionsResult(code,permissions,results);if(code==12){boolean ok=checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED&&(Build.VERSION.SDK_INT<33||checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED);if(ok)startRide(pendingPlacement,pendingTypes);else toast("Precise location and notifications are required. Use Start again after granting them.");}}
@@ -81,10 +82,22 @@ public class DashboardActivity extends Activity {
         try(InputStream source=in;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;long total=0;while((n=source.read(b))!=-1){total+=n;if(total>40L*1024*1024)throw new IOException("Too large");out.write(b,0,n);}String encoded=Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);js("window.odoNativeRide("+JSONObject.quote(id)+","+JSONObject.quote(encoded)+")");}catch(Exception e){error("Import failed or ZIP exceeds 40 MB. Original files are unchanged.");}
     }
     public final class Bridge {
+        @JavascriptInterface public void companionBubble(){main.post(()->{
+            if(!android.provider.Settings.canDrawOverlays(DashboardActivity.this)){
+                startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));
+                toast("Allow display over other apps, then tap Enable bubble again.");return;
+            }
+            try{startForegroundService(new Intent(DashboardActivity.this,CompanionBubbleService.class));}catch(RuntimeException e){toast("Unable to start bubble. Check overlay permissions.");}
+        });}
+
         @JavascriptInterface public void state(){js("window.odoNativeState("+RideService.running+","+JSONObject.quote(RideService.liveStatus)+")");}
-        @JavascriptInterface public void start(String placement,String sensorJson,String activity){
+        @JavascriptInterface public void start(String placement,String sensorJson,String activity,String contextJson){
             if(!Arrays.asList("Pocket","Bag","Rigid mount").contains(placement))return;
-            try{JSONArray input=new JSONArray(sensorJson);ArrayList<Integer> list=new ArrayList<>();for(int i=0;i<input.length()&&i<8;i++){int t=input.getInt(i);if(Arrays.asList(1,4,11,9,10,2,5,6).contains(t)&&!list.contains(t))list.add(t);}if(list.isEmpty())return;int[] types=list.stream().mapToInt(Integer::intValue).toArray();main.post(()->{activityType="walk".equals(activity)?"walk":"ride";startRide(placement,types);});}catch(JSONException ignored){}
+            try{JSONObject supplied=new JSONObject(contextJson),context=new JSONObject();
+                String bike=supplied.optString("bike_id","").trim(),type=supplied.optString("bike_type","Unknown"),mount=supplied.optString("mount_condition","Unknown");
+                if(bike.length()>100||!Arrays.asList("Unknown","Adventure","Sport","Touring","Roadster","Cruiser","Scooter","Off-road").contains(type)||!Arrays.asList("Unknown","Stable","Slipping","Not mounted").contains(mount))return;
+                context.put("bike_id",bike).put("bike_type",type).put("mount_condition",mount);
+                JSONArray input=new JSONArray(sensorJson);ArrayList<Integer> list=new ArrayList<>();for(int i=0;i<input.length()&&i<8;i++){int t=input.getInt(i);if(Arrays.asList(1,4,11,9,10,2,5,6).contains(t)&&!list.contains(t))list.add(t);}if(list.isEmpty())return;int[] types=list.stream().mapToInt(Integer::intValue).toArray();main.post(()->{recordingContext=context.toString();activityType="walk".equals(activity)?"walk":"ride";startRide(placement,types);});}catch(JSONException ignored){}
         }
         @JavascriptInterface public void stop(){main.post(()->stopRide());}
         @JavascriptInterface public void listRides(){io.execute(()->{try{JSONArray list=new JSONArray();File[] dirs=new File(getFilesDir(),"rides").listFiles(File::isDirectory);if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File d:dirs)if(new File(d,"summary.json").isFile())list.put(new JSONObject().put("id",d.getName()));}js("window.odoNativeList("+list+")");}catch(Exception e){error("Could not list recordings.");}});}
