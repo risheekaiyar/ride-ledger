@@ -1,5 +1,7 @@
 # Odo / Ride Ledger 0.3.0 — private preview
 
+Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
+
 Prepared 3 November 2026. This is a functional personal journal and recorder preview, not a production social network or a validated riding coach.
 
 ## Working in this release

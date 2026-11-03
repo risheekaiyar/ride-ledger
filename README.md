@@ -1,5 +1,7 @@
 # Odo / Ride Ledger — private riding journal
 
+Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
+
 Version **0.3.0** adds a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
 
 The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay a neon route, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.

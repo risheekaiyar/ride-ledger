@@ -1,5 +1,7 @@
 # Current release: 0.3.0
 
+Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
+
 See docs/RELEASE-0.3.md for scope and validation limits. Android assemble/lint/10 Java tests and 10 Node tests passed locally. Dashboard/WebView/widget still need the owner's on-device trial.
 
 APK SHA-256: `43DB48FDBA05F11BDA0CE3A18DC768577B0087D68C2A8ADF42651DB18251614E`.
