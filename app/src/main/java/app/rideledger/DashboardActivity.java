@@ -92,6 +92,21 @@ public class DashboardActivity extends Activity {
         }
     }
     public final class Bridge {
+        @JavascriptInterface public void shareStory(String data){
+            if(data==null||!data.startsWith("data:image/png;base64,")||data.length()>12*1024*1024){toast("Story image is too large or unsupported.");return;}
+            io.execute(()->{try{
+                byte[] bytes=Base64.decode(data.substring(22),Base64.DEFAULT);
+                android.graphics.BitmapFactory.Options options=new android.graphics.BitmapFactory.Options();options.inJustDecodeBounds=true;
+                android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
+                if(!"image/png".equals(options.outMimeType)||options.outWidth<1||options.outHeight<1||options.outWidth>2160||options.outHeight>3840)throw new IOException("Invalid story image");
+                File directory=new File(getCacheDir(),"stories");if(!directory.exists()&&!directory.mkdirs())throw new IOException();
+                File[] previous=directory.listFiles();if(previous!=null)for(File f:previous)if(f.getName().matches("odo-[a-f0-9-]{36}\\.png")&&System.currentTimeMillis()-f.lastModified()>86400000L)f.delete();
+                File image=new File(directory,"odo-"+UUID.randomUUID()+".png");try(FileOutputStream out=new FileOutputStream(image)){out.write(bytes);}
+                Uri uri=Uri.parse("content://"+getPackageName()+".stories/"+image.getName());
+                main.post(()->{if(destroyed)return;Intent share=new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);share.setClipData(ClipData.newRawUri("Odo ride story",uri));try{startActivity(Intent.createChooser(share,"Share your Odo story"));}catch(Exception e){toast("No app is available to share this image.");}});
+            }catch(Exception e){toast("Could not prepare story image. Original ride data is unchanged.");}});
+        }
+
         @JavascriptInterface public void companionBubble(){main.post(()->{
             if(!android.provider.Settings.canDrawOverlays(DashboardActivity.this)){
                 startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:"+getPackageName())));

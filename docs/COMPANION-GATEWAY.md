@@ -27,3 +27,9 @@ In Odo Settings, choose **Configure secure connection** and enter the HTTPS gate
 Enable the companion bubble in Settings, grant display-over-other-apps permission, then enable it again. Drag the bubble to move it; tap to expand chat. The expanded window has a drag handle, full-app button, collapse control and close control. The foreground notification also dismisses the service. Revoking overlay permission stops the service. The overlay reads the same local ride journal through app-owned WebView assets and exposes only the companion transport bridge. No recorder bridge or remote page is loaded in the overlay. Use it after parking.
 
 `node scripts/overlay-smoke.cjs` tests the narrow overlay layout and a simulated native bridge in Chromium. Device validation remains outstanding: Android Keystore persistence, gateway certificate trust, foreground-service lifecycle, overlay gestures, soft keyboard, rotation, task switching and permission revocation. No device or production deployment is implied by the browser tests.
+
+## Managed cloud execution
+
+When using the managed environment's proxy-backed provider credential, run Node 24 with `--use-env-proxy` so HTTPS uses the inherited proxy and injected credential binding. Keep `NODE_EXTRA_CA_CERTS` and other platform trust configuration intact. Do not copy a proxy placeholder into the mobile client or a standalone server. Use a genuine server-side secret binding for a separately deployed gateway.
+
+At the current checkpoint, documentation access to dev.meta.ai is rejected by the environment's CONNECT proxy. Additive network requirements for dev.meta.ai and api.meta.ai and a secret requirement for ODO_META_API_KEY have been saved in the environment draft, not applied or published. Set an explicit request allowance before authorizing live validation; no paid Meta calls have been performed.

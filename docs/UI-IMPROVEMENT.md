@@ -1,6 +1,6 @@
 # Odo ride studio
 
-The UI-Improvement branch adds a warm charcoal/orange design with editorial typography, a prominent Odo companion entry, mobile controls, a rider-context editor, road-observation labels and a motorsport poster exporter (9:16, 4:5, 1:1). PNGs contain rounded distance and duration; route silhouettes are explicit opt-in because even an unlabelled shape can reveal locations. Sharing uses the device share sheet when supported and download otherwise. Nothing is posted automatically.
+The UI-Improvement branch adds a warm charcoal/orange design with editorial typography, a prominent Odo companion entry, mobile controls, a rider-context editor, road-observation labels and a motorsport poster exporter (9:16, 4:5, 1:1). PNGs contain rounded distance and duration; route silhouettes are explicit opt-in because even an unlabelled shape can reveal locations. The Android app shares generated PNGs through a private read-only content provider and the system share sheet. Browsers use Web Share when supported and download otherwise. Only the generated image is granted to the chosen receiver, never the ride database or raw exports. Nothing is posted automatically.
 
 ## Imports and measurement
 
@@ -28,4 +28,4 @@ Existing route replay and tilted MapLibre maps remain available. This is not a t
 
 `source /workspace/ride-ledger-tools/activate.sh && ./gradlew assembleDebug lintDebug testDebugUnitTest --no-daemon --max-workers=4`
 
-Run `node scripts/ui-smoke.cjs` with Playwright, `/usr/bin/chromium` and the local server on port 4178. Browser checks cover mobile overflow, GPX import, mocked Meta follow-ups and evidence navigation, story formats and the native recording-context bridge contract. Earlier browser checks also exercised PNG download and road-memory empty states. Physical sensor accuracy, overlay lifecycle and phone sharing need on-device trials. No environment draft changes or publication are part of this code task.
+Run `node scripts/ui-smoke.cjs` with Playwright, `/usr/bin/chromium` and the local server on port 4178. Browser checks cover mobile overflow, GPX import, mocked Meta follow-ups and evidence navigation, story formats and the native recording-context bridge contract. Earlier browser checks also exercised PNG download and road-memory empty states. Physical sensor accuracy, overlay lifecycle and phone sharing need on-device trials. The environment draft now contains additive requirements for dev.meta.ai and api.meta.ai access plus an ODO_META_API_KEY secret binding. These requirements are saved for review only; no secret value was entered, runtime application verified or environment published.
