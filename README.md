@@ -1,5 +1,7 @@
 # Odo / Ride Ledger — private riding journal
 
+A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.
+
 Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
 
 Version **0.3.0** adds a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
