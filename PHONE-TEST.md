@@ -1,3 +1,15 @@
+# Test 0.3.0 first
+
+Export old rides, then install dist/ride-ledger-0.3.0-debug.apk as Update. Keep existing app/storage. Saved rides load into Odo when recording is stopped; classify older generic recordings before using totals. The top Recorder controls link retains original controls/export.
+
+While parked, select activity/placement, start a short walk, lock the screen, then stop while stationary from notification or home-screen widget. Confirm dashboard import and original ZIP export. Add the widget via Android's home-screen widget picker (Ride Ledger). First use may request precise location and notifications. The widget opens the app before recording; no overlay permission is needed.
+
+For web review, import the same ZIPs into the private website. Each browser has its own records. Load optional map tiles only if you want OpenStreetMap to receive the viewed area. Globe/tilt does not provide satellite/terrain imagery. Bike lean, impact severity and safety scoring are not validated.
+
+These Android dashboard/bridge/widget changes compiled and passed static checks but still need a real-phone trial. See docs/RELEASE-0.3.md.
+
+## Earlier 0.2.0 testing notes
+
 # Install and test on the Vivo X300 Pro
 
 This is a debug prototype. A successful build does not prove that your phone records reliably with its screen locked.

@@ -51,6 +51,7 @@ public class MainActivity extends Activity {
         button(root,"View saved rides",v -> showRides());
         button(root,"Export a saved ride (ZIP)",v -> chooseExport());
         text(root,"First test: record a short walk, save it, then export it. On Vivo, verify screen-off recording before relying on an office commute. A persistent recording notification should remain visible.",15);
+        if(getIntent().getBooleanExtra("export",false))chooseExport();
     }
     private TextView text(LinearLayout root,String s,int size){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setPadding(0,10,0,14);root.addView(t);return t;}
     private void button(LinearLayout root,String s,android.view.View.OnClickListener click){Button b=new Button(this);b.setText(s);b.setOnClickListener(click);root.addView(b);}

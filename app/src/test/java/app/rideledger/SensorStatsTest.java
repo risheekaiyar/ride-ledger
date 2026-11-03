@@ -2,6 +2,7 @@ package app.rideledger;
 import org.junit.Test;
 import static org.junit.Assert.*;
 public class SensorStatsTest {
+    @Test public void scalarIgnoresVendorExtraChannels(){SensorStats s=new SensorStats();s.add(1,new float[]{10,8000,9000},true);assertEquals(10,s.peak,0);assertEquals(10,s.mean(),0);}
     @Test public void vectorMagnitudeRmsAndTiming(){
         SensorStats s=new SensorStats();s.add(1000000000L,new float[]{3,4,0});s.add(3000000000L,new float[]{0,0,0});
         assertEquals(2,s.count);assertEquals(2.5,s.mean(),1e-8);assertEquals(Math.sqrt(12.5),s.rms(),1e-8);

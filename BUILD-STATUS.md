@@ -1,3 +1,14 @@
+# Current release: 0.3.0
+
+See docs/RELEASE-0.3.md for scope and validation limits. Android assemble/lint/10 Java tests and 10 Node tests passed locally. Dashboard/WebView/widget still need the owner's on-device trial.
+
+APK SHA-256: `43DB48FDBA05F11BDA0CE3A18DC768577B0087D68C2A8ADF42651DB18251614E`.
+Certificate SHA-256: `8dd9bf63ecfacb6425a09d08fa4b6dbb532e2c34fb483646005da749d4fe25b5`, matching prior local APKs.
+
+Internet permission was added for optional user-triggered map tiles. Raw recording has no automatic upload. Muse/community/Bluetooth/speed-limit services remain unconnected. No credentials or private recordings are in hosted source.
+
+## Historical recorder notes (0.2.0 and earlier)
+
 # Build verification — November 3, 2026 (IST)
 
 Repository access update: the owner confirmed sharing with VarunAiyar. A GitHub collaborator invitation was sent and verified as pending acceptance on November 3, 2026. Developer handoff is in VARUN-HANDOFF.md. No raw recordings or credentials were shared in the repository.

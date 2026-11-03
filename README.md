@@ -1,53 +1,27 @@
-# Ride Ledger — Android commute recorder
+# Odo / Ride Ledger — private riding journal
 
-Prototype for an Xpulse 200 rider using a Vivo X300 Pro, initially carried in a pocket or bag. Records only after explicit Start; user stops after parking. No network permission, account, AI calls or automatic uploads in the recorder.
+Version **0.3.0** adds a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
 
-## Current state
+The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay a neon route, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.
 
-New collaborator: start with [VARUN-HANDOFF.md](VARUN-HANDOFF.md). Version 0.2.0 [cloud build, lint, tests and artifact upload passed](https://github.com/risheekaiyar/ride-ledger/actions/runs/41519934587). Update the existing local installation rather than uninstalling it; export existing rides first.
+This release does not yet connect Muse, a live multi-user community, automatic cross-device sync, bike Bluetooth or road speed-limit data. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
 
-Version 0.2.0 adds per-recording sensor selection: accelerometer, gyro, rotation vector, gravity, linear acceleration, magnetic field, ambient light and pressure when the device exposes them. Gravity and linear acceleration are Android's estimated/fused sensor outputs; they are not independent proof of road or bike dynamics. Extra sensors increase sampling work and may affect battery use.
+Local Android assemble/lint/10 Java tests and 10 Node analysis tests passed. The new Android dashboard and home-screen widget require an on-device trial. Install the matching local APK as **Update**, after exporting old rides; keep the existing installation/storage. Older generic recordings remain unclassified until edited.
 
-Saved rides now show phone-sensor magnitude mean, RMS, peak, effective sample rate and largest gap. Rotation-vector magnitude is explicitly unitless xyz, not lean or an orientation angle. On-change sensors such as light may legitimately have long gaps with no value change. Missing sensors have zero samples and are marked unavailable in metadata; no values are invented. `sensor_summary.json` exports these diagnostics; `events.csv` records initial interactive state and screen-on/off broadcasts. Metadata schema 3 includes sensor range, resolution, registration and reporting mode; raw GPS/motion columns remain compatible with schema 2.
+**Hackathon eligibility is unresolved:** the authenticated event rules list sports analyzers/coaches among generic categories to avoid. See [HACKATHON-CHECKLIST.md](docs/HACKATHON-CHECKLIST.md) before presenting riding coaching as an entry. The source repository remains private.
 
-The 0.2.0 local build, lint and nine unit tests passed. The new options, screen-event logger and on-phone summary still require device testing. Install `dist/ride-ledger-0.2.0-debug.apk` over the earlier local build; export rides first and do not uninstall unless those exports are safe. The earlier 0.1.0 artifact remains available for comparison.
+## Build and preview
 
-Debug APK built locally on November 3, 2026. `assembleDebug`, `lintDebug`, and all six GPS-filter unit tests passed. APK signature/permission verification is recorded in BUILD-STATUS.md. On-device and screen-off testing are still required. See [PHONE-TEST.md](PHONE-TEST.md) for install and five-minute walk instructions.
+Use JDK 17, Android SDK platform 35/build-tools 34.0.0, and the included Gradle 8.9 wrapper: `./gradlew assembleDebug lintDebug testDebugUnitTest` (Windows: `.\gradlew.bat`). Android's syncDashboard task copies web/ into generated APK assets. Owner's helper tools and signing keys are ignored, never distributed.
 
-Capabilities implemented in source: location foreground service with visible notification and Stop action; GPS fixes with accuracy, mock and age flags; accelerometer, gyro, rotation vector (xyz plus optional scalar/heading accuracy) and pressure when available; private internal storage; buffered CSV writes; metadata and end summary; user-selected ZIP export through Android document picker. No auto-start or background-location permission. Four-hour recording limit. Process death may retain previously flushed files but leave no final summary. Unavailable sensor components are empty CSV fields. Motion is capped at approximately 25 Hz per sensor; GPS requests are approximately 1 Hz, without a guaranteed delivery rate.
+Run `node --test scripts/analysis.test.cjs` for the evidence pipeline tests. Run `node scripts/serve.cjs`, then open http://127.0.0.1:4178 for the local web interface. It needs no package installation. `?review=1` loads dist/private-review.json only on the local preview, if privately prepared; that file is never included in the deployed site.
 
-Raw exports contain precise routes. Never commit real commute data, API keys, build caches or signing keys. The existing job-dashboard .env.local belongs to a separate project and must not be copied here.
+The APK is generated at app/build/outputs/apk/debug/app-debug.apk and copied locally to dist/ride-ledger-0.3.0-debug.apk. Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
 
-## Build
+Raw ZIP exports contain metadata.json, summary.json, gps.csv, motion.csv, events.csv and sensor_summary.json. GPS/motion columns remain compatible with the older recorder. No road/safety/calibration claim follows from a successful recording.
 
-Requires JDK 17 and Android SDK platform 35; Gradle wrapper 8.9 is included. On Windows, configure `JAVA_HOME` for JDK 17 and `ANDROID_HOME` for your SDK, then use `.\gradlew.bat assembleDebug lintDebug testDebugUnitTest`. On macOS/Linux use `bash ./gradlew assembleDebug lintDebug testDebugUnitTest`. Android Studio can import this folder and configure the SDK. AGP 8.7.3 selects build-tools 34.0.0, installed locally alongside 35.0.0. Local helper tools and build caches are ignored under tools/.
+## Collaboration and privacy
 
-The generated APK is `app/build/outputs/apk/debug/app-debug.apk`, copied for phone transfer as `dist/ride-ledger-0.1.0-debug.apk`. A source-only ZIP is also placed in dist/. Neither distribution file is committed. The GitHub Actions workflow runs the same build/lint/unit-test tasks and exposes an APK artifact. [The first corrected cloud build passed](https://github.com/risheekaiyar/ride-ledger/actions/runs/41516492201), including artifact upload. The local and cloud debug APKs can use different signing keys; export existing rides before any uninstall.
+Private source: https://github.com/risheekaiyar/ride-ledger . VarunAiyar was invited November 3; invitation acceptance is separate from hackathon eligibility. Use your own GitHub account, feature branches and reviewed changes. Never commit raw routes, odometer/bike photos, credentials, local tools or signing keys. The owner's local checkout was originally published through the connected app; terminal Git authentication/history synchronization requires separate setup.
 
-The recorder uses an explicit location foreground service and is started while the Activity is visible, following [Android foreground-service guidance](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start). Android recommends foreground-service sensor collection for continuous sensors ([sensor overview](https://developer.android.com/develop/sensors-and-location/sensors/sensors_overview)). These platform rules do not establish Vivo-specific screen-off reliability.
-
-Schema version 2: `gps.csv` contains raw fixes, location uncertainty, optional speed uncertainty, mock flag, age and acceptance flag. Acceptance means the fix passed a preliminary quality filter, not that a distance segment was counted. The distance preview rejects long gaps, implausible jumps and small jitter; this may undercount real movement. `motion.csv` records monotonic sensor timestamps, receipt wall time, Android sensor type, up to five values and Android sensor accuracy. Units and registration availability are in metadata. `summary.json` indicates finalization; absent summary means incomplete. No stop/delay comparison, AI explanation or road-condition inference is implemented.
-
-## Validation before commute
-
-1. Install debug APK; grant precise location and notification access.
-2. Start outside while parked. Confirm GPS fixes appear and notification remains visible.
-3. Walk five minutes with the display locked. Stop from notification after stopping movement.
-4. View summary; export ZIP and verify timestamps, plausible route, GPS uncertainty, and sensor rows covering the locked interval.
-5. Repeat a normal commute with consistent phone placement. Do not interact while riding.
-
-Device battery management may interrupt recording: validate on this Vivo before relying on it. Export is manual; a copy in Downloads or a cloud provider is outside the app's private storage.
-
-## Product direction to evaluate
-
-Broad Strava-for-motorcycles already exists: REVER (tracking/community), calimoto (route planning), Detecht (tracking/navigation/community), Slipangle (phone telemetry). Do not claim the concept or smartphone road sensing is novel.
-
-Possible narrower hypothesis: a private repeated-commute diary that explains travel-time changes and repeat location-linked observations. Compare only like-for-like routes and sampling conditions. Pocket/bag motion includes body movement and cannot substantiate road roughness, potholes, lean angle, braking safety, or crashes. Road-condition inference needs later fixed-mount calibration and repeated-pass validation.
-
-Meta model role for a later hackathon slice: turn computed route/stop statistics and explicit rider notes into an evidence-linked post-ride explanation, distinguish observed from unknown, and let riders correct it. Keep numerical measurement deterministic. No AI currently implemented. Community/feed is future scope, not required for the first sensor test. No speed competitions or unvalidated safety scoring.
-
-## Collaboration
-
-Private source repository: https://github.com/risheekaiyar/ride-ledger . User GitHub: risheekaiyar. Brother: VarunAiyar. Local `origin` points to this repository. Source is published using the connected GitHub app; local Git authentication must be configured separately before terminal fetch/push will work. A collaborator invitation was sent to VarunAiyar on November 3, 2026 and was pending acceptance when last checked. Competition eventually requires public source with no personal data; do not change visibility without authorization. See COLLABORATION.md for the remote development workflow.
-
-Competition deadline carried from this conversation: November 4, 2026 at 9pm ET (November 5, 7:30am IST). Available user time 3–4 hours/day. Prioritize working recorder + real test + meaningful evidence over a full social network. Verify team eligibility for human coding contributions; do not assume brother qualifies automatically.
+The private web interface is hosted at https://odo-ride-ledger-risheek.risheekaiyar.chatgpt.site . Each browser stores its own imported data; it is not cross-device synchronization. Export a private backup before clearing browser data.

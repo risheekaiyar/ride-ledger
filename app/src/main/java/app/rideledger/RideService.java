@@ -46,7 +46,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
     private double distance=0;
     private Location previous;
     private volatile boolean closing=false;
-    private String placement="Pocket";
+    private String placement="Pocket",activityType="unclassified";
     private final HashMap<Integer,Long> lastSample=new HashMap<>();
     @Override public void onCreate(){
         super.onCreate();thread=new HandlerThread("ride-recorder");thread.start();worker=new Handler(thread.getLooper());
@@ -58,14 +58,15 @@ public class RideService extends Service implements SensorEventListener, Locatio
         if(intent!=null&&"STOP".equals(intent.getAction())){worker.post(()->finish("user_stopped"));return START_NOT_STICKY;}
         if(running||closing)return START_NOT_STICKY;
         placement=intent==null?"Unknown":intent.getStringExtra("placement");
+        activityType=intent==null?"unclassified":intent.getStringExtra("activityType");
         if(intent!=null&&intent.hasExtra("sensorTypes"))requestedTypes=intent.getIntArrayExtra("sensorTypes");
         try{
-            Intent open=new Intent(this,MainActivity.class);
+            Intent open=new Intent(this,DashboardActivity.class);
             PendingIntent pi=PendingIntent.getActivity(this,0,open,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
             PendingIntent stop=PendingIntent.getService(this,1,new Intent(this,RideService.class).setAction("STOP"),PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
             Notification n=new Notification.Builder(this,"recording").setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("Recording your commute").setContentText("GPS and motion stored on this phone. Tap Stop after parking.").setContentIntent(pi).setOngoing(true).addAction(new Notification.Action.Builder(null,"Stop & save",stop).build()).build();
             startForeground(1,n);
-            running=true;liveStatus="Starting recorder…";worker.post(this::begin);
+            running=true;JourneyWidget.refresh(this);liveStatus="Starting recorder…";worker.post(this::begin);
         }catch(Exception e){liveStatus="Cannot start. Check location permission and retry while app is visible.";running=false;stopSelf();}
         return START_NOT_STICKY;
     }
@@ -84,7 +85,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
             writeEvent(SystemClock.elapsedRealtimeNanos(),System.currentTimeMillis(),((PowerManager)getSystemService(POWER_SERVICE)).isInteractive()?"initial_screen_on":"initial_screen_off");
             gps.write("fix_epoch_ms,fix_elapsed_ns,latitude_deg,longitude_deg,accuracy_m,speed_mps,speed_accuracy_mps,bearing_deg,altitude_m,accepted,mock,age_seconds\n");
             motion.write("sensor_elapsed_ns,received_epoch_ms,type,x,y,z,w,heading_accuracy_rad,accuracy\n");
-            JSONObject meta=new JSONObject().put("schema_version",3).put("app_version","0.2.0").put("placement",placement).put("device",Build.MANUFACTURER+" "+Build.MODEL).put("android_sdk",Build.VERSION.SDK_INT).put("started_epoch_ms",startWall).put("started_elapsed_ns",SystemClock.elapsedRealtimeNanos()).put("status","recording; summary.json indicates finalization").put("note","Device axes: accelerometer includes gravity; linear acceleration excludes estimated gravity; gyro rad/s; magnetic field µT; light lx and pressure hPa in x only. Rotation vector xyz plus optional w and heading accuracy radians. Sensor summaries use xyz magnitude (x only for scalar sensors), NOT orientation angle. No calibrated road roughness or motorcycle lean. Screen events record Android broadcasts, not continuous display monitoring.");
+            JSONObject meta=new JSONObject().put("schema_version",3).put("app_version","0.3.0").put("activity_type",activityType==null?"unclassified":activityType).put("placement",placement).put("device",Build.MANUFACTURER+" "+Build.MODEL).put("android_sdk",Build.VERSION.SDK_INT).put("started_epoch_ms",startWall).put("started_elapsed_ns",SystemClock.elapsedRealtimeNanos()).put("status","recording; summary.json indicates finalization").put("note","Device axes: accelerometer includes gravity; linear acceleration excludes estimated gravity; gyro rad/s; magnetic field µT; light lx and pressure hPa in x only. Rotation vector xyz plus optional w and heading accuracy radians. Sensor summaries use xyz magnitude (x only for scalar sensors), NOT orientation angle. No calibrated road roughness or motorcycle lean. Screen events record Android broadcasts, not continuous display monitoring.");
             JSONArray available=new JSONArray();
             for(int type:requestedTypes){
                 if(!Arrays.asList(1,4,11,9,10,2,5,6).contains(type))continue;
@@ -127,7 +128,7 @@ public class RideService extends Service implements SensorEventListener, Locatio
             StringBuilder row=new StringBuilder().append(e.timestamp).append(',').append(System.currentTimeMillis()).append(',').append(e.sensor.getType());
             for(int i=0;i<5;i++){row.append(',');if(i<e.values.length)row.append(Float.toString(e.values[i]));}
             motion.write(row.append(',').append(e.accuracy).append('\n').toString());sensorCount++;
-            SensorStats measurement=stats.get(e.sensor.getType());if(measurement!=null)measurement.add(e.timestamp,e.values);
+            SensorStats measurement=stats.get(e.sensor.getType());if(measurement!=null)measurement.add(e.timestamp,e.values,e.sensor.getType()==Sensor.TYPE_LIGHT||e.sensor.getType()==Sensor.TYPE_PRESSURE);
         }catch(IOException ex){finish("storage_error");}
     }
     private void writeJson(String name,JSONObject obj)throws Exception{try(FileWriter f=new FileWriter(new File(folder,name))){f.write(obj.toString(2));}}
@@ -147,10 +148,11 @@ public class RideService extends Service implements SensorEventListener, Locatio
         liveStatus=(saved?"Saved locally · ":"Storage error; retained files may be incomplete · ")+reason+"\n"+gpsCount+" GPS fixes, "+sensorCount+" motion samples. Export from Saved rides.";
         new Handler(getMainLooper()).post(()->{stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();});
     }
-    @Override public void onDestroy(){running=false;if(worker!=null){worker.post(()->{if(!closing)finish("service_destroyed");thread.quitSafely();});}super.onDestroy();}
+    @Override public void onDestroy(){running=false;JourneyWidget.refresh(this);if(worker!=null){worker.post(()->{if(!closing)finish("service_destroyed");thread.quitSafely();});}super.onDestroy();}
     @Override public void onAccuracyChanged(Sensor sensor,int accuracy){}
     @Override public void onProviderDisabled(String provider){liveStatus="Recording motion; GPS disabled. Re-enable location to resume fixes.";}
     @Override public void onProviderEnabled(String provider){}
     @Override public void onStatusChanged(String provider,int status,Bundle extras){}
     @Override public IBinder onBind(Intent intent){return null;}
 }
+

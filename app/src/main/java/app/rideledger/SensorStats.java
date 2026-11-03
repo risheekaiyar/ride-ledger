@@ -5,8 +5,11 @@ final class SensorStats {
     long count, firstNs, lastNs, gapsOverOneSecond;
     double sum, sumSquares, peak, maxGapSeconds;
     void add(long time, float[] values) {
+        add(time,values,false);
+    }
+    void add(long time,float[] values,boolean scalar){
         double square=0;
-        for(int i=0;i<Math.min(3,values.length);i++) {
+        for(int i=0;i<Math.min(scalar?1:3,values.length);i++) {
             if(!Float.isFinite(values[i]))return;
             square+=(double)values[i]*values[i];
         }

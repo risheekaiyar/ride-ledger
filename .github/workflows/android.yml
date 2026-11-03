@@ -19,6 +19,7 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: bash ./gradlew assembleDebug lintDebug testDebugUnitTest --no-daemon
+      - run: node --test scripts/analysis.test.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: ride-ledger-debug-apk

@@ -1,3 +1,15 @@
+# Current handoff: 0.3.0
+
+Start with docs/RELEASE-0.3.md and docs/MUSE-INTEGRATION.md. Shared dashboard source is web/; Android copies it to generated assets via syncDashboard. DashboardActivity hosts app-owned HTTPS assets and a bounded native recording/import bridge. JourneyWidget opens a visible Activity before recording. MainActivity retains original controls and ZIP export. IndexedDB is local data, not a shared backend.
+
+Run `node --test scripts/analysis.test.cjs` plus `./gradlew assembleDebug lintDebug testDebugUnitTest`. All 10 Node and 10 Java tests passed locally. Phone UI/widget/bridge testing remains required. Preserve the app ID and owner signing key locally; install as Update. Cloud debug keys can differ.
+
+The owner supplied an outdoor pocket commute, office walk and return in a portrait handlebar holder. That holder moves slightly and receives single-cylinder vibration. It is not a calibrated bike frame. Do not turn phone acceleration into lean, safety or pothole truth. Never commit recordings, photos, private-review.json, secrets or signing keys.
+
+Muse needs separate Odo server configuration and a bounded test; do not read/reuse the Job Dashboard key. Sports-analyzer/coach exclusion is verified in the authenticated rules. Read docs/HACKATHON-CHECKLIST.md. No organizer message or public repository change has been made.
+
+## Earlier recorder handoff (historical 0.2.0)
+
 # Ride Ledger — developer handoff
 
 Current Android version: **0.2.0**, native Java, minimum Android 8 / API 26, target/compile API 35. Rider's test device: Vivo X300 Pro; bike: Xpulse 200. Phone is carried in a **pocket or bag**, not a rigid mount.
