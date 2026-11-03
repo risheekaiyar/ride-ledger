@@ -35,14 +35,15 @@ function extract(result,ids){
  if(/\d/.test(value.summary)||value.question&&/\d/.test(value.question))throw Error('Meta response contained unverified numeric claims.');for(const o of value.observations)if(!o||typeof o.text!=='string'||o.text.length>1000||/\d/.test(o.text)||!Array.isArray(o.evidence_ids)||!o.evidence_ids.length||o.evidence_ids.some(id=>!ids.includes(id)))throw Error('Meta response referenced unavailable evidence or unverified numbers.');
  return {model:MODEL,summary:value.summary,observations:value.observations,question:value.question};
 }
-function createRuntime({key,maxCalls,provider=globalThis.fetch}){
+function createRuntime({key,maxCalls,quota,provider=globalThis.fetch}){
  let remaining=Number.isInteger(maxCalls)&&maxCalls>0?Math.min(maxCalls,20):0;
- return {status:()=>({configured:!!key,enabled:!!key&&remaining>0,remaining}),async ask(body){
-  const evidence=packet(body);if(!key)throw Error('Odo Meta key is not configured.');if(!remaining)throw Error('Odo test request allowance is exhausted or not configured.');
-  const input=JSON.stringify(evidence);if(input.length>MAX_INPUT)throw Error('Evidence packet is too large.');remaining--;
+ const available=()=>quota?quota.remaining():remaining;
+ return {status:()=>({configured:!!key,enabled:!!key&&available()>0,remaining:available()}),async ask(body){
+  const evidence=packet(body);if(!key)throw Error('Odo Meta key is not configured.');if(!available())throw Error('Odo test request allowance is exhausted or not configured.');
+  const input=JSON.stringify(evidence);if(input.length>MAX_INPUT)throw Error('Evidence packet is too large.');if(quota)quota.reserve();else remaining--;
   const response=await provider('https://api.meta.ai/v1/responses',{method:'POST',redirect:'error',signal:AbortSignal.timeout(45000),headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({model:MODEL,store:false,max_output_tokens:MAX_OUTPUT,reasoning:{effort:'low'},instructions:INSTRUCTIONS,input,text:{format:{type:'json_schema',name:'ride_insights',strict:true,schema:{type:'object',additionalProperties:false,properties:{summary:{type:'string'},observations:{type:'array',items:{type:'object',additionalProperties:false,properties:{text:{type:'string'},evidence_ids:{type:'array',items:{type:'string'}}},required:['text','evidence_ids']}},question:{type:['string','null']}},required:['summary','observations','question']}}}})});
   if(!response.ok)throw Error(`Meta API returned HTTP ${response.status}. Check model access and billing in Meta.`);
-  const result=await response.json();return {...extract(result,evidence.evidence.map(x=>x.id)),usage:result.usage?{input_tokens:result.usage.input_tokens,output_tokens:result.usage.output_tokens}:null,remaining};
+  const result=await response.json();return {...extract(result,evidence.evidence.map(x=>x.id)),usage:result.usage?{input_tokens:result.usage.input_tokens,output_tokens:result.usage.output_tokens}:null,remaining:available()};
  }};
 }
 module.exports={MODEL,packet,extract,createRuntime};
