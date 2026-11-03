@@ -1,6 +1,6 @@
 # UI-Improvement continuation checkpoint
 
-Work is on the local `UI-Improvement` branch. No remote push or environment publication has been performed. Use the existing checkout; preserve user changes.
+Work is on the local `UI-Improvement` branch. The user now authorizes regular remote checkpoints. Tested commits have been pushed to origin/UI-Improvement; continue regular non-force pushes after validation. No environment publication or backend deployment has been performed. Use the existing checkout; preserve user changes.
 
 Completed iterations:
 - Motorsport/editorial mobile presentation, GPX import and story PNGs with explicit route-silhouette opt-in.
@@ -19,8 +19,8 @@ node scripts/ui-smoke.cjs
 ```
 
 Next substantial work:
-1. Native companion transport: define and implement an authenticated HTTPS backend, without embedding provider keys in APK/browser code. Current Android companion has no model connection. The existing Node server is deliberately loopback-only and lacks production authentication and persistent spend controls.
-2. Replace the Android shortcut with an accessible draggable chat overlay after the transport exists; test overlay lifecycle, permission revocation, task switching and dismissal on a device. iOS cannot offer the same arbitrary cross-app overlay.
+1. Native transport and authenticated HTTPS gateway are now implemented (COMPANION-GATEWAY.md). Configure a reachable trusted-TLS endpoint and secure credentials, then validate live Meta behavior. The gateway has a SQLite lifetime request cap; it is not a dollar or multi-user budget service. The web preview server remains loopback-only.
+2. The Android shortcut is now a draggable chat overlay using the native transport. Test lifecycle, Keystore persistence, permission revocation, task switching, keyboard, rotation and dismissal on a device. iOS cannot offer the same arbitrary cross-app overlay.
 3. Meta model-directed tool calls: verify the current Meta Responses tool schema against official docs, then add a bounded, tested evidence-retrieval loop. Current runtime uses Meta for evidence interpretation and conversation, but does not claim tool use.
 4. Real ride validation: require labelled recordings with known bike/placement/setup to assess sensor-fusion accuracy. Do not tune an algorithm to make unvalidated lean or road-condition claims.
 5. Manufacturer-specific import adapters require representative exports and documented formats; timed GPX already works where supported. FIT/TCX/provider account sync are not implemented.
@@ -31,3 +31,5 @@ External prerequisites: no ODO_META_API_KEY or ODO_META_MAX_REQUESTS is configur
 Work can continue in an active cloud session without the user's computer awake, but automatic indefinite execution, session restart and weekly-quota exhaustion are not guaranteed. This file records resumption state; it is not a scheduled task.
 
 Latest verified checkpoint: 28 Node tests passed; 10 Java tests passed with no failures or skips; Android assembleDebug and lintDebug passed (7 warnings: JavaScript-enabled WebView review, small widget text and localization). Chromium smoke tests passed for companion follow-ups, evidence navigation, story formats, mobile width and recording-context bridge arguments. All model responses in these checks were mocks. APK is app/build/outputs/apk/debug/app-debug.apk.
+
+Native transport/overlay checkpoint: 34 Node tests passed, 12 Java tests passed, Android assembly/lint passed, and both Chromium smoke scripts passed. These include real local TLS authentication tests with an explicitly trusted test CA, persistent quota tests and mocked provider responses. No real Meta call, reachable hosted gateway or Android hardware trial has been performed. Server and client setup requirements are in COMPANION-GATEWAY.md. The user requests regular tested remote commits; push to UI-Improvement without force.

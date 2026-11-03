@@ -19,6 +19,7 @@ import org.json.*;
 public class DashboardActivity extends Activity {
     private static final String ORIGIN="https://odo.local/";
     private WebView web;
+    private CompanionClient companion;
     private final Handler main=new Handler(Looper.getMainLooper());
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private ValueCallback<Uri[]> fileChoice;
@@ -35,6 +36,8 @@ public class DashboardActivity extends Activity {
         root.setOnApplyWindowInsetsListener((v,insets)->{root.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});
         WebSettings settings=web.getSettings();settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);settings.setAllowFileAccess(false);settings.setAllowContentAccess(false);settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);settings.setUserAgentString(settings.getUserAgentString()+" OdoRideLedger/0.3.0 (+https://github.com/risheekaiyar/ride-ledger)");
         web.addJavascriptInterface(new Bridge(),"RideNative");
+        companion=new CompanionClient(this);
+        web.addJavascriptInterface(new CompanionBridge(),"OdoNativeCompanion");
         web.setWebViewClient(new WebViewClient(){
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest r){return true;}
             @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest request){
@@ -57,9 +60,9 @@ public class DashboardActivity extends Activity {
                 try{startActivityForResult(params.createIntent(),22);return true;}catch(Exception e){fileChoice=null;toast("Cannot open photo picker");return false;}
             }
         });
-        web.loadUrl(ORIGIN);widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
+        web.loadUrl(ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
     }
-    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);widgetPending="WIDGET_TOGGLE".equals(intent.getAction());if(hasWindowFocus())onWindowFocusChanged(true);}
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);if("CONFIGURE_COMPANION".equals(intent.getAction()))companion.configure(this);widgetPending="WIDGET_TOGGLE".equals(intent.getAction());if(hasWindowFocus())onWindowFocusChanged(true);}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&widgetPending){widgetPending=false;if(RideService.running)stopRide();else startRide(getPreferences(0).getString("placement","Pocket"),new int[]{1,4,11,9,10});}}
     private void startRide(String placement,int[] types){
         if(RideService.running){toast("Already recording");return;}
@@ -80,6 +83,13 @@ public class DashboardActivity extends Activity {
     private void error(String s){js("window.odoNativeError&&window.odoNativeError("+JSONObject.quote(s)+")");}
     private void sendZip(String id,InputStream in){
         try(InputStream source=in;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;long total=0;while((n=source.read(b))!=-1){total+=n;if(total>40L*1024*1024)throw new IOException("Too large");out.write(b,0,n);}String encoded=Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);js("window.odoNativeRide("+JSONObject.quote(id)+","+JSONObject.quote(encoded)+")");}catch(Exception e){error("Import failed or ZIP exceeds 40 MB. Original files are unchanged.");}
+    }
+    public final class CompanionBridge {
+        @JavascriptInterface public void configure(){main.post(()->companion.configure(DashboardActivity.this));}
+        @JavascriptInterface public void request(String id,String method,String body){
+            if(!id.matches("[0-9]{1,12}")||body==null||body.length()>12000||!Arrays.asList("GET","POST").contains(method))return;
+            io.execute(()->{JSONObject result=companion.request(method,body);js("window.odoCompanionReply&&window.odoCompanionReply("+JSONObject.quote(id)+","+result.toString()+")");});
+        }
     }
     public final class Bridge {
         @JavascriptInterface public void companionBubble(){main.post(()->{
@@ -112,5 +122,5 @@ public class DashboardActivity extends Activity {
         @JavascriptInterface public void exportRide(){main.post(()->startActivity(new Intent(DashboardActivity.this,MainActivity.class).putExtra("export",true)));}
     }
     @Override protected void onActivityResult(int code,int result,Intent data){super.onActivityResult(code,result,data);if(code==22&&fileChoice!=null){fileChoice.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result,data));fileChoice=null;return;}if(code==21&&result==RESULT_OK&&data!=null&&data.getData()!=null){Uri uri=data.getData();io.execute(()->{try{sendZip("Imported recording",getContentResolver().openInputStream(uri));}catch(Exception e){error("Could not open that ZIP.");}});}}
-    @Override protected void onDestroy(){destroyed=true;if(fileChoice!=null)fileChoice.onReceiveValue(null);web.removeJavascriptInterface("RideNative");web.destroy();io.shutdownNow();super.onDestroy();}
+    @Override protected void onDestroy(){destroyed=true;if(fileChoice!=null)fileChoice.onReceiveValue(null);web.removeJavascriptInterface("RideNative");web.removeJavascriptInterface("OdoNativeCompanion");web.destroy();io.shutdownNow();super.onDestroy();}
 }

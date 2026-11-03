@@ -2,7 +2,7 @@
 
 `scripts/companion-server.cjs` supplies a single-owner HTTPS API for the Android companion. It is separate from the local web preview server. No deployment is performed by this repository.
 
-Requirements: Node 24, a trusted TLS certificate and key, a persistent writable directory, a Meta API key, and a randomly generated client bearer token containing at least 32 characters of high entropy. Configure credentials securely; never commit them. The client token is not the Meta provider key.
+Requirements: Node 24, a trusted TLS certificate and key, a persistent writable directory, a Meta API key, and a randomly generated client bearer token containing at least 32 characters of high entropy (hex or URL-safe base64, without padding). Configure credentials securely; never commit them. The client token is not the Meta provider key.
 
 Server configuration:
 - `ODO_META_API_KEY`: server-only provider key.
@@ -19,3 +19,11 @@ The gateway reserves requests in a SQLite transaction before contacting Meta. Fa
 The server does not log request bodies, tokens or provider responses. Use only Meta models. The current model remains `muse-spark-1.3`.
 
 Tests use an ephemeral self-signed certificate trusted explicitly by the test client, a synthetic bearer token, a temporary database and a mocked provider. They do not disable TLS verification or call Meta.
+
+## Android connection and overlay
+
+In Odo Settings, choose **Configure secure connection** and enter the HTTPS gateway authority (no path/query) and client token. The Meta provider key must never be entered in the phone. The native client verifies the normal platform TLS trust chain, rejects redirects, bounds request/response sizes and encrypts the token using an Android Keystore AES-GCM key. Disconnect clears the stored endpoint and encrypted token.
+
+Enable the companion bubble in Settings, grant display-over-other-apps permission, then enable it again. Drag the bubble to move it; tap to expand chat. The expanded window has a drag handle, full-app button, collapse control and close control. The foreground notification also dismisses the service. Revoking overlay permission stops the service. The overlay reads the same local ride journal through app-owned WebView assets and exposes only the companion transport bridge. No recorder bridge or remote page is loaded in the overlay. Use it after parking.
+
+`node scripts/overlay-smoke.cjs` tests the narrow overlay layout and a simulated native bridge in Chromium. Device validation remains outstanding: Android Keystore persistence, gateway certificate trust, foreground-service lifecycle, overlay gestures, soft keyboard, rotation, task switching and permission revocation. No device or production deployment is implied by the browser tests.

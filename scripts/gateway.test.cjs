@@ -16,3 +16,4 @@ test('authenticated TLS gateway bounds requests and never resets exhausted quota
  assert.equal((await request({question:'Review',rides:[ride]})).status,200);assert.equal(calls,1);assert.equal(quota.remaining(),0);
  assert.equal((await request({question:'Again',rides:[ride]})).status,400);assert.equal(calls,1);
  }finally{if(server)await new Promise(resolve=>server.close(resolve));if(quota)quota.close();fs.rmSync(dir,{recursive:true,force:true});}});
+test('provider failure still consumes the durable reservation',async()=>{const dir=temp(),quota=createQuota(path.join(dir,'quota.db'),1);try{const runtime=require('./muse-runtime.cjs').createRuntime({key:'test-only',quota,provider:async()=>{throw Error('Simulated network failure')}});await assert.rejects(runtime.ask({question:'Review',rides:[ride]}),/network failure/);assert.equal(quota.remaining(),0);}finally{quota.close();fs.rmSync(dir,{recursive:true,force:true});}});
