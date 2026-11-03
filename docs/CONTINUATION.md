@@ -1,50 +1,51 @@
-# UI-Improvement continuation checkpoint
+# Odo UI-Improvement — ongoing work
 
-Work is on the local `UI-Improvement` branch. The user now authorizes regular remote checkpoints. Tested commits have been pushed to origin/UI-Improvement; continue regular non-force pushes after validation. No environment publication or backend deployment has been performed. Use the existing checkout; preserve user changes.
+The user explicitly wants iterative improvements to aesthetics and technical data-reading functions while asleep. Continue useful local work and push tested checkpoints regularly to `origin/UI-Improvement`, without force. Preserve user changes and use the existing checkout. No deployment or environment publication is authorized by this continuation.
 
-Completed iterations:
-- Motorsport/editorial mobile presentation, GPX import and story PNGs with explicit route-silhouette opt-in.
-- User-labelled road observations and recording-time bike/mount context carried through Android ZIP metadata.
-- Meta companion with explicit evidence preview, bounded follow-ups, clickable ride citations, clear unavailable states and strict comparable-ride selection.
-- GPX identity separated from native recording IDs; unknown GPS/source metrics remain unknown in companion requests.
-- Node 24 CI executes all test files. Reproducible local Chromium smoke script includes mock responses and never spends API credits.
+**Do not pause the entire goal for missing Meta credentials, documentation access or hardware.** Those prerequisites block only their corresponding live checks. UI, analysis, import, export, accessibility and regression improvements remain actionable. Pick the next useful local improvement below, implement it, verify it and push.
 
-Validation commands:
+## Current capabilities
+
+- Dark motorsport/editorial mobile presentation, real route thumbnails, explicit source badges and mobile Settings navigation.
+- Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
+- Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
+- Timed GPX import with content-based IDs separate from native IDs. Native ZIP import preserves bike/placement/mount metadata and user annotations.
+- Story PNGs in three formats, explicit route-silhouette opt-in, browser download/share and native Android share-sheet transport through a read-only provider.
+- Meta companion evidence preview, bounded follow-ups and citations; compatible-ride selection requires known matching bike/phone/setup.
+- Authenticated HTTPS gateway with persistent SQLite request reservations; encrypted Android token storage and a draggable chat overlay. These are built and locally tested; live/hardware behavior remains unverified.
+
+## Next local improvements — no external prerequisites
+
+1. Strengthen GPX/XML input handling (missing coordinate attributes, timezone ambiguity, duplicate samples, format-specific error messages), keeping source uncertainty explicit.
+2. Improve chart accessibility and keyboard inspection; keep route, telemetry cursor and visible sample readouts synchronized.
+3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
+4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
+5. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
+6. Improve rendering performance for long recordings without connecting gaps or discarding extrema silently.
+
+Use judgment to choose other meaningful aesthetic/data-reading work; this queue is not a reason to wait for the user.
+
+## Validation
+
 ```
 node --test --test-isolation=none scripts/*.test.cjs
 source /workspace/ride-ledger-tools/activate.sh
 ./gradlew assembleDebug lintDebug testDebugUnitTest --no-daemon --max-workers=4
-# In another session: node scripts/serve.cjs
+# Start separately: node scripts/serve.cjs
 node scripts/ui-smoke.cjs
+node scripts/overlay-smoke.cjs
+node scripts/telemetry-smoke.cjs
+node scripts/library-smoke.cjs
 ```
 
-Next substantial work:
-1. Native transport and authenticated HTTPS gateway are now implemented (COMPANION-GATEWAY.md). Configure a reachable trusted-TLS endpoint and secure credentials, then validate live Meta behavior. The gateway has a SQLite lifetime request cap; it is not a dollar or multi-user budget service. The web preview server remains loopback-only.
-2. The Android shortcut is now a draggable chat overlay using the native transport. Test lifecycle, Keystore persistence, permission revocation, task switching, keyboard, rotation and dismissal on a device. iOS cannot offer the same arbitrary cross-app overlay.
-3. Meta model-directed tool calls: verify the current Meta Responses tool schema against official docs, then add a bounded, tested evidence-retrieval loop. Current runtime uses Meta for evidence interpretation and conversation, but does not claim tool use.
-4. Real ride validation: require labelled recordings with known bike/placement/setup to assess sensor-fusion accuracy. Do not tune an algorithm to make unvalidated lean or road-condition claims.
-5. Manufacturer-specific import adapters require representative exports and documented formats; timed GPX already works where supported. FIT/TCX/provider account sync are not implemented.
-6. Terrain/satellite replay and video exports require a real terrain source, attribution/licensing decisions and rendering work. Current replay is an offline trace or tilted raster map.
+Latest checks: 46 Node tests pass; Android assembly/lint pass with 12 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
 
-External prerequisites: no ODO_META_API_KEY or ODO_META_MAX_REQUESTS is configured here. Live Meta calls and hackathon runtime eligibility remain unverified. Use secure configuration for credentials, never chat or tracked files. No paid live API calls have been made during these iterations.
+## External checks, kept separate from local progress
 
-Work can continue in an active cloud session without the user's computer awake, but automatic indefinite execution, session restart and weekly-quota exhaustion are not guaranteed. This file records resumption state; it is not a scheduled task.
+- Official Meta documentation at dev.meta.ai is rejected by the managed CONNECT proxy. A model-directed tool loop must wait for verified schema access; don't claim it exists.
+- The draft contains additive dev.meta.ai/api.meta.ai network requirements and ODO_META_API_KEY metadata only. No values were supplied, no publication occurred and no paid API calls were made. Managed Node calls need `--use-env-proxy` with inherited trust configuration.
+- Live native behavior requires a reachable trusted-TLS gateway, secure client token, provider credential and explicit request allowance. Setup is in COMPANION-GATEWAY.md.
+- No Android device is attached. Keystore, overlays, keyboard/rotation, permission revocation and actual sharing receivers need hardware trials.
+- Sensor calibration needs labelled real rides. Manufacturer-specific adapters need representative exports. Terrain/satellite rendering needs a selected source with suitable licensing/access.
 
-Latest verified checkpoint: 28 Node tests passed; 10 Java tests passed with no failures or skips; Android assembleDebug and lintDebug passed (7 warnings: JavaScript-enabled WebView review, small widget text and localization). Chromium smoke tests passed for companion follow-ups, evidence navigation, story formats, mobile width and recording-context bridge arguments. All model responses in these checks were mocks. APK is app/build/outputs/apk/debug/app-debug.apk.
-
-Native transport/overlay checkpoint: 34 Node tests passed, 12 Java tests passed, Android assembly/lint passed, and both Chromium smoke scripts passed. These include real local TLS authentication tests with an explicitly trusted test CA, persistent quota tests and mocked provider responses. No real Meta call, reachable hosted gateway or Android hardware trial has been performed. Server and client setup requirements are in COMPANION-GATEWAY.md. The user requests regular tested remote commits; push to UI-Improvement without force.
-
-Native story-sharing checkpoint: the APK now hands generated PNGs to Android's chooser through a non-exported, read-only URI provider. Browser PNG download and native-share bridge contract checks passed, and Android assembly/lint/unit tests passed. Actual receiving-app behavior still needs a device.
-
-Concrete external blockers observed during continuation:
-- dev.meta.ai documentation access fails at the managed CONNECT proxy (HTTP 403); the model-directed tool-call schema remains unverified. Network requirements for dev.meta.ai and api.meta.ai were saved additively in the draft, with ODO_META_API_KEY metadata only. Nothing was published and no credential value was supplied.
-- No Android devices are attached (`adb devices` returned an empty list). Keystore, overlay lifecycle and receiving-app sharing cannot be validated on hardware here.
-- No reachable native gateway endpoint, trusted deployment certificate or client access token has been provisioned.
-- Live Meta validation still needs the provider credential and an explicit request allowance. A managed cloud run must use Node 24's --use-env-proxy and the platform CA trust.
-- Calibration validation needs labelled real rides; provider-specific adapters need representative exports; true terrain/satellite replay needs a selected licensed source and access.
-
-Resume after these prerequisites are supplied. Do not claim eligibility, sensor accuracy, provider compatibility or hardware behavior from mock/browser tests. Regular tested pushes to UI-Improvement are authorized.
-
-User steering: keep improving aesthetics and technical data-reading functions while the user sleeps. Missing Meta credentials or hardware block only the corresponding live/hardware checks, not independent UI, analysis, import, export or test improvements. Do not mark the entire goal blocked on those prerequisites while useful independent work remains. Continue tested commits and remote pushes.
-
-Latest UI/analysis iteration adds the ride instrument panel, time-weighted speed histogram, coverage/unknown-time breakdown, gap-aware traces, source-elevation view, clear missing-sensor states and mobile Settings access. GPX summary cards distinguish geometric estimates from unknown source accuracy. Use scripts/telemetry-smoke.cjs for regression checks. Further independent work can improve import robustness, chart accessibility, ride list/garage layouts, local ride comparisons, story composition and technical calculations without provider credentials.
+These external checks do not block the local improvement queue above.

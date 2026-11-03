@@ -26,7 +26,7 @@ function analyze(files,name='Recording'){
  let lastTime=-Infinity,segment=0,accepted=0,duplicates=0,movingSeconds=0,observedSeconds=0,stoppedSeconds=0,speedIntegral=0;
  const track=[];
  for(const r of gps){const t=(+r.fix_elapsed_ns-start)/1e9,lat=num(r.latitude_deg),lon=num(r.longitude_deg),acc=num(r.accuracy_m),speed=num(r.speed_mps),sa=num(r.speed_accuracy_mps);
-  const ok=r.accepted==='true'&&r.mock!=='true'&&lat!==null&&Math.abs(lat)<=90&&lon!==null&&Math.abs(lon)<=180&&acc!==null&&acc>=0&&acc<=30&&num(r.age_seconds)!==null&&+r.age_seconds>=0&&+r.age_seconds<=15;
+  const ok=Number.isFinite(t)&&t>=0&&t<=duration&&r.accepted==='true'&&r.mock!=='true'&&lat!==null&&Math.abs(lat)<=90&&lon!==null&&Math.abs(lon)<=180&&acc!==null&&acc>=0&&acc<=30&&num(r.age_seconds)!==null&&+r.age_seconds>=0&&+r.age_seconds<=15;
   if(!ok){segment++;continue;}if(t<=lastTime){duplicates++;segment++;continue;}if(t-lastTime>3)segment++;lastTime=t;accepted++;
   const sp=speed!==null&&speed>=0&&speed<70&&(sa===null||sa<=2)?speed*3.6:null;
   track.push([lon,lat,t,sp,acc,num(r.altitude_m),num(r.bearing_deg),segment,sa]);
