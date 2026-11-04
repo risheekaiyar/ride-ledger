@@ -10,6 +10,8 @@ The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availab
 
 [Distance confidence](docs/DISTANCE-CONFIDENCE.md) now survives annotation edits and backup restores; missing distance remains unknown and accepted-fix percentage is checked separately from GPS time coverage.
 
+[Screen-state evidence](docs/SCREEN-STATE-EVIDENCE.md) distinguishes observed intervals from missing logs and carries bounded coverage into Meta debriefs.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.

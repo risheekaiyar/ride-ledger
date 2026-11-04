@@ -100,3 +100,28 @@ test('legacy backup recheck preserves measurements and notes while reducing unsu
  const restored=validateBackup({type:'odo-backup',version:1,rides:[ride]}).rides[0];
  assert.equal(restored.distanceReliable,false);assert.equal(restored.distanceKm,.03);assert.equal(restored.notes,'Keep this note');assert.equal(restored.track.length,3);
 });
+test('screen timing keeps unobserved initial time separate from observed screen-off time',()=>{
+ const ride=analyze(base);assert.equal(ride.screenOffSeconds,7);assert.equal(ride.screenObservedSeconds,9);assert.equal(ride.screenEventsExcluded,0);
+ const on=analyze({...base,'events.csv':'elapsed_ns,event\n1000000000,initial_screen_on'});assert.equal(on.screenOffSeconds,0);assert.equal(on.screenObservedSeconds,10);
+});
+test('missing and unusable screen events do not become a measured zero',()=>{
+ const missing={...base};delete missing['events.csv'];const a=analyze(missing);assert.equal(a.screenOffSeconds,null);assert.equal(a.screenObservedSeconds,null);
+ for(const log of ['elapsed_ns,event','elapsed_ns,event\n11000000000,screen_off','elapsed_ns,event\n2000000000,pretend_screen_off']){
+  const ride=analyze({...base,'events.csv':log});assert.equal(ride.screenOffSeconds,null);assert(ride.screenObservedSeconds===null||ride.screenObservedSeconds===0);
+ }
+});
+test('screen events outside the ride and identical duplicates cannot inflate time',()=>{
+ const ride=analyze({...base,'events.csv':'elapsed_ns,event\n0,screen_off\n1000000000,initial_screen_on\n2000000000,screen_off\n2000000000,screen_off\n9000000000,screen_on\n99000000000,screen_off'});
+ assert.equal(ride.screenOffSeconds,7);assert.equal(ride.screenObservedSeconds,10);assert.equal(ride.screenEventsExcluded,3);
+});
+test('contradictory, backward and malformed screen timing cannot enter duration evidence',()=>{
+ for(const log of ['elapsed_ns,event\n2000000000,screen_off\n2000000000,screen_on','elapsed_ns,event\n9000000000,screen_off\n2000000000,screen_on','elapsed_ns,event\n1000000000,initial_screen_on\n,screen_off','elapsed_ns,event\n1000000000,initial_screen_on\nnot-a-clock,screen_off','elapsed_ns,event\n1000000000,initial_screen_on,unexpected']){
+  const ride=analyze({...base,'events.csv':log});assert.equal(ride.screenOffSeconds,null);assert.equal(ride.screenObservedSeconds,null);assert(ride.warnings.some(w=>/Screen-event timing/.test(w)));assert.equal(ride.track.length,2);
+ }
+});
+test('backups validate screen timing bounds while retaining legacy compatibility',()=>{
+ const ride=analyze(base);ride.id='1793676718164';const backup=r=>({type:'odo-backup',version:1,rides:[r]});
+ assert.equal(validateBackup(backup(ride)).rides[0].screenObservedSeconds,9);
+ for(const change of [{screenObservedSeconds:6},{screenObservedSeconds:99},{screenObservedSeconds:null},{screenOffSeconds:-1},{screenEventsExcluded:.5}])assert.throws(()=>validateBackup(backup({...ride,...change})),/screen/);
+ const legacy={...ride};delete legacy.screenObservedSeconds;delete legacy.screenEventsExcluded;assert.equal(validateBackup(backup(legacy)).rides.length,1);
+});

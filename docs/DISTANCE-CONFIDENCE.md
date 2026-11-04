@@ -1,6 +1,6 @@
 # Distance confidence and annotation integrity
 
-The evidence pipeline is now `odo-evidence-3`. A ride title, activity classification or note cannot erase a failed import-integrity check. The importer retains `distanceIntegrity` separately from the editable activity; the edit function accepts only annotation fields and recalculates the display flag from the retained evidence.
+Introduced in evidence pipeline `odo-evidence-3` and retained in subsequent versions. A ride title, activity classification or note cannot erase a failed import-integrity check. The importer retains `distanceIntegrity` separately from the editable activity; the edit function accepts only annotation fields and recalculates the display flag from the retained evidence.
 
 A native distance enters totals, standard share summaries and Meta evidence only when:
 

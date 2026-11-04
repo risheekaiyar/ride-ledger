@@ -1,4 +1,4 @@
-/* Odo evidence pipeline v3. No model calls; no raw-sample uploads. */
+/* Odo evidence pipeline v4. No model calls; no raw-sample uploads. */
 (function(root){
 'use strict';
 const G=9.80665, num=v=>v===''||v==null?null:(Number.isFinite(+v)?+v:null);
@@ -49,9 +49,11 @@ function analyze(files,name='Recording'){
  }
  const mounted=/mount/i.test(meta.placement||'');
  if(mounted){let last=-100;for(const s of [...signals].sort((a,b)=>b[1]-a[1])){if(s[1]<3||events.filter(e=>e.kind==='impact').length>=12)break;if(events.some(e=>e.kind==='impact'&&Math.abs(e.t-s[0])<8))continue;const p=track.reduce((a,b)=>!a||Math.abs(b[2]-s[0])<Math.abs(a[2]-s[0])?b:a,null);if(!p||Math.abs(p[2]-s[0])>2||p[4]>10||p[3]<10)continue;events.push({id:'motion-'+s[0],kind:'impact',t:s[0],g:s[1],lon:p[0],lat:p[1],confidence:'Unverified phone impact',reason:'Raw resultant includes gravity. Engine, mount slip and road inputs are mixed; not a confirmed pothole.'});}}
- let off=0,screenOffAt=null;
- if(files['events.csv'])for(const e of csv(files['events.csv'])){const t=(+e.elapsed_ns-start)/1e9;if(e.event.endsWith('screen_off')){if(screenOffAt===null)screenOffAt=Math.max(0,t);}else if(e.event.endsWith('screen_on')&&screenOffAt!==null){off+=Math.max(0,Math.min(duration,t)-screenOffAt);screenOffAt=null;}}
- if(screenOffAt!==null)off+=duration-screenOffAt;
+ let screen={off:null,observed:null,excluded:0,ambiguous:false};
+ if(files['events.csv'])try{screen=screenTiming(csv(files['events.csv']),start,duration);}catch{screen.ambiguous=true;}
+ if(screen.ambiguous)warnings.push('Screen-event timing is malformed or contradictory; screen-state durations remain unknown.');
+ else if(screen.observed===null)warnings.push('No usable screen-state interval was supplied.');
+ if(screen.excluded)warnings.push(`Ignored ${screen.excluded} unsupported, duplicate or invalid screen event${screen.excluded===1?'':'s'}.`);
  const namedActivity=['ride','walk','unclassified'].includes(meta.activity_type);
  const isWalk=meta.activity_type==='walk'||(!namedActivity&&/walk/i.test(name)),isRide=meta.activity_type==='ride'||(!namedActivity&&/rideoffice|homerigid|mount/i.test(name)),quality=gps.length?accepted/gps.length:0;
  if(summary.gps_samples!==gps.length||summary.motion_samples!==motion.length)warnings.push('File counts disagree with the recorder summary.');
@@ -68,8 +70,25 @@ function analyze(files,name='Recording'){
  const rawMeters=summary.estimated_distance_m,rawKm=Number.isFinite(rawMeters)&&rawMeters>=0&&rawMeters<=duration*70+1?rawMeters/1000:null;
  const distanceIntegrity=rawKm!==null&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length;
  if(rawKm===null)warnings.push('Recorder distance is missing or invalid; distance and its full-trip average remain unknown.');
- const ride={schema:1,algorithm:'odo-evidence-3',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceIntegrity,distanceKm:rawKm,distanceReliable:false,averageSpeed:rawKm===null?null:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:off,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
+ const ride={schema:1,algorithm:'odo-evidence-4',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceIntegrity,distanceKm:rawKm,distanceReliable:false,averageSpeed:rawKm===null?null:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:screen.off,screenObservedSeconds:screen.observed,screenEventsExcluded:screen.excluded,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
  ride.distanceReliable=distanceSupported(ride);return ride;
+}
+function screenTiming(rows,start,duration){
+ const states={initial_screen_on:false,initial_screen_off:true,screen_on:false,screen_off:true};
+ let state=null,last=null,off=0,observed=0,excluded=0,ambiguous=false;
+ for(const row of rows){
+  if(!Object.hasOwn(states,row.event)){excluded++;continue;}
+  const raw=row.elapsed_ns,elapsed=typeof raw==='string'&&raw.trim()===''?NaN:Number(raw),t=(elapsed-start)/1e9;
+  if(raw===null||raw===undefined||!Number.isFinite(t)){excluded++;ambiguous=true;continue;}
+  if(t<0||t>duration){excluded++;continue;}
+  const next=states[row.event];
+  if(last!==null&&t<=last){excluded++;if(t<last||next!==state)ambiguous=true;continue;}
+  if(last!==null){const span=t-last;observed+=span;if(state)off+=span;}
+  state=next;last=t;
+ }
+ if(last!==null){observed+=duration-last;if(state)off+=duration-last;}
+ if(ambiguous||last===null)return {off:null,observed:null,excluded,ambiguous};
+ return {off:observed>0?off:null,observed,excluded,ambiguous};
 }
 function locationTimeCoverage(track,duration){
  if(!Array.isArray(track)||!Number.isFinite(duration)||duration<=0)return 0;
@@ -96,6 +115,11 @@ function validateBackup(x){
   for(const key of ['distanceKm','averageSpeed','maxSpeed','quality','medianAccuracy','gpsRows','motionRows','accepted','duplicates','screenOffSeconds','movingSeconds','stoppedSeconds','observedSeconds','speedIntegratedKm','maxAltitude'])if(r[key]!==null&&!finite(r[key]))throw Error('Invalid measurement in backup.');
   if(r.motionExcluded!==undefined&&!finite(r.motionExcluded,0))throw Error('Invalid motion exclusion count.');
   if(r.timeBasis!==undefined&&!['elapsed-realtime','wall-clock-fallback'].includes(r.timeBasis))throw Error('Invalid recording time basis.');
+  if(r.screenObservedSeconds!==undefined){
+   const observed=r.screenObservedSeconds,off=r.screenOffSeconds;
+   if(observed!==null&&!finite(observed,0,r.duration)||off!==null&&(!finite(off,0,r.duration)||observed===null||off>observed))throw Error('Invalid screen-state duration.');
+  }
+  if(r.screenEventsExcluded!==undefined&&(!Number.isInteger(r.screenEventsExcluded)||r.screenEventsExcluded<0))throw Error('Invalid screen-event exclusion count.');
   if(r.distanceIntegrity!==undefined&&typeof r.distanceIntegrity!=='boolean')throw Error('Invalid distance integrity.');
   for(const key of ['distanceReliable','finalized'])if(typeof r[key]!=='boolean')throw Error('Invalid recording confidence.');
   if(r.distanceIntegrity!==undefined&&r.distanceReliable&&!distanceSupported(r))throw Error('Distance confidence disagrees with its source evidence.');
@@ -108,5 +132,5 @@ function validateBackup(x){
  }
  return x;
 }
-const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
+const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage,screenTiming};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
 })(typeof self!=='undefined'?self:globalThis);

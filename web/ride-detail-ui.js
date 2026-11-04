@@ -7,7 +7,8 @@ rideDetail=function(){
  const evidence=[
   [imported?'Track points':'GPS fixes',imported?`${r.gpsRows} imported · accuracy unknown`:`${r.accepted} / ${r.gpsRows} accepted`],
   ['Sensor samples',fmt(r.motionRows,0)],
-  ['Screen-off time',imported?'Not supplied':duration(r.screenOffSeconds)],
+  ['Observed screen-off time',imported||!Number.isFinite(r.screenObservedSeconds)||!Number.isFinite(r.screenOffSeconds)?'Not supplied':duration(r.screenOffSeconds)],
+  ['Screen-state coverage',imported||!Number.isFinite(r.screenObservedSeconds)?'Not supplied':fmt(r.screenObservedSeconds/r.duration*100,1)+'% · Android broadcasts'],
   ['Observed low-speed time',imported?'Not supplied':duration(r.stoppedSeconds)],
   ['GPS time coverage',imported?'Source accuracy unknown':fmt(OdoAnalysis.locationTimeCoverage(r.track,r.duration)*100,1)+'% · connected fixes'],
   ['Source peak altitude',fmt(imported?t.altitudeMax:r.maxAltitude,0)+' m · unverified datum/accuracy'],
