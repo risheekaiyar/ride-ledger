@@ -1,10 +1,12 @@
 # Odo — Strava for bikers
 
-The `UI-Improvement` branch adds the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
+**Android download:** [Odo 0.3.7 APK](https://github.com/risheekaiyar/ride-ledger/raw/refs/heads/main/downloads/ride-ledger-0.3.7-debug.apk) · [Install notes and checksum](downloads/README.md).
+
+The `main` branch includes the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
 
 [Animated ride insights](docs/ANIMATED-INSIGHTS.md) now open with a [racing-game road preview](docs/RACING-RADAR.md): a true WebGL diorama with solid white roads, shaded sidewalls, a beveled dark base, real shadows, a racing arrow, cyan replay progress and manual 360° rotation. Story playback connects missing positions visually without changing the measured statistics. Other chapters include an analogue speed dial, slow G-force radar beside the route, and a 3D elevation ribbon with meter ticks and altitude-based colors. The app uses a shared black, white, red and cyan palette. Meta `muse-spark-1.3` directs the recap and asks questions linked to highlighted map sections. [Watch the updated synthetic story](docs/previews/diorama-insights-synthetic.mp4) (mock model captions; configure live Meta access for the hackathon demo).
 
-The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route into a lit, raised road model with racing kerbs, orbit/chase/overhead cameras, synchronized telemetry and PNG export. No tile service is required.
+The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route into a lit, raised white road diorama with cyan progress and isometric/overhead cameras, synchronized telemetry and PNG export. No tile service is required.
 
 [Ride films](docs/RIDE-FILM.md) add local 3D video export in story, portrait and square formats, with a motorsport overlay, explicit route/speed sharing choices and Android share-sheet transport. Modern browsers render each frame into a 24 fps MP4. [Watch the synthetic demo](docs/previews/ride-film-synthetic.mp4).
 
@@ -42,7 +44,7 @@ The personal workflow works: record on Android, review saved rides, import/expor
 
 The Meta-only companion requires a configured runtime key. Live multi-user community, automatic cross-device sync, bike Bluetooth and road speed-limit data remain unconnected. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
 
-Local Android assemble/lint/10 Java tests and 10 Node analysis tests passed. The new Android dashboard and home-screen widget require an on-device trial. Install the matching local APK as **Update**, after exporting old rides; keep the existing installation/storage. Older generic recordings remain unclassified until edited.
+Local Android assemble/lint, the 17-test Java target and 174 Node tests passed. The new Android dashboard and home-screen widget require an on-device trial. Install the matching local APK as **Update**, after exporting old rides; keep the existing installation/storage. Older generic recordings remain unclassified until edited.
 
 **Hackathon eligibility is unresolved:** the authenticated event rules list sports analyzers/coaches among generic categories to avoid. See [HACKATHON-CHECKLIST.md](docs/HACKATHON-CHECKLIST.md) before presenting riding coaching as an entry. The source repository remains private.
 
@@ -52,7 +54,7 @@ Use JDK 17, Android SDK platform 35/build-tools 34.0.0, and the included Gradle 
 
 Run `node --test scripts/analysis.test.cjs` for the evidence pipeline tests. Run `node scripts/serve.cjs`, then open http://127.0.0.1:4178 for the local web interface. It needs no package installation. `?review=1` loads dist/private-review.json only on the local preview, if privately prepared; that file is never included in the deployed site.
 
-The APK is generated at app/build/outputs/apk/debug/app-debug.apk and copied locally to dist/ride-ledger-0.3.7-debug.apk. Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
+The APK is generated at app/build/outputs/apk/debug/app-debug.apk. The verified main build is committed at [downloads/ride-ledger-0.3.7-debug.apk](downloads/ride-ledger-0.3.7-debug.apk), with [installation notes and a checksum](downloads/README.md). Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
 
 Raw ZIP exports contain metadata.json, summary.json, gps.csv, motion.csv, events.csv and sensor_summary.json. GPS/motion columns remain compatible with the older recorder. No road/safety/calibration claim follows from a successful recording.
 

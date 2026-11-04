@@ -1,3 +1,11 @@
+# Latest handoff: 0.3.7 on main
+
+[Download the APK](https://github.com/risheekaiyar/ride-ledger/raw/refs/heads/main/downloads/ride-ledger-0.3.7-debug.apk) · [Install notes and checksum](downloads/README.md) · [Build verification](BUILD-STATUS.md).
+
+The latest UI work is merged into `main`, including the real white/cyan 3D road playback and exported insights. Fetch and pull `main` before continuing. The earlier rejected 0.3.2 experiment remains on its separate branch. Run `node --test --test-isolation=none scripts/*.test.cjs` and `./gradlew assembleDebug lintDebug testDebugUnitTest` for current checks.
+
+## Previous handoff
+
 # Current handoff: 0.3.0
 
 Start with docs/RELEASE-0.3.md and docs/MUSE-INTEGRATION.md. Shared dashboard source is web/; Android copies it to generated assets via syncDashboard. DashboardActivity hosts app-owned HTTPS assets and a bounded native recording/import bridge. JourneyWidget opens a visible Activity before recording. MainActivity retains original controls and ZIP export. IndexedDB is local data, not a shared backend.

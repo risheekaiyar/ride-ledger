@@ -1,18 +1,18 @@
-# Current branch build: 0.3.7
+# Current main build: 0.3.7
 
 The journey recap now uses an actual WebGL 3D road diorama: white road surfaces, solid shaded sidewalls, a beveled dark platform, grid, cast shadows, cyan progress and a racing arrow. The default isometric camera rotates manually through 360° during playback. Track Studio, the journey chapter and exported films use the same renderer. The former flat Canvas route renderer is removed. See [RACING-RADAR.md](docs/RACING-RADAR.md).
 
 The story still connects successive fixes visually with no central gap banner. Original coordinates, timestamps, measured statistics and Meta evidence remain source-based. The technical inspection view retains its source-quality reporting. The review fixture is fictional and labeled **DEMO / ILLUSTRATED**; it is not packaged into the product or automatically added to user journals.
 
-Work is on `UI-Improvement`. The APK is `app/build/outputs/apk/debug/app-debug.apk`, copied locally to `dist/ride-ledger-0.3.7-debug.apk` (**version code 10**). Packaged renderer, mesh builder, presentation helper, entry point and film/UI code match source. The deleted 2D route renderer is absent from the APK.
+`UI-Improvement` was merged into the freshly fetched `main` without conflicts at `30fe486`. Main's existing code was already included in the UI branch; its merge history is preserved. The previously rejected `odo/replay-garage-0.3.2` experiment remains separate. The verified APK is committed at [downloads/ride-ledger-0.3.7-debug.apk](downloads/ride-ledger-0.3.7-debug.apk) (**version code 10**), with [download instructions and checksum](downloads/README.md). Packaged renderer, mesh builder, presentation helper, entry point and film/UI code match source. The deleted 2D route renderer is absent from the APK.
 
-Verified locally: **174 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date). Lint has **0 errors and 9 existing warnings**. Browser checks cover the actual WebGL scene, full camera rotation, forward/reverse scrubbing, preserved source geometry, story continuity and technical gap handling, 320–1440px layout, source-altitude views, PNG export, shader/runtime errors, context-loss/no-WebGL fallback, cleanup, video cancellation/backgrounding, all insight chapters and mocked Meta personalization. The inspected H.264 story contains **18 seconds / 432 frames / 720 × 1280**.
+Rechecked on the merged main tree: **174 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date). Lint has **0 errors and 9 existing warnings**. Browser checks cover the actual WebGL scene, full camera rotation, forward/reverse scrubbing, preserved source geometry, story continuity and technical gap handling, 320–1440px layout, source-altitude views, PNG export, shader/runtime errors, context-loss/no-WebGL fallback, cleanup, video cancellation/backgrounding, all insight chapters and mocked Meta personalization. The inspected H.264 story contains **18 seconds / 432 frames / 720 × 1280**.
 
 Review [the phone preview](docs/previews/diorama-mobile-synthetic.png), [desktop preview](docs/previews/diorama-desktop-synthetic.png), [exported frame](docs/previews/diorama-film-synthetic.png) and [animated story](docs/previews/diorama-insights-synthetic.mp4).
 
 Meta responses and external reference tiles were mocked in regression checks. The cloud has no live Meta key. Physical Android recording and playback performance still need the demo device check.
 
-Local APK SHA-256: `aa5717a4295cc8234399509bd1646535a9ec51c7af3cf2536b07624451ac0646`.
+Repository APK SHA-256: `aa5717a4295cc8234399509bd1646535a9ec51c7af3cf2536b07624451ac0646`.
 
 ## Historical releases
 
