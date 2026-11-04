@@ -8,6 +8,8 @@ The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference wi
 
 The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
 
+The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and source-aware ride totals together, with recording defaults and a debrief of that bike's latest ride.
+
 [Distance confidence](docs/DISTANCE-CONFIDENCE.md) now survives annotation edits and backup restores; missing distance remains unknown and accepted-fix percentage is checked separately from GPS time coverage.
 
 [Screen-state evidence](docs/SCREEN-STATE-EVIDENCE.md) distinguishes observed intervals from missing logs and carries bounded coverage into Meta debriefs.
