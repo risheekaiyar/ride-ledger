@@ -65,6 +65,12 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   await page.getByRole('button',{name:'Record this bike',exact:true}).click();
   assert.equal(await page.locator('#record-form [name=bike_type]').inputValue(),'Unknown','Explicit profile choice takes priority over previous recording');
   assert.equal(await page.locator('#record-form [name=bike_id]').inputValue(),'Another nickname');
+  await page.getByRole('button',{name:'Close recording setup',exact:true}).click();
+  await page.evaluate(()=>{window.stops=0;window.RideNative.stop=()=>window.stops++;recording=true;});
+  await page.getByRole('button',{name:'Record this bike',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.stops),0,'A stale record action must not stop an active journey');
+  assert.match(await page.locator('#toast').textContent(),/already recording/);
+  assert.equal(await page.locator('#modal').evaluate(el=>el.open),false);
   assert.deepEqual(errors,[]);
   console.log('PASS: garage profile persistence/zero reading, bike-specific evidence totals, correct debrief selection, responsive editor, bounded local photo/remove/reselect and recording context');
  }finally{await browser.close();}

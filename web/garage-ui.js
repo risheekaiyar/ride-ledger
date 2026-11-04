@@ -9,7 +9,10 @@ garage=function(){
 };
 document.addEventListener('click',event=>{
  const button=event.target.closest('button');if(!button)return;
- if(button.hasAttribute('data-garage-record'))recorder();
+ if(button.hasAttribute('data-garage-record')){
+  if(recording)toast('A journey is already recording. Use the top recording control to end it before starting another.');
+  else recorder();
+ }
  if(button.hasAttribute('data-garage-edit')){const editor=$('.garage-editor');editor.open=true;editor.scrollIntoView({block:'start',behavior:'smooth'});$('#bike-form [name=name]').focus({preventScroll:true});}
  if(button.hasAttribute('data-garage-remove-photo')){prefs.bike.photo='';savePrefs();render();toast('Photo removed from this profile.');}
  if(button.dataset.garageDebrief){selected=button.dataset.garageDebrief;museSetup();}
