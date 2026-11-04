@@ -1,102 +1,35 @@
-/* Offline, lit 3D route diorama. No imagery service, map tiles or synthetic ride measurements. */
+/* White route relief. Every centerline vertex and replay position comes from the same GPS projection. */
 (function(root){
 'use strict';
-function create(container,ride,{onState=()=>{},onUnavailable=()=>{},autoRender=true,transparent=false,pixelRatio=Math.min(devicePixelRatio,2),shadowSize=2048}={}){
- const T=root.THREE,model=OdoTrackModel.build(ride.track,{gapLimit:ride.source==='GPX export'?30:3,speedMode:ride.source==='GPX export'?'interval':'samples'});if(!T||!model||!model.segments.length)throw Error('This recording needs a connected route to build its track preview.');
- const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.max(.5,Math.min(pixelRatio,2)));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;
- renderer.domElement.setAttribute('aria-label','Interactive 3D route model. Drag to orbit; use camera buttons or arrow keys.');renderer.domElement.tabIndex=0;container.append(renderer.domElement);
- const scene=new T.Scene();scene.background=transparent?null:new T.Color('#101116');scene.fog=new T.Fog('#101116',950,2000);
- const camera=new T.PerspectiveCamera(36,1,.5,1800);let azimuth=-.68,polar=.98,radius=560,mode='orbit',elevation=false,disposed=false,frame=0,last=0,time=ride.track[0][2],target=new T.Vector3(0,0,0),dragging=false;
- scene.add(new T.HemisphereLight('#d5e6ff','#18232a',1.5));
- const key=new T.DirectionalLight('#fff2db',3);key.position.set(-120,260,140);key.castShadow=true;key.shadow.mapSize.set(shadowSize,shadowSize);Object.assign(key.shadow.camera,{left:-250,right:250,top:250,bottom:-250,near:1,far:700});key.shadow.bias=-.0004;key.shadow.normalBias=.3;scene.add(key);
- const rim=new T.DirectionalLight('#8daaff',1.5);rim.position.set(150,100,-220);scene.add(rim);
- const warm=new T.PointLight('#ff784b',1200,500,2);warm.position.set(-180,65,120);scene.add(warm);
- const plane=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshStandardMaterial({color:'#101116',roughness:1}));plane.rotation.x=-Math.PI/2;plane.position.y=-7;plane.receiveShadow=true;plane.visible=!transparent;scene.add(plane);
- const stage=new T.Group();scene.add(stage);
- function roundedRect(w,h,r){const s=new T.Shape();s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);return s;}
- const baseW=Math.max(90,model.width+40),baseD=Math.max(90,model.depth+40);
- const base=new T.Mesh(new T.ExtrudeGeometry(roundedRect(baseW,baseD,14),{depth:7,bevelEnabled:true,bevelSize:2,bevelThickness:2,bevelSegments:3,steps:1}),new T.MeshStandardMaterial({color:'#20242b',roughness:.85,metalness:.12}));base.rotation.x=-Math.PI/2;base.position.y=-7;base.receiveShadow=true;base.castShadow=true;stage.add(base);
- const gridPositions=[];
- for(let x=-baseW/2+14;x<baseW/2-10;x+=14)gridPositions.push(x,2.1,-baseD/2+12,x,2.1,baseD/2-12);
- for(let z=-baseD/2+14;z<baseD/2-10;z+=14)gridPositions.push(-baseW/2+12,2.1,z,baseW/2-12,2.1,z);
- const gridGeometry=new T.BufferGeometry();gridGeometry.setAttribute('position',new T.Float32BufferAttribute(gridPositions,3));
- stage.add(new T.LineSegments(gridGeometry,new T.LineBasicMaterial({color:'#71909c',transparent:true,opacity:.065})));
- const roadGroup=new T.Group();stage.add(roadGroup);
- const roadTop=18,roadHalf=8;
- const asphalt=new T.MeshStandardMaterial({color:'#41494d',roughness:.91,metalness:.04,side:T.DoubleSide});
- const wallMat=new T.MeshStandardMaterial({color:'#343a45',roughness:.75,side:T.DoubleSide});
- const white=new T.MeshStandardMaterial({color:'#f2eadb',roughness:.8,side:T.DoubleSide});const red=new T.MeshStandardMaterial({color:'#f45437',roughness:.75,side:T.DoubleSide});
- const edgeMaterial=new T.MeshStandardMaterial({color:'#c9dddc',emissive:'#527b82',emissiveIntensity:.18,roughness:.7,side:T.DoubleSide});
- const makeMesh=(geometry,material,parent=roadGroup)=>{const mesh=new T.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;};
- function closedLoop(points){return points.length>3&&points[0].distanceTo(points.at(-1))<1e-6;}
- function normal(points,i,closed){const a=points[i===0&&closed?points.length-2:Math.max(0,i-1)],b=points[i===points.length-1&&closed?1:Math.min(points.length-1,i+1)],dx=b.x-a.x,dz=b.z-a.z,n=Math.hypot(dx,dz)||1;return {x:-dz/n,z:dx/n};}
- function surface(points,left,right,raise,material,batch){const positions=[],uv=[],indices=[],closed=closedLoop(points);for(let i=0;i<points.length;i++){const p=points[i],n=normal(points,i,closed);for(const offset of [left,right]){positions.push(p.x+n.x*offset,p.y+raise,p.z+n.z*offset);uv.push(i/(points.length-1),offset===left?0:1);}if(i){const k=i*2;indices.push(k-2,k-1,k,k-1,k+1,k);}}
- const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();if(batch){batch.push(g);return;}return makeMesh(g,material);}
- function sides(points,offset){const positions=[],indices=[],closed=closedLoop(points);for(let i=0;i<points.length;i++){const p=points[i],n=normal(points,i,closed),x=p.x+n.x*offset,z=p.z+n.z*offset;positions.push(x,p.y+roadTop,z,x,p.y+2,z);if(i){const k=i*2;indices.push(k-2,k,k-1,k-1,k,k+1);}}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();makeMesh(g,wallMat);}
- function cap(points,index){const p=points[index],n=normal(points,index,false),positions=[];for(const y of [roadTop,2])for(const offset of [-roadHalf,roadHalf])positions.push(p.x+n.x*offset,p.y+y,p.z+n.z*offset);const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setIndex([0,1,2,1,3,2]);g.computeVertexNormals();makeMesh(g,wallMat);}
- function clearRoad(){while(roadGroup.children.length){const child=roadGroup.children[0];child.traverse(o=>{o.geometry?.dispose();if(o.userData.ownMaterial){o.material?.map?.dispose();o.material?.dispose();}});roadGroup.remove(child);}}
- function height(p){return elevation?p.y:0;}
- function marker(point,label,color){const group=new T.Group();group.position.set(point.x,height(point)+roadTop+1,point.z);const post=new T.Mesh(new T.CylinderGeometry(.38,.38,17,8),new T.MeshStandardMaterial({color:'#b8c8d4',metalness:.6,roughness:.3}));post.position.y=8;post.position.x=10;post.userData.ownMaterial=true;group.add(post);const canvas=document.createElement('canvas');canvas.width=256;canvas.height=80;const ctx=canvas.getContext('2d');ctx.fillStyle='#151c29';ctx.fillRect(0,0,256,80);ctx.fillStyle=color;ctx.fillRect(0,0,7,80);ctx.fillStyle='#f7f0e3';ctx.font=label.length>9?'600 20px monospace':'600 26px monospace';ctx.fillText(label,24,48);const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;const sprite=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:true}));sprite.scale.set(28,8.75,1);sprite.position.set(10,20,0);sprite.userData.ownMaterial=true;group.add(sprite);roadGroup.add(group);}
- // Batch alternating kerbs into two draw calls, including long routes.
- function mergeSurfaces(parts,material){if(!parts.length)return;const positions=[],normals=[];for(const g of parts){const flat=g.toNonIndexed();positions.push(...flat.attributes.position.array);normals.push(...flat.attributes.normal.array);flat.dispose();g.dispose();}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('normal',new T.Float32BufferAttribute(normals,3));makeMesh(g,material);}
- function rebuild(){clearRoad();renderer.shadowMap.needsUpdate=true;const redKerbs=[],whiteKerbs=[];
- for(const segment of model.segments){
-  const input=segment.points.filter((p,i,a)=>!i||Math.hypot(p.x-a[i-1].x,p.z-a[i-1].z)>.025);if(input.length<2)continue;
-  const vectors=input.map(p=>new T.Vector3(p.x,height(p),p.z)),closed=closedLoop(vectors);if(closed)vectors.pop();
-  const curve=new T.CatmullRomCurve3(vectors,closed,'centripetal');
-  const count=Math.min(2000,Math.max(24,Math.ceil(curve.getLength()/1.4))),pts=curve.getSpacedPoints(count);
-  surface(pts,-roadHalf,roadHalf,roadTop,asphalt);sides(pts,-roadHalf);sides(pts,roadHalf);
-  if(!closed){cap(pts,0);cap(pts,pts.length-1);}
-  surface(pts,-7.6,-7.1,roadTop+.06,white);surface(pts,7.1,7.6,roadTop+.06,white);
-  for(let i=0;i<pts.length-1;i+=3){const chunk=pts.slice(i,Math.min(i+4,pts.length)),batch=Math.floor(i/3)%2?redKerbs:whiteKerbs;surface(chunk,-10.3,-8.1,roadTop+.14,null,batch);surface(chunk,8.1,10.3,roadTop+.14,null,batch);}
-  surface(pts,-8.35,-8.05,4,edgeMaterial);surface(pts,8.05,8.35,4,edgeMaterial);
- }
- mergeSurfaces(redKerbs,red);mergeSurfaces(whiteKerbs,white);
- const first=model.points[0],finish=model.points.at(-1);if(Math.hypot(finish.x-first.x,finish.z-first.z)<12)marker(finish,'START / FINISH','#ff7858');else{marker(first,'START','#7cdbb8');marker(finish,'FINISH','#ff7858');}
- const neighbor=model.points.at(-2),angle=Math.atan2(finish.x-neighbor.x,finish.z-neighbor.z);const flag=new T.Group();flag.position.set(finish.x,height(finish)+roadTop+.18,finish.z);flag.rotation.y=angle;for(let x=0;x<8;x++)for(let z=0;z<3;z++){const tile=new T.Mesh(new T.PlaneGeometry(1.25,1.25),((x+z)%2)?wallMat:white);tile.rotation.x=-Math.PI/2;tile.position.set((x-3.5)*1.25,0,(z-1)*1.25);flag.add(tile);}roadGroup.add(flag);
+function create(container,ride,{onState=()=>{},onUnavailable=()=>{},autoRender=true,transparent=false,pixelRatio=Math.min(devicePixelRatio,2),bikeProfile,backdrop='minimal'}={}){
+ const T=root.THREE,model=OdoTrackModel.build(ride.track,{gapLimit:ride.source==='GPX export'?30:3,speedMode:ride.source==='GPX export'?'interval':'samples'});if(!T||!model||!model.segments.length)throw Error('This recording needs a connected route.');
+ const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(2,Math.max(.5,pixelRatio)));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
+ const canvas=renderer.domElement;canvas.tabIndex=0;canvas.setAttribute('aria-label','White isometric GPS route. Drag horizontally or use arrow keys for full 360 degree rotation.');canvas.style.touchAction='pan-y';container.append(canvas);
+ const scene=new T.Scene();if(!transparent)scene.background=new T.Color('#111719');scene.add(new T.HemisphereLight('#f5f7f2','#30373c',2));const sun=new T.DirectionalLight('#f2f3e6',3);sun.position.set(-150,250,120);scene.add(sun);const fill=new T.DirectionalLight('#abd8df',1.5);fill.position.set(150,100,-150);scene.add(fill);
+ const camera=new T.OrthographicCamera(-200,200,200,-200,.1,2000);let yaw=-.62,polar=Math.acos(1/Math.sqrt(3)),zoom=1,elevation=false,disposed=false,frame=0,time=ride.track[0][2],drag=null;
+ const route=new T.Group(),environment=new T.Group();scene.add(environment,route);const white=new T.MeshStandardMaterial({color:'#f5f3e9',roughness:.65,emissive:'#b0bfc1',emissiveIntensity:.12,side:T.DoubleSide}),wall=new T.MeshStandardMaterial({color:'#879196',roughness:.85,side:T.DoubleSide,transparent:true,opacity:.82});
+ const originalGroups=[];for(const p of model.points){if(!originalGroups.length||originalGroups.at(-1)[0].segment!==p.segment)originalGroups.push([]);originalGroups.at(-1).push(p);}
+ const top=12,half=1.35,height=p=>elevation?p.y:0;
+ function mesh(values,material,indices){const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(values,3));if(indices)geometry.setIndex(indices);geometry.computeVertexNormals();const m=new T.Mesh(geometry,material);m.renderOrder=10;route.add(m);return m;}
+ function rebuild(){for(const child of [...route.children]){child.geometry?.dispose();route.remove(child);}for(const points of originalGroups){if(points.length<2)continue;const surface=[],sides=[],indices=[];for(let i=0;i<points.length;i++){const p=points[i],a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)],dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz)||1,nx=-dz/len,nz=dx/len;for(const offset of [-half,half])surface.push(p.x+nx*offset,height(p)+top,p.z+nz*offset);if(i){const k=i*2;indices.push(k-2,k-1,k,k-1,k+1,k);const q=points[i-1];sides.push(q.x,height(q),q.z,p.x,height(p),p.z,p.x,height(p)+top,p.z,q.x,height(q),q.z,p.x,height(p)+top,p.z,q.x,height(q)+top,q.z);}}mesh(surface,white,indices);mesh(sides,wall);}
  }
  rebuild();
- // Stylized rider token. Its lean is not computed or shown as a motorcycle measurement.
- const rider=new T.Group();const body=new T.Mesh(new T.BoxGeometry(1.7,1.3,3.6),new T.MeshStandardMaterial({color:'#ff7852',roughness:.35,metalness:.2}));body.position.y=1.2;rider.add(body);const helmet=new T.Mesh(new T.SphereGeometry(.8,16,12),white);helmet.position.set(0,2.4,-.3);rider.add(helmet);for(const z of [-1.45,1.45]){const wheel=new T.Mesh(new T.CylinderGeometry(.65,.65,.5,12),wallMat);wheel.rotation.z=Math.PI/2;wheel.position.set(0,.55,z);rider.add(wheel);}stage.add(rider);
- const spot=new T.Mesh(new T.RingGeometry(3.6,4.1,48),new T.MeshBasicMaterial({color:'#ffb28f',transparent:true,opacity:.8,side:T.DoubleSide}));spot.rotation.x=-Math.PI/2;stage.add(spot);
- function setTime(value){time=value;const p=OdoTrackModel.atTime(model,time),next=OdoTrackModel.atTime(model,Math.min(model.points.at(-1).time,time+1));rider.position.set(p.x,height(p)+roadTop+.2,p.z);rider.visible=!p.gap;spot.visible=!p.gap;spot.position.set(p.x,height(p)+roadTop+.22,p.z);if(Math.hypot(next.x-p.x,next.z-p.z)>.001)rider.rotation.y=Math.atan2(next.x-p.x,next.z-p.z);onState({time,speed:p.gap?null:p.speed,gap:p.gap,elevation});}
- // Fit the whole diorama to both viewport dimensions, including portrait phones.
- function fit(){
-  const forward=new T.Vector3(Math.sin(polar)*Math.sin(azimuth),Math.cos(polar),Math.sin(polar)*Math.cos(azimuth));
-  const right=new T.Vector3(Math.cos(azimuth),0,-Math.sin(azimuth)),up=new T.Vector3().crossVectors(forward,right);
-  const vf=Math.tan(camera.fov*Math.PI/360),hf=vf*camera.aspect;let distance=0;
-  const maxY=(elevation?model.height:0)+roadTop+30;
-  for(const x of [-baseW/2-3,baseW/2+3])for(const z of [-baseD/2-3,baseD/2+3])for(const y of [0,maxY]){
-   const p=new T.Vector3(x,y,z).sub(target),depth=p.dot(forward);
-   distance=Math.max(distance,depth+Math.abs(p.dot(right))/hf,depth+Math.abs(p.dot(up))/vf);
-  }
-  return distance*1.045;
- }
- function size(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(mode==='orbit')polar=camera.aspect>1.6?1.08:.98;if(mode==='orbit'||mode==='top')radius=fit();}
- function reset(){mode='orbit';azimuth=-.68;polar=camera.aspect>1.6?1.08:.98;target.set(0,0,0);radius=fit();}
- function preset(name){mode=name;if(name==='top'){polar=.03;azimuth=0;target.set(0,0,0);radius=fit();}else if(name==='orbit'){reset();}else if(name==='follow'){polar=.96;radius=85;}else if(name==='poster'){polar=camera.aspect<1?.62:camera.aspect<1.6?.86:1.04;azimuth=-.45;target.set(0,0,0);radius=fit();}}
- const observer=new ResizeObserver(size);observer.observe(container);size();
- function placeCamera(){camera.position.set(target.x+radius*Math.sin(polar)*Math.sin(azimuth),target.y+radius*Math.cos(polar),target.z+radius*Math.sin(polar)*Math.cos(azimuth));camera.lookAt(target);}
- function animate(now){if(disposed)return;frame=requestAnimationFrame(animate);if(document.hidden||!container.isConnected||now-last<30)return;const dt=Math.min(.1,(now-last)/1000);last=now;if(mode==='follow'){target.lerp(new T.Vector3(rider.position.x,rider.position.y,rider.position.z),.09);azimuth+=Math.atan2(Math.sin(rider.rotation.y+Math.PI-azimuth),Math.cos(rider.rotation.y+Math.PI-azimuth))*.045;}else if(mode==='cinematic'&&!dragging&&!matchMedia('(prefers-reduced-motion: reduce)').matches){azimuth+=dt*.075;target.lerp(new T.Vector3(0,0,0),.05);radius+=(fit()-radius)*.03;polar+=(.95-polar)*.03;}
- placeCamera();renderer.render(scene,camera);const north=container.parentElement.querySelector('.track-north span');if(north)north.style.transform=`rotate(${Math.atan2(Math.sin(azimuth),Math.cos(polar)*Math.cos(azimuth))}rad)`;}
- const pointers=new Map();let pinch=0;
- const down=e=>{renderer.domElement.setPointerCapture(e.pointerId);pointers.set(e.pointerId,[e.clientX,e.clientY]);dragging=true;if(pointers.size===2){const [a,b]=[...pointers.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1]);}};
- const move=e=>{const prev=pointers.get(e.pointerId);if(!prev)return;const dx=e.clientX-prev[0],dy=e.clientY-prev[1];pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pointers.size===2){const [a,b]=[...pointers.values()],distance=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pinch>0)radius=Math.max(65,Math.min(1100,radius*pinch/distance));pinch=distance;}else{mode='manual';azimuth-=dx*.006;polar=Math.max(.12,Math.min(1.35,polar+dy*.005));}};
- const up=e=>{pointers.delete(e.pointerId);dragging=pointers.size>0;};
- const wheel=e=>{e.preventDefault();radius=Math.max(65,Math.min(1100,radius*Math.exp(e.deltaY*.001)));};
- const keyboard=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','0'].includes(e.key)){e.preventDefault();mode='manual';if(e.key==='ArrowLeft')azimuth-=.12;if(e.key==='ArrowRight')azimuth+=.12;if(e.key==='ArrowUp')polar=Math.max(.12,polar-.08);if(e.key==='ArrowDown')polar=Math.min(1.35,polar+.08);if(e.key==='+')radius=Math.max(65,radius*.9);if(e.key==='-')radius=Math.min(1100,radius*1.1);if(e.key==='0')reset();}};
- const lost=e=>{e.preventDefault();if(!disposed)onUnavailable();};
- const canvas=renderer.domElement;canvas.addEventListener('webglcontextlost',lost);canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});canvas.addEventListener('keydown',keyboard);canvas.style.touchAction='none';reset();setTime(time);if(autoRender)frame=requestAnimationFrame(animate);
- function renderFrame(value,progress=0){
-  if(disposed)throw Error('The track renderer is closed.');
-  const p=Math.max(0,Math.min(1,progress));setTime(value);mode='manual';target.set(0,0,0);azimuth=-.8+p*.7;polar=(camera.aspect>2.4?1.13:camera.aspect>1.8?1.03:.86)+Math.sin(p*Math.PI)*(camera.aspect>1.8?.06:.08);radius=fit();placeCamera();renderer.render(scene,camera);return canvas;
- }
- function snapshot(){
-  placeCamera();renderer.render(scene,camera);
-  const scale=Math.min(1,2160/canvas.width,3840/canvas.height);if(scale===1)return canvas.toDataURL('image/png');
-  const output=document.createElement('canvas');output.width=Math.max(1,Math.round(canvas.width*scale));output.height=Math.max(1,Math.round(canvas.height*scale));output.getContext('2d').drawImage(canvas,0,0,output.width,output.height);return output.toDataURL('image/png');
- }
- return {setTime,preset,model,snapshot,renderFrame,resize:size,setElevation(value){elevation=Boolean(value&&model.elevationAvailable);rebuild();if(mode==='orbit'||mode==='top')radius=fit();setTime(time);},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('keydown',keyboard);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const material of Array.isArray(o.material)?o.material:[o.material]){material.map?.dispose();material.dispose();}}});renderer.dispose();renderer.forceContextLoss();canvas.remove();}};
+ const profile=bikeProfile||OdoBikeProfile.forRide(ride,typeof prefs!=='undefined'?prefs.bike:{}),bike=OdoBikeMesh.model(profile);bike.scale.setScalar(6.5);bike.renderOrder=20;scene.add(bike);const halo=new T.Mesh(new T.RingGeometry(10,10.7,48),new T.MeshBasicMaterial({color:profile.color,side:T.DoubleSide,transparent:true,opacity:.65}));halo.rotation.x=-Math.PI/2;scene.add(halo);
+ const endpoint=new T.Mesh(new T.SphereGeometry(2,16,12),new T.MeshBasicMaterial({color:'#e3eee6'}));const end=model.points.at(-1);endpoint.position.set(end.x,top+.5,end.z);scene.add(endpoint);
+ function clearEnvironment(){for(const obj of [...environment.children]){obj.geometry?.dispose();obj.material?.dispose();environment.remove(obj);}}
+ function setBackdrop(kind){clearEnvironment();backdrop=['minimal','city','hills'].includes(kind)?kind:'minimal';if(backdrop==='minimal')return;const rx=model.width/2+40,rz=model.depth/2+40;for(let i=0;i<28;i++){const a=i*Math.PI*2/28,x=Math.cos(a)*rx,z=Math.sin(a)*rz,h=backdrop==='city'?4+(i*7%9):8+(i*11%12),geo=backdrop==='city'?new T.BoxGeometry(9,h,9):new T.ConeGeometry(14,h,9),mat=new T.MeshStandardMaterial({color:backdrop==='city'?'#56696b':'#49665d',transparent:true,opacity:.19,depthWrite:false,roughness:1}),m=new T.Mesh(geo,mat);m.position.set(x,h/2-7,z);m.renderOrder=-1;environment.add(m);}}
+ setBackdrop(backdrop);
+ function setTime(value){time=value;const p=OdoTrackModel.atTime(model,time),next=OdoTrackModel.atTime(model,Math.min(model.points.at(-1).time,time+.5)),before=OdoTrackModel.atTime(model,Math.max(model.points[0].time,time-.5));bike.position.set(p.x,height(p)+top+.3,p.z);bike.visible=halo.visible=!p.gap;halo.position.set(p.x,height(p)+top+.15,p.z);if(!next.gap&&!before.gap&&Math.hypot(next.x-before.x,next.z-before.z)>.001)bike.rotation.y=Math.atan2(next.x-before.x,next.z-before.z);for(const wheel of bike.userData.wheels||[])wheel.rotation.x=-time*2;onState({time,speed:p.gap?null:p.speed,gap:p.gap,elevation});return p;}
+ function place(){const aspect=Math.max(.2,container.clientWidth/Math.max(1,container.clientHeight)),up=new T.Vector3(-Math.cos(polar)*Math.sin(yaw),Math.sin(polar),-Math.cos(polar)*Math.cos(yaw)),right=new T.Vector3(Math.cos(yaw),0,-Math.sin(yaw));let maxX=0,maxY=0;const high=(elevation?model.height:0)+top+9;
+  for(const x of [-model.width/2-12,model.width/2+12])for(const z of [-model.depth/2-12,model.depth/2+12])for(const y of [0,high]){const point=new T.Vector3(x,y-high/2,z);maxX=Math.max(maxX,Math.abs(point.dot(right)));maxY=Math.max(maxY,Math.abs(point.dot(up)));}const size=Math.max(maxY,maxX/aspect,45)*1.12/zoom;camera.left=-size*aspect;camera.right=size*aspect;camera.top=size;camera.bottom=-size;camera.updateProjectionMatrix();const center=high/2;camera.position.set(600*Math.sin(polar)*Math.sin(yaw),center+600*Math.cos(polar),600*Math.sin(polar)*Math.cos(yaw));camera.lookAt(0,center,0);}
+ function resize(){if(disposed)return;const w=container.clientWidth,h=container.clientHeight;if(w&&h)renderer.setSize(w,h,false);place();}
+ function draw(){if(disposed)return;place();renderer.render(scene,camera);return canvas;}
+ function renderFrame(value){setTime(value);return draw();}
+ function animate(){if(disposed)return;frame=requestAnimationFrame(animate);if(!document.hidden&&container.isConnected)draw();}
+ function preset(name){polar=name==='top'?.001:Math.acos(1/Math.sqrt(3));if(name==='orbit'||name==='poster')yaw=-.62;zoom=1;draw();}
+ const down=e=>{drag=e.clientX;canvas.setPointerCapture(e.pointerId);},move=e=>{if(drag===null)return;yaw-=(e.clientX-drag)*.009;drag=e.clientX;draw();},up=()=>drag=null,wheel=e=>{e.preventDefault();zoom=Math.max(.7,Math.min(3,zoom*Math.exp(-e.deltaY*.001)));draw();},key=e=>{if(['ArrowLeft','ArrowRight','+','-','0'].includes(e.key)){e.preventDefault();if(e.key==='ArrowLeft')yaw-=.12;if(e.key==='ArrowRight')yaw+=.12;if(e.key==='+')zoom=Math.min(3,zoom*1.1);if(e.key==='-')zoom=Math.max(.7,zoom/1.1);if(e.key==='0')preset('orbit');draw();}},lost=e=>{e.preventDefault();if(!disposed)onUnavailable();};
+ canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});canvas.addEventListener('keydown',key);canvas.addEventListener('webglcontextlost',lost);const observer=new ResizeObserver(()=>{resize();draw();});observer.observe(container);resize();setTime(time);draw();if(autoRender)frame=requestAnimationFrame(animate);
+ return {model,setTime,preset,renderFrame,resize,draw,setBackdrop,rotate(degrees){yaw=degrees*Math.PI/180;draw();},cameraState:()=>({yaw,polar,zoom}),snapshot(){draw();return canvas.toDataURL('image/png');},setElevation(value){elevation=!!(value&&model.elevationAvailable);rebuild();endpoint.position.y=height(end)+top+.5;setTime(time);draw();},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('keydown',key);canvas.removeEventListener('webglcontextlost',lost);scene.traverse(o=>{o.geometry?.dispose();for(const m of [o.material].flat()){m?.map?.dispose();m?.dispose();}});renderer.dispose();renderer.forceContextLoss();canvas.remove();}};
 }
 root.OdoTrackScene={create};
-})(window);
+})(globalThis);

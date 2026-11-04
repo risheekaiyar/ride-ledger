@@ -1,7 +1,7 @@
 /* Sculpted telemetry: real proportions, bounded geometry, a single explicit render loop. */
 (function(root){
 'use strict';
-function create(host,data,{onUnavailable=()=>{}}={}){
+function create3D(host,data,{onUnavailable=()=>{}}={}){
  const T=root.THREE,renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
  const canvas=renderer.domElement;canvas.setAttribute('aria-hidden','true');host.append(canvas);const lost=e=>{e.preventDefault();onUnavailable();};canvas.addEventListener('webglcontextlost',lost);
@@ -31,8 +31,9 @@ function create(host,data,{onUnavailable=()=>{}}={}){
    data.speedBins.forEach((b,i)=>{const x=(i/95-.5)*214;if(b.complete)points.push(new T.Vector3(x,8+b.value/max*75,0));else finish();for(const [id,z,color] of [['slowing',13,'#ff835f'],['picking_up',-13,'#7bd5c6']]){if(!b[id])continue;const y=8+b[id+'Speed']/max*75;box(.7,y,1,x,y/2,z,'#526d68');const dot=new T.Mesh(new T.SphereGeometry(2.5,10,8),material(color,{emissive:color,emissiveIntensity:.35}));dot.position.set(x,y,z);remember(dot);}});finish();
    cursor=box(.6,92,35,-107,46,0,'#b6e1c4');cursor.material.transparent=true;cursor.material.opacity=.16;label('START',-96,-2,37,{width:28});label('TIME / GPS SPEED',0,-2,37,{width:65});label('FINISH',96,-2,37,{width:30});
   }else if(mode==='elevation'){
-   box(228,3,54,0,-4,0,'#253139');const min=data.facts.altitude_min,span=Math.max(1,data.facts.altitude_span);
-   for(let i=0;i<data.altitude.length;i++){const b=data.altitude[i];if(!b.complete)continue;const height=7+(b.max-min)/span*77,x=(i/95-.5)*214;const mesh=box(1.9,height,20,x,height/2,0,i/data.altitude.length<.6?'#83c9c6':'#dae9d8');objects.push({mesh,height,delay:i*.005});}
+   const minimum=data.facts.altitude_min,span=Math.max(1,data.facts.altitude_span);let run=[];
+   function ribbon(){if(run.length<2){run=[];return;}const positions=[],colors=[],indices=[];const color=new T.Color();run.forEach((b,i)=>{const x=(b.index/95-.5)*214,y=7+(b.max-minimum)/span*77;for(const [height,z] of [[0,-16],[y,-16],[0,16],[y,16]]){positions.push(x,height,z);color.setHSL(.54-(b.max-minimum)/span*.28,.32,height===0?.16:.67);colors.push(color.r,color.g,color.b);}if(i){const a=(i-1)*4,k=i*4;indices.push(a,a+1,k,a+1,k+1,k,a+2,k+2,a+3,a+3,k+2,k+3,a+1,a+3,k+1,a+3,k+3,k+1);}});const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(positions,3));geo.setAttribute('color',new T.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();remember(new T.Mesh(geo,new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.65,metalness:.12})));run=[];}
+   data.altitude.forEach((b,index)=>{if(b.complete)run.push({...b,index});else ribbon();});ribbon();
    label('START',-96,-2,34,{width:30});label('ELAPSED TIME',0,-2,34,{width:63});label('FINISH',96,-2,34,{width:32});
   }
  }
@@ -44,5 +45,6 @@ function create(host,data,{onUnavailable=()=>{}}={}){
  function dispose(){if(disposed)return;disposed=true;clear();canvas.removeEventListener('webglcontextlost',lost);renderer.dispose();renderer.forceContextLoss();canvas.remove();}
  return {draw,dispose};
 }
+function create(host,data,options){let current=null,mode='';return {draw(kind,progress,reveal){const next=['pace','gforce','quality'].includes(kind)?'instrument':'3d';if(next!==mode){current?.dispose();current=next==='instrument'?OdoRideInstruments.create(host,data):create3D(host,data,options);mode=next;}return current.draw(kind,progress,reveal);},dispose(){current?.dispose();current=null;mode='';}};}
 root.OdoInsightScene={create};
 })(globalThis);

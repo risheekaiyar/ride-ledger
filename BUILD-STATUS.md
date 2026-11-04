@@ -1,3 +1,15 @@
+# Current branch build: 0.3.3
+
+The final ride/garage rebuild is on `UI-Improvement`. Local Android assembly/lint and the numerical/browser checks are described in [ANIMATED-INSIGHTS.md](docs/ANIMATED-INSIGHTS.md) and [GARAGE.md](docs/GARAGE.md). The generated APK is `app/build/outputs/apk/debug/app-debug.apk`; a local copy is `dist/ride-ledger-0.3.3-debug.apk`. No deployment, merge or environment publication was performed.
+
+The runtime supports Meta-only inference, but this cloud environment has no live Meta credential. Configure the demo runtime before judging. Device recording, live public services and OEM-specific cluster fidelity need physical review. The motorcycle is an explicit family illustration, not licensed OEM CAD.
+
+Verified locally: **162 Node tests, 17 Java tests, Android assemble/lint**, and the route, insight, lifecycle, Garage, recording and Overview browser checks passed. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
+
+Local APK SHA-256: `af333ae667bc0514fb4f8af45a9fbe5238ac581850d6638ccf262e24e6d9e789`.
+
+## Historical releases
+
 # Current release: 0.3.0
 
 Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .

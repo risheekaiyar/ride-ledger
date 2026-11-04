@@ -24,12 +24,12 @@ test('unverified numbers, cross-scene facts, duplicate or missing scenes and emp
  const c=body().recap;reel.validateReply(reply(c),c);for(const change of [r=>r.title='You scored 99',r=>r.chapters[0].fact_ids=['peak'],r=>r.chapters[0].scene='pace',r=>r.chapters.pop(),r=>r.takeaway='',r=>r.chapters[0].insight='x'.repeat(351),r=>r.chapters[0].fact_ids=['altitude_max','altitude_max']]){const r=reply(c);change(r);assert.throws(()=>reel.validateReply(r,c));}
 });
 test('empty and stationary trips retain readable local insights without inventing a route',()=>{
- const r={...ride,duration:0,distanceKm:0,track:[]};const d=reel.analyze(r);assert.deepEqual(d.available,['rhythm']);assert.equal(d.facts.observed,0);assert.equal(d.facts.longest,0);packet(body(r));
+ const r={...ride,duration:0,distanceKm:0,track:[]};const d=reel.analyze(r);assert.deepEqual(d.available,['quality']);assert.equal(d.facts.observed,0);assert.equal(d.facts.longest,0);packet(body(r));
  const stationary=reel.analyze({...ride,track:ride.track.map(p=>[77,12,...p.slice(2)])});assert(!stationary.available.includes('route'));assert(stationary.available.includes('pace'));
 });
 test('ride flow includes only saved speed-change candidates with available speed, and links original times locally',()=>{
  const events=[{id:'slow',kind:'braking',t:1,g:.2},{id:'up',kind:'acceleration',t:5,g:.15},{id:'gap',kind:'braking',t:3,g:.3},{id:'phone',kind:'impact',t:1,g:1.8}];
- const r={...ride,events},d=reel.analyze(r);assert(d.available.includes('flow'));assert.equal(d.facts.slowing,1);assert.equal(d.facts.picking_up,1);assert.deepEqual(d.moments.map(m=>m.t),[1,5]);assert.equal(d.speedBins.length,96);assert.equal(d.speedBins.reduce((n,b)=>n+b.slowing+b.picking_up,0),2);const sent=packet(body(r));assert(!JSON.stringify(sent).includes('slow"'));assert.equal(sent.recap.facts.slowing,1);assert(!reel.analyze({...r,source:'GPX export'}).available.includes('flow'));
+ const r={...ride,events},d=reel.analyze(r);assert(d.available.includes('gforce'));assert(!d.available.includes('flow'));assert(!d.available.includes('rhythm'));assert.equal(d.facts.slowing,1);assert.equal(d.facts.picking_up,1);assert.deepEqual(d.moments.map(m=>m.t),[1,5]);assert.equal(d.speedBins.length,96);assert.equal(d.speedBins.reduce((n,b)=>n+b.slowing+b.picking_up,0),2);const sent=packet(body(r));assert(!JSON.stringify(sent).includes('slow"'));assert.equal(sent.recap.facts.slowing,1);assert(!reel.analyze({...r,source:'GPX export'}).available.includes('flow'));
  const invalid=body(r);invalid.recap.source='gpx_interval_estimate';assert.throws(()=>packet(invalid));
 });
 test('long rides keep bounded visual bins while all intervals contribute to measurements',()=>{

@@ -1,3 +1,15 @@
+# Final 0.3.3 update — November 4, 2026
+
+Rebuilt on `UI-Improvement` from `b10921e`; the rejected Sol branch `odo/replay-garage-0.3.2` was not merged. User authorized committing/pushing this final major update, not publishing or deployment.
+
+Current details supersede the historical checkpoint notes below: [Animated insights](ANIMATED-INSIGHTS.md), [Garage](GARAGE.md), [Track Studio](TRACK-STUDIO.md). White exact-GPS route, manual isometric rotation, saved bike markers, analogue speed bands, slow G radar/map, continuous elevation, map-linked Meta follow-ups with auto-return/replay, family illustrations, interactive cluster, odometer reconciliation, public reference library and refreshed actions are implemented.
+
+The cloud runtime has no Meta key. Provider/public map/photo responses are mocked in browser checks; actual video encoding and local graphics are exercised. OEM CAD, a true calibrated bike IMU, real engine telemetry and automatic photo-to-3D reconstruction are not implemented or claimed.
+
+Validation: 162 Node tests; 17 Java tests; Android assemble/lint; route, recap, lifecycle, Garage, recording and Overview browser smokes pass. Actual H.264 output: 18 seconds, 432 frames, 720 × 1280. APK local copy: `dist/ride-ledger-0.3.3-debug.apk`. Current preview server is port 4178 (shell session 90128).
+
+## Historical checkpoints (superseded where noted above)
+
 # Odo UI-Improvement — animated insight checkpoint
 
 The user resumed work because static explanation cards did not fulfill the requested Ryval-like animated insight experience. This checkpoint makes the visual recap a primary ride/Overview action and gives Meta runtime responsibility for chapter order, fact emphasis, interpretations and the next-step takeaway.

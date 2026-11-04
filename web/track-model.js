@@ -5,7 +5,7 @@ const wrap=d=>((d+180)%360+360)%360-180;
 function build(track,{span=300,gapLimit=30,speedMode='samples'}={}){
  if(!Array.isArray(track)||track.length<2||!Number.isFinite(span)||span<=0||!(gapLimit>0))return null;
  const valid=track.every((p,i)=>Array.isArray(p)&&Number.isFinite(p[0])&&Math.abs(p[0])<=180&&Number.isFinite(p[1])&&Math.abs(p[1])<=90&&Number.isFinite(p[2])&&(!i||p[2]>track[i-1][2]));if(!valid)return null;
- let longitude=track[0][0],group=0;const lat0=track.reduce((s,p)=>s+p[1],0)/track.length,cos=Math.max(.001,Math.cos(lat0*Math.PI/180));
+ let longitude=track[0][0],group=0;const lat0=track.reduce((a,p)=>[Math.min(a[0],p[1]),Math.max(a[1],p[1])],[90,-90]).reduce((a,b)=>a+b)/2,cos=Math.max(.001,Math.cos(lat0*Math.PI/180));
  const raw=track.map((p,i)=>{if(i){longitude+=wrap(p[0]-longitude);if(p[7]!==track[i-1][7]||p[2]-track[i-1][2]>gapLimit)group++;}return {x:longitude*111320*cos,z:-p[1]*111320,alt:p[5],time:p[2],segment:group,index:i,speed:p[3]};});
  let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;for(const p of raw){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minZ=Math.min(minZ,p.z);maxZ=Math.max(maxZ,p.z);}
  const extent=Math.max(maxX-minX,maxZ-minZ);if(extent<1)return null;

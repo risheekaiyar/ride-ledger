@@ -7,6 +7,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
   await page.goto('http://127.0.0.1:4178');await page.waitForSelector('.studio-hero');await page.evaluate(seed);
   await page.locator('#map-canvas[data-renderer=webgl] canvas').waitFor();await page.waitForTimeout(500);
   const sourceTrack=await page.evaluate(()=>JSON.stringify(current().track));
+  await page.evaluate(()=>{trackScene.rotate(215);const before=trackScene.cameraState().yaw;trackScene.renderFrame(42);if(trackScene.cameraState().yaw!==before)throw Error('Replay overwrote manual rotation');trackScene.rotate(575);if(Math.abs(trackScene.cameraState().yaw-before-2*Math.PI)>1e-8)throw Error('Full rotation unavailable');trackScene.preset('orbit');});
   const overview=await page.evaluate(()=>trackScene.snapshot());
   await page.locator('[data-track-camera=top]').click();await page.waitForTimeout(150);
   assert.notEqual(await page.evaluate(()=>trackScene.snapshot()),overview,'Camera changes must render a different frame');
@@ -19,7 +20,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
   assert.equal((await download).suggestedFilename(),'odo-track-preview.png');
   await page.getByRole('button',{name:'Load geographic map',exact:false}).click();await page.getByRole('button',{name:'Keep offline',exact:true}).click();assert.equal(await page.locator('#map-canvas').getAttribute('data-renderer'),'webgl');
   await page.evaluate(()=>updateTimeline(25));await page.locator('.track-studio').screenshot({path:'/tmp/odo-track-desktop.png'});
-  await page.locator('[data-track-camera=follow]').click();await page.waitForTimeout(800);await page.locator('.track-viewport').screenshot({path:'/tmp/odo-track-chase.png'});await page.locator('[data-track-camera=orbit]').click();
+  await page.locator('[data-track-camera=top]').click();await page.waitForTimeout(800);await page.locator('.track-viewport').screenshot({path:'/tmp/odo-track-overhead.png'});await page.locator('[data-track-camera=orbit]').click();
   await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
   await page.locator('.track-studio').screenshot({path:'/tmp/odo-track-mobile.png'});
   await page.evaluate(()=>{window.sceneBeforeExpand=trackScene;window.timeBeforeExpand=trackTime;});
@@ -37,7 +38,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
   // Seeking a gap must not show the preceding speed as current telemetry.
   await page.evaluate(()=>{const t=current().track;t[100][7]=1;t[101][7]=1;render();trackScene.setTime((t[99][2]+t[100][2])/2);});
   assert.equal(await page.locator('#track-gap').isHidden(),false);assert.equal(await page.locator('#telemetry-speed').textContent(),'—');
-  await page.locator('[data-track-view="2d"]').click();await page.locator('#map-canvas svg').waitFor();assert.equal(await page.locator('[data-track-camera=follow]').isDisabled(),true);
+  await page.locator('[data-track-view="2d"]').click();await page.locator('#map-canvas svg').waitFor();assert.equal(await page.locator('[data-track-camera=top]').isDisabled(),true);
   await page.evaluate(()=>{current().track.forEach(p=>p[5]=null);});await page.locator('[data-track-view="3d"]').click();assert.equal(await page.locator('[data-track-action=elevation]').isDisabled(),true);
   for(let i=0;i<3;i++){await page.locator('[data-track-view="2d"]').click();await page.locator('[data-track-view="3d"]').click();}
   assert.equal(await page.locator('#map-canvas canvas').count(),1);
