@@ -47,8 +47,20 @@ The regular build retains `app.rideledger`. The side-by-side preview uses **`app
 - **195 Node tests passed**, including the new organization, deduplication, event ranking, recurring-pattern, concise-response and image-consent tests.
 - Browser walkthrough: all six destinations at four widths, real application persistence, journey assignment/moving/removal, synchronized play/pause/scrub, phone layout, editable photo card export, privacy defaults, native-bridge setup simulation, recording lock and model outage with no retry.
 - Additional browser checks: saved live replay, every reel chapter's speed control, mock Muse Image rendering, partial import success with an invalid GPX, empty recordings and missing channels.
+- The native companion overlay and explicitly selected Route Lab analysis windows retain their existing entry points and passed an additional browser compatibility check.
 - Source-recording tests use deterministic synthetic phone/GPX fixtures. **No physical phone or new on-road recording was tested.** APK compilation is separate from device/runtime proof.
 - Route Lab retains the existing detailed signal explanations and diagnostics. Source altitude is not total ascent; GPS-derived acceleration is not calibrated motorcycle IMU or lean. Missing samples remain gaps.
 - Community publishing/accounts, turn-by-turn planning, cloud synchronization, Wonder, SAM and transcription are not delivered services. Competition eligibility and organizer approval are not claimed.
 
 Rollback is the preceding branch commit; the new preview package can simply be left unused without altering the existing recorder's data.
+
+## Delivered build
+
+[Android workflow 41928807080](https://github.com/risheekaiyar/ride-ledger/actions/runs/41928807080) passed both APK targets, Android lint, the Java test target and all 195 Node tests. The shipped APK is from source commit `40be32777aebfbd78693b60a00f033411da64b46`. Google's APK verifier confirmed its v2 signature. Manifest package/version/label were read back and all **89 embedded dashboard assets** match the source Git objects exactly.
+
+APK SHA-256: `acfd93c1d873e3c4449289a8bc980dc4d40dc5660e3784b7effef355d73b9c75`.
+
+[Download APK](../downloads/ODOme-0.5.0-preview.apk?raw=true) · [Demo kit](../downloads/ODOme-0.5.0-Kit.zip?raw=true) · [24-second walkthrough](previews/experience-walkthrough.mp4).
+
+![Linked insights](previews/experience-desktop.png)
+![Exported share card](previews/experience-share-card.png)

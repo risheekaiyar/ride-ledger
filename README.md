@@ -2,6 +2,10 @@
 
 **ODOme 0.5.0** brings six clear destinations, journey organization, saved recording setup, synchronized ride insights, a separate concise Meta companion and editable photo share cards. [What works and how to try it](docs/EXPERIENCE.md).
 
+[**Download ODOme 0.5.0 APK**](downloads/ODOme-0.5.0-preview.apk?raw=true) · [**Watch the 24-second walkthrough**](docs/previews/experience-walkthrough.mp4) · [**Complete demo kit**](downloads/ODOme-0.5.0-Kit.zip?raw=true).
+
+![ODOme linked ride insights](docs/previews/experience-desktop.png)
+
 Use the sample journey to explore offline. In **Insights → Ask Meta → Replay tested Spark response**, the app labels and replays a genuine saved response. Fresh model requests require your configured gateway and explicit consent.
 
 The `main` branch includes the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
