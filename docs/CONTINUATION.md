@@ -9,6 +9,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 - Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
 
 - Ryval-style dark ride library with white raised route silhouettes, date/time/details and teal source-aware peak speeds. Map background is opt-in, filters and rider menu work at narrow widths, and the companion sits beside a readable three-item library dock. Reviewed screenshots are in docs/previews/ride-library-*.png.
+- Route-first detail page with a large distance summary, direct Meta debrief card, preserved recording support/context editors and expandable sensor health. The three-item mobile dock and rider menu now work consistently across all pages.
 - Sample inspector with explicit measurement provenance, keyboard-accessible chart seeking and elapsed-time inspection of phone motion during GPS gaps.
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
 - Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
@@ -22,7 +23,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Next local improvements — no external prerequisites
 
-1. Continue polishing the ride-detail and recording interfaces around the supplied Ryval visual direction. The library reference pass is now implemented and checked; keep route shape, gaps and measurement provenance intact. Improve legibility and touch targets without obscuring ride evidence.
+1. Continue polishing recording setup and garage around the supplied Ryval visual direction. The reference-based library and route-first detail passes are implemented and checked, with preserved source labels and a shared mobile dock. Improve legibility and touch targets without obscuring ride evidence.
 2. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
 3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
 4. Improve story composition and editable captions; inspect exported images and their privacy defaults.

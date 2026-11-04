@@ -37,7 +37,7 @@ function mountLibraryMap(){
  }catch(error){disposeLibraryMap();$('#library-map-status').textContent='Map unavailable · showing your local route';}
 }
 const renderBeforeLibrary=render;
-render=function(){disposeLibraryMap();document.body.classList.toggle('library-active',page==='journeys');renderBeforeLibrary();if(page==='journeys'){$('#nav [data-page=journeys] span').textContent='Rides';mountLibraryMap();}};
+render=function(){disposeLibraryMap();document.body.classList.add('rider-shell');document.body.classList.toggle('library-active',page==='journeys');renderBeforeLibrary();$('#nav [data-page=journeys] span').textContent='Rides';$('.header-rider-menu').textContent=(prefs.name||'R').trim().charAt(0).toUpperCase();if(page==='journeys')mountLibraryMap();};
 document.addEventListener('click',event=>{
  const menu=event.target.closest('[data-rider-menu]');if(menu){modal(`<div class="rider-menu-head"><span class="eyebrow">YOUR RIDING SPACE</span><h2>${esc(prefs.name||'Your profile')}</h2><p>Routes, ride evidence and your bike.</p></div><div class="rider-menu">${[['overview','Overview'],['journeys','Rides'],['explore','Route lab'],['garage','Garage'],['community','Story drafts'],['settings','Settings']].map(([key,label])=>`<button data-rider-destination="${key}">${icon(key)}<span>${label}</span><span aria-hidden="true">↗</span></button>`).join('')}</div><button class="rider-menu-close" data-action="close">Close</button>`);return;}
  const destination=event.target.closest('[data-rider-destination]');if(destination){$('#modal').close();navigate(destination.dataset.riderDestination);return;}
