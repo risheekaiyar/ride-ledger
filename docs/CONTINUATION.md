@@ -1,10 +1,12 @@
-# Odo UI-Improvement — handoff at requested stop
+# Odo UI-Improvement — animated insight checkpoint
 
-The user requested that work stop after the next commit, with the final pass strengthening Meta insights and their presentation. **This checkpoint is the stopping point. Do not automatically resume the backlog below.** The session ends with this final reviewed commit on `UI-Improvement`. Any further implementation requires a new user request.
+The user resumed work because static explanation cards did not fulfill the requested Ryval-like animated insight experience. This checkpoint makes the visual recap a primary ride/Overview action and gives Meta runtime responsibility for chapter order, fact emphasis, interpretations and the next-step takeaway.
 
-Earlier instructions authorized regular commits/pushes while working; the new stop instruction supersedes indefinite iteration. No deployment, merge or environment publication is authorized.
+Regular commits and pushes to `UI-Improvement` remain authorized. No deployment, merge or environment publication is authorized. The cloud runtime currently has no Meta credential; this pass uses explicit provider mocks and does not claim live-model or physical-device verification.
 
 ## Current capabilities
+
+- Animated insights: up to five source-gated 3D chapters (route, pace, time ring, saved speed-change flow and source altitude), animated metric reveals, play/pause/scrub, fixed mobile controls, exact candidate-to-sensor-window inspection, Meta-curated ordering and measurement emphasis, strict recap contracts, and a real 18-second / 432-frame H.264 story export. Reviewed synthetic artifacts and details are in ANIMATED-INSIGHTS.md. Current preview server is shell session 93789 on port 4178. Validation: 152 Node tests, animated-recap/lifecycle/overview/track browser checks, Android build/lint and decoded 720×1280 H.264 output all pass.
 
 - Final pass: separate raw acceleration, linear acceleration and angular-speed traces, readable sub-unit scales, small nonzero readouts and exact phone-channel restoration through Meta citations. The companion has six context-sensitive insight directions, locally calculated evidence cards and styled model observation/follow-up cards. Requests remain explicit and Meta-only; pending questions cannot be edited away. Browser replies are mocked; the cloud preview has no configured Meta credential. See COMPANION-INSIGHTS.md and SIGNAL-INSPECTION.md.
 

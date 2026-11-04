@@ -1,17 +1,17 @@
 /* Offline, lit 3D route diorama. No imagery service, map tiles or synthetic ride measurements. */
 (function(root){
 'use strict';
-function create(container,ride,{onState=()=>{},onUnavailable=()=>{},autoRender=true,pixelRatio=Math.min(devicePixelRatio,2),shadowSize=2048}={}){
+function create(container,ride,{onState=()=>{},onUnavailable=()=>{},autoRender=true,transparent=false,pixelRatio=Math.min(devicePixelRatio,2),shadowSize=2048}={}){
  const T=root.THREE,model=OdoTrackModel.build(ride.track,{gapLimit:ride.source==='GPX export'?30:3,speedMode:ride.source==='GPX export'?'interval':'samples'});if(!T||!model||!model.segments.length)throw Error('This recording needs a connected route to build its track preview.');
  const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.max(.5,Math.min(pixelRatio,2)));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;
  renderer.domElement.setAttribute('aria-label','Interactive 3D route model. Drag to orbit; use camera buttons or arrow keys.');renderer.domElement.tabIndex=0;container.append(renderer.domElement);
- const scene=new T.Scene();scene.background=new T.Color('#101116');scene.fog=new T.Fog('#101116',950,2000);
+ const scene=new T.Scene();scene.background=transparent?null:new T.Color('#101116');scene.fog=new T.Fog('#101116',950,2000);
  const camera=new T.PerspectiveCamera(36,1,.5,1800);let azimuth=-.68,polar=.98,radius=560,mode='orbit',elevation=false,disposed=false,frame=0,last=0,time=ride.track[0][2],target=new T.Vector3(0,0,0),dragging=false;
  scene.add(new T.HemisphereLight('#d5e6ff','#18232a',1.5));
  const key=new T.DirectionalLight('#fff2db',3);key.position.set(-120,260,140);key.castShadow=true;key.shadow.mapSize.set(shadowSize,shadowSize);Object.assign(key.shadow.camera,{left:-250,right:250,top:250,bottom:-250,near:1,far:700});key.shadow.bias=-.0004;key.shadow.normalBias=.3;scene.add(key);
  const rim=new T.DirectionalLight('#8daaff',1.5);rim.position.set(150,100,-220);scene.add(rim);
  const warm=new T.PointLight('#ff784b',1200,500,2);warm.position.set(-180,65,120);scene.add(warm);
- const plane=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshStandardMaterial({color:'#101116',roughness:1}));plane.rotation.x=-Math.PI/2;plane.position.y=-7;plane.receiveShadow=true;scene.add(plane);
+ const plane=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshStandardMaterial({color:'#101116',roughness:1}));plane.rotation.x=-Math.PI/2;plane.position.y=-7;plane.receiveShadow=true;plane.visible=!transparent;scene.add(plane);
  const stage=new T.Group();scene.add(stage);
  function roundedRect(w,h,r){const s=new T.Shape();s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);return s;}
  const baseW=Math.max(90,model.width+40),baseD=Math.max(90,model.depth+40);

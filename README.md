@@ -2,11 +2,13 @@
 
 The `UI-Improvement` branch adds the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
 
+[Animated ride insights](docs/ANIMATED-INSIGHTS.md) turn the debrief into a playable 3D recap: route flyover, speed distribution, a moving/slow/missing-time ring, speed-change moments and an altitude sculpture. At runtime, Meta `muse-spark-1.3` selects chapter order and supported metric emphasis, explains patterns and suggests a next step. The same chapters export as an 18-second story video. [Watch the synthetic recap](docs/previews/insight-recap-synthetic.mp4) (mocked model captions; live Meta access must be configured for the hackathon demo).
+
 The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route into a lit, raised road model with racing kerbs, orbit/chase/overhead cameras, synchronized telemetry and PNG export. No tile service is required.
 
 [Ride films](docs/RIDE-FILM.md) add local 3D video export in story, portrait and square formats, with a motorsport overlay, explicit route/speed sharing choices and Android share-sheet transport. Modern browsers render each frame into a 24 fps MP4. [Watch the synthetic demo](docs/previews/ride-film-synthetic.mp4).
 
-The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Local title/bike/route search and 20-journey batches keep growing journals easy to browse. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
+The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Local title/bike/route search and 20-journey batches keep growing journals easy to browse. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the animated-insight entry, the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
 
 The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
 
