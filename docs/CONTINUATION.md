@@ -11,6 +11,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 - Dark motorsport/editorial mobile presentation, real route thumbnails, explicit source badges and mobile Settings navigation.
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
 - Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
+- Strict GPX XML/namespace validation, timezone-aware timestamps, duplicate handling and per-file batch errors. Invalid optional altitude stays unknown.
 - Timed GPX import with content-based IDs separate from native IDs. Native ZIP import preserves bike/placement/mount metadata and user annotations.
 - Redesigned motorsport poster editor with orange/ice editions and opt-in 3D route models. Exported PNGs inspected at all three aspect ratios.
 - Story PNGs in three formats, explicit route-silhouette opt-in, browser download/share and native Android share-sheet transport through a read-only provider.
@@ -19,7 +20,6 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Next local improvements — no external prerequisites
 
-1. Strengthen GPX/XML input handling (missing coordinate attributes, timezone ambiguity, duplicate samples, format-specific error messages), keeping source uncertainty explicit.
 2. Improve chart accessibility and keyboard inspection; keep route, telemetry cursor and visible sample readouts synchronized.
 3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
 4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
@@ -41,9 +41,10 @@ node scripts/telemetry-smoke.cjs
 node scripts/library-smoke.cjs
 node scripts/track-smoke.cjs
 node scripts/story-smoke.cjs
+node scripts/gpx-smoke.cjs
 ```
 
-Latest checks: 52 Node tests pass; Android assembly/lint pass with 12 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
+Latest checks: 54 Node tests pass; Android assembly/lint pass with 12 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 
