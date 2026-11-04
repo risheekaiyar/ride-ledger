@@ -1,17 +1,17 @@
-# Odo ride insights — 0.3.3
+# Odo ride insights — 0.3.4
 
 Open a saved ride and choose **Play ride insights**. This update was rebuilt from `UI-Improvement`; the rejected `odo/replay-garage-0.3.2` branch was not merged.
 
 | Chapter | Visualization | What it explains |
 | --- | --- | --- |
-| The journey | White raised GPS silhouette, orthographic isometric camera, garage-matched motorcycle | The exact recorded horizontal route, with visible recording gaps |
+| The journey | Circular racing-game radar, cyan progress, illustrated garage-matched motorcycle | The exact recorded horizontal route, with visible recording gaps |
 | Your pace | Analogue needle, colored speed ranges, per-band percentages | Actual replay speed and time-weighted speed distribution |
 | G-force lab | Load radar, recent trace and adjacent synchronized route | GPS-derived forward/braking and, when supported, lateral acceleration |
 | The vertical story | Continuous colored 3D elevation ribbon and legend | Source altitude range; gaps remain open |
 
 Default recaps exclude the moving/under-five time donut and the old event-count chapter. Stop/gap questions remain available in the companion. A flat altitude channel does not produce an empty elevation chapter. Recordings without usable measurements show a useful recording-quality explanation.
 
-The route uses every projected GPS vertex. There is no curve smoothing, racing kerb, fake circuit closure or chase camera. Drag horizontally through a full rotation while playback continues; the camera stays where you put it. **Isometric** resets the angle. Optional City/Hills backdrops are peripheral illustrations, not detected geography. The bike family and color come from the recording's saved metadata, with the associated garage profile as a fallback for older recordings.
+The [journey radar](RACING-RADAR.md) uses every projected GPS vertex, with pale recorded roads and cyan replay progress. Drag horizontally through a full rotation while playback continues; the map stays where you put it. Choose **Radar** or **Isometric**, and use **Recenter** to reset rotation. A directional arrow follows the recorded path; the illustrated motorcycle stays upright. The bike family and color come from the recording's saved metadata, with the associated garage profile as a fallback for older recordings. The separate Track Studio retains its white raised route silhouette.
 
 Pace percentages use observed intervals only and round to a total of one hundred. The needle uses the source speed at the playhead. G-force playback defaults to **2×**, with 1×, 5× and 10× choices, scrubbing and **Jump to strongest estimate**. Other chapters play for ten seconds. Reduced-motion mode starts paused and still permits manual scrubbing and rotation. Controls remain visible on phones and tablets.
 
@@ -35,10 +35,10 @@ No live Meta credential is configured in this cloud environment. Provider behavi
 
 The current chapters and captions export locally as an **18-second, 720 × 1280, 24 fps** story. The reviewed MP4 contains **432 H.264 frames**. Route inclusion remains explicit, and no social post is made. Closing, cancelling or backgrounding disposes the private renderer/encoder and restores the ride view.
 
-- [White route, mobile](previews/final-route-mobile-synthetic.png)
+- [Journey radar, mobile](previews/radar-mobile-synthetic.png)
 - [Analogue pace, mobile](previews/final-pace-mobile-synthetic.png)
 - [G radar and route, desktop](previews/final-gforce-desktop-synthetic.png)
 - [Elevation ribbon, mobile](previews/final-elevation-mobile-synthetic.png)
-- [Watch the updated story](previews/final-insights-synthetic.mp4)
+- [Watch the updated story](previews/radar-insights-synthetic.mp4)
 
-All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. Physical Android performance and live public-map behavior still need the demo device check.
+All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `journey-radar-smoke.cjs` additionally checks seven bike families, paint, forward/reverse scrubbing, gap handling, full rotation and Canvas-only rendering. Physical Android performance and live public-map behavior still need the demo device check.

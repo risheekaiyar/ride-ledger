@@ -14,7 +14,7 @@ const scenes={
  gforce:{label:'G-force lab',title:'Every change has a place.',facts:['g_peak','g_braking','g_lateral','g_acceleration'],note:'Estimated from GPS speed and course. Phone sensor axes are not calibrated to the motorcycle. A missing lateral reading stays unknown.'},
  quality:{label:'Recording quality',title:'Make the next recording clearer.',facts:['observed','missing'],note:'Missing observations cannot establish what happened on the road.'},
  flow:{label:'Ride flow',title:'The moments that changed your pace.',facts:['slowing','picking_up','observed'],note:'GPS speed-change candidates, grouped into time bins. They do not establish braking technique, a road cause, or riding safety.'},
- route:{label:'The journey',title:'Your ride. In another dimension.',facts:['distance','elapsed','average'],note:'White GPS silhouette · drag horizontally to rotate. The surroundings are an optional illustration.'},
+ route:{label:'The journey',title:'Every turn. Yours again.',facts:['distance','elapsed','average'],note:'GPS route radar · cyan traces the replayed section. Drag to rotate; the arrow shows path direction. Bike artwork follows your saved garage style.'},
  pace:{label:'Your pace',title:'Find your rhythm.',facts:['average','peak','dominant_share'],note:'Time-weighted speed distribution. Gaps are excluded; speed alone cannot establish riding skill or safety.'},
  rhythm:{label:'Time well spent',title:'Every minute has a story.',facts:['moving','low','missing','longest'],note:'Below 5 km/h includes crawling and stops. Missing time is never counted as stationary.'},
  elevation:{label:'The vertical story',title:'A different perspective.',facts:['altitude_span','altitude_max','altitude_min'],note:'Source altitude, with unverified datum and accuracy. This is a range, not accumulated climbing or road grade.'}
@@ -61,7 +61,7 @@ function analyze(ride){
   gforce:'Follow the live load marker beside your route. The trail shows the last few seconds; scrub or slow playback to inspect a braking or cornering estimate in its actual location.',
   quality:'This recording does not contain enough connected GPS information for a useful ride replay. Check location access and phone placement while parked before recording again.',
   flow:'Your recorded speed changes become moments to revisit. Review the signal and your memory of the ride before assigning a cause.',
-  route:`${t.imported?'An imported route':'A recorded journey'}, reconstructed from its connected fixes. Play it back from a fresh angle.`,
+  route:`${t.imported?'An imported route':'A recorded journey'}, reconstructed from its connected fixes. Watch your bike trace every turn. Cyan marks the replayed route; gaps remain visible.`,
   pace:`Your most-observed speed band was ${bandLabel} km/h. Use this distribution as a baseline for future rides with comparable conditions.`,
   rhythm:t.unobserved>1?'Some of this trip is unobserved. The dark section keeps that uncertainty visible instead of calling it a stop.':'The recording separates time in motion from low-speed intervals. Your longest connected moving stretch is highlighted below.',
   elevation:'The recorded altitude has its own silhouette. Gaps stay open, and vertical scale is exaggerated to make the shape readable.'

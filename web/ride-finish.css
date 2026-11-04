@@ -14,3 +14,12 @@
 
 .garage-studio .garage-page-head>button{max-width:none}.garage-studio .garage-page-head>div{min-width:0}@media(max-width:380px){.garage-studio .garage-page-head{flex-wrap:wrap}.garage-studio .garage-page-head>button{margin-top:0}}
 .insight-reel-modal .reel-controls{position:sticky;bottom:0;z-index:4;box-shadow:0 -5px 25px #08150d55}
+/* Racing radar chapter: room for the map, with controls below its circular frame. */
+.reel-stage:has(#reel-scene[data-scene=route]){min-height:580px;background:radial-gradient(ellipse at 50% 60%,#1a303d88,transparent 70%),#111b20}
+.reel-stage:has(#reel-scene[data-scene=route]):before{opacity:.35}
+#reel-scene[data-scene=route]{inset:125px 8px 96px}
+.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools{bottom:39px;right:26px;left:26px;justify-content:flex-end;gap:9px}
+.reel-radar-hint{margin-right:auto;color:#7896a2;font:9px monospace;letter-spacing:.5px}
+.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools button,.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools select{background:#1b2b36;border-color:#405963;color:#c7dce0}
+#reel-scene canvas[data-renderer=journey-radar]:focus-visible{outline:1px solid #6cdaea;outline-offset:-3px;border-radius:20px}
+@media(max-width:760px){.reel-stage:has(#reel-scene[data-scene=route]){height:535px;min-height:535px;max-height:none}#reel-scene[data-scene=route]{inset:123px 0 96px}.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools{left:20px;right:20px;bottom:38px}.reel-radar-hint{font-size:8px}}

@@ -1,12 +1,14 @@
-# Current branch build: 0.3.3
+# Current branch build: 0.3.4
 
-The final ride/garage rebuild is on `UI-Improvement`. Local Android assembly/lint and the numerical/browser checks are described in [ANIMATED-INSIGHTS.md](docs/ANIMATED-INSIGHTS.md) and [GARAGE.md](docs/GARAGE.md). The generated APK is `app/build/outputs/apk/debug/app-debug.apk`; a local copy is `dist/ride-ledger-0.3.3-debug.apk`. No deployment, merge or environment publication was performed.
+The journey insight preview now uses a racing-game radar with cyan GPS progress, full manual rotation, an isometric option, and seven original motorcycle illustrations matched to saved bike type and paint. See [RACING-RADAR.md](docs/RACING-RADAR.md) for scope and review artifacts. Work is on `UI-Improvement`; no deployment, merge or environment publication was performed.
 
-The runtime supports Meta-only inference, but this cloud environment has no live Meta credential. Configure the demo runtime before judging. Device recording, live public services and OEM-specific cluster fidelity need physical review. The motorcycle is an explicit family illustration, not licensed OEM CAD.
+The generated APK is `app/build/outputs/apk/debug/app-debug.apk`; a local copy is `dist/ride-ledger-0.3.4-debug.apk`. Packaged radar, artwork, CSS and film assets were checked against the source. Version name is **0.3.4**, version code **7**.
 
-Verified locally: **162 Node tests, 17 Java tests, Android assemble/lint**, and the route, insight, lifecycle, Garage, recording and Overview browser checks passed. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
+Verified locally: **167 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date), plus the new radar, full insight and lifecycle browser checks. Lint reports zero errors and nine existing warnings. The radar browser checks cover all seven families and paint, GPS gaps, reverse scrubbing, full rotation, 320–1440px controls, disposal and Canvas-only rendering. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
 
-Local APK SHA-256: `af333ae667bc0514fb4f8af45a9fbe5238ac581850d6638ccf262e24e6d9e789`.
+Meta responses and street tiles were mocked for regression checks. This environment has no live Meta credential; configure the demo runtime before judging. Physical Android recording and playback performance still need the demo device check. The new bike markers are family illustrations, not OEM CAD. Prior route/Garage/recording/Overview checks remain documented under 0.3.3; this pass reran the affected insight flows.
+
+Local APK SHA-256: `d843749126781d86b8d5e18a34155b7cfd96fb5253c9ecc72a43c25e77e44e73`.
 
 ## Historical releases
 

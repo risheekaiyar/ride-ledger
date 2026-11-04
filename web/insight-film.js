@@ -7,7 +7,7 @@ function create(host,ride,data,chapters){
  const format=(id,v)=>{const d=OdoInsightReel.definitions[id];if(d.unit==='s'){const seconds=Math.round(v);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}return v.toFixed(d.unit==='g'?2:id==='distance'||id==='average'||id==='peak'?1:0);};
  function draw(progress){
   if(disposed)throw Error('Insight film is closed.');const index=Math.min(chapters.length-1,Math.floor(progress*chapters.length)),p=progress===1?1:progress*chapters.length-index,c=chapters[index],meta=OdoInsightReel.scenes[c.scene];
-  if(sceneId!==c.scene){scene?.dispose();scene=null;sceneId=c.scene;scene=c.scene==='route'?OdoTrackScene.create(host,ride,{autoRender:false,transparent:true,pixelRatio:1,shadowSize:1024,onUnavailable:()=>{disposed=true;}}):OdoInsightScene.create(host,data,{onUnavailable:()=>{disposed=true;}});}
+  if(sceneId!==c.scene){scene?.dispose();scene=null;sceneId=c.scene;scene=c.scene==='route'?OdoJourneyRadar.create(host,ride,{pixelRatio:1}):OdoInsightScene.create(host,data,{onUnavailable:()=>{disposed=true;}});}
   const visual=c.scene==='route'?scene.renderFrame(p*ride.duration,p):scene.draw(c.scene,p,Math.min(1.6,p*5));
   ctx.fillStyle='#131c19';ctx.fillRect(0,0,720,1280);const glow=ctx.createRadialGradient(360,550,20,360,550,500);glow.addColorStop(0,'#28453a');glow.addColorStop(1,'#131c19');ctx.fillStyle=glow;ctx.fillRect(0,0,720,1280);
   ctx.fillStyle='#ebeee0';ctx.font='800 48px sans-serif';ctx.fillText('odo',44,65);ctx.fillStyle='#acc8b6';ctx.font='14px monospace';ctx.fillText('RIDE INSIGHTS',149,60);ctx.textAlign='right';ctx.fillText(`${String(index+1).padStart(2,'0')} / ${String(chapters.length).padStart(2,'0')}`,676,60);ctx.textAlign='left';
@@ -16,7 +16,7 @@ function create(host,ride,data,chapters){
   ctx.drawImage(visual,0,302,720,436);
   const ids=c.fact_ids.slice(0,3),column=632/ids.length;ctx.strokeStyle='#638c6c66';ctx.beginPath();ctx.moveTo(44,775);ctx.lineTo(676,775);ctx.stroke();
   ids.forEach((id,i)=>{const x=44+i*column,d=OdoInsightReel.definitions[id];ctx.fillStyle='#a0bfa9';ctx.font='14px sans-serif';wrap(d.label,x,804,column-16,19,2);ctx.fillStyle='#e9efdc';ctx.font='500 42px sans-serif';const value=format(id,data.facts[id]);ctx.fillText(value,x,880);const width=ctx.measureText(value).width;ctx.fillStyle='#9bbb9f';ctx.font='13px monospace';ctx.fillText(d.unit==='s'?'':d.unit==='candidates'&&data.facts[id]===1?'candidate':d.unit,x+width+6,880);});
-  ctx.fillStyle='#c1d8c3';ctx.font='23px sans-serif';wrap(c.insight,44,944,632,33,5);ctx.fillStyle='#8eab95';ctx.font='13px sans-serif';wrap(meta.note,44,1143,632,19,3);
+  ctx.fillStyle='#c1d8c3';ctx.font='23px sans-serif';wrap(c.insight,44,944,632,33,5);ctx.fillStyle='#8eab95';ctx.font='13px sans-serif';wrap(c.scene==='route'?'Recorded GPS route · cyan marks replay progress. Bike artwork follows the saved family and paint. Gaps stay open.':meta.note,44,1143,632,19,3);
   ctx.font='12px monospace';ctx.fillText(data.source==='gpx_interval_estimate'?'GPX ESTIMATE / PRIVATE UNTIL SHARED':'PHONE GPS / PRIVATE UNTIL SHARED',44,1220);
   for(let i=0;i<chapters.length;i++){const width=(632-(chapters.length-1)*7)/chapters.length,x=44+i*(width+7);ctx.fillStyle='#354d3c';ctx.fillRect(x,1243,width,4);ctx.fillStyle='#cfe7be';ctx.fillRect(x,1243,width*(i<index?1:i===index?p:0),4);}
   return canvas;
