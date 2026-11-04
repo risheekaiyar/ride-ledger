@@ -4,6 +4,14 @@
 
 [**Download ODOme 0.5.0 APK**](downloads/ODOme-0.5.0-preview.apk?raw=true) · [**Watch the 24-second walkthrough**](docs/previews/experience-walkthrough.mp4) · [**Complete demo kit**](downloads/ODOme-0.5.0-Kit.zip?raw=true).
 
+## Meta models at runtime
+
+**Muse Spark 1.3** runs through the Meta Model API from a server-side gateway when the rider requests a companion debrief. It interprets consented ride or journey summaries, responds to questions and helps shape recap narration. Exact route coordinates remain on the device. ODOme calculates statistics and renders the maps, 3D animation and selected card values.
+
+A fresh Spark request was tested in the 0.5.0 browser preview using a synthetic three-ride journey and a separate synthetic fuel-stop example. The app can also replay a clearly labelled previously tested response; replay alone is not a runtime model call.
+
+**Muse Image** has an optional, disabled-by-default background-generation integration tested with a mock provider. No live image-generation result is claimed. Wonder, SAM and voice transcription are not used at runtime. See [implementation and validation](docs/EXPERIENCE.md).
+
 ![ODOme linked ride insights](docs/previews/experience-desktop.png)
 
 Use the sample journey to explore offline. In **Insights → Ask Meta → Replay tested Spark response**, the app labels and replays a genuine saved response. Fresh model requests require your configured gateway and explicit consent.
@@ -40,19 +48,19 @@ The [journal landing and overview](docs/OVERVIEW.md) now open returning riders d
 
 # Odo / Ride Ledger — private riding journal
 
-A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.
+A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). A separately configured gateway is required for fresh responses on the web or phone.
 
 Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
 
-Version **0.3.7** updates a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
+The historical **0.3.7** release added an Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
 
 The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay an offline 3D track model, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.
 
 The Meta-only companion requires a configured runtime key. Live multi-user community, automatic cross-device sync, bike Bluetooth and road speed-limit data remain unconnected. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
 
-Local Android assemble/lint, the 17-test Java target and 174 Node tests passed. The new Android dashboard and home-screen widget require an on-device trial. Install the matching local APK as **Update**, after exporting old rides; keep the existing installation/storage. Older generic recordings remain unclassified until edited.
+Local Android assemble/lint, the 17-test Java target and 174 Node tests passed. The new Android dashboard and home-screen widget require an on-device trial. The 0.5.0 preview uses a separate Android application ID and installs alongside the existing recorder. Export rides before changing installations. Older generic recordings remain unclassified until edited.
 
-**Hackathon eligibility is unresolved:** the authenticated event rules list sports analyzers/coaches among generic categories to avoid. See [HACKATHON-CHECKLIST.md](docs/HACKATHON-CHECKLIST.md) before presenting riding coaching as an entry. The source repository remains private.
+**Hackathon eligibility is unresolved:** the authenticated event rules list sports analyzers/coaches among generic categories to avoid. See [HACKATHON-CHECKLIST.md](docs/HACKATHON-CHECKLIST.md) before presenting riding coaching as an entry. The source repository is public.
 
 ## Build and preview
 
@@ -60,12 +68,12 @@ Use JDK 17, Android SDK platform 35/build-tools 34.0.0, and the included Gradle 
 
 Run `node --test scripts/analysis.test.cjs` for the evidence pipeline tests. Run `node scripts/serve.cjs`, then open http://127.0.0.1:4178 for the local web interface. It needs no package installation. `?review=1` loads dist/private-review.json only on the local preview, if privately prepared; that file is never included in the deployed site.
 
-The APK is generated at app/build/outputs/apk/debug/app-debug.apk. The verified main build is committed at [downloads/ride-ledger-0.3.7-debug.apk](downloads/ride-ledger-0.3.7-debug.apk), with [installation notes and a checksum](downloads/README.md). Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
+The 0.5.0 preview APK is available at [downloads/ODOme-0.5.0-preview.apk](downloads/ODOme-0.5.0-preview.apk), with [installation notes and a checksum](downloads/README.md). Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
 
 Raw ZIP exports contain metadata.json, summary.json, gps.csv, motion.csv, events.csv and sensor_summary.json. GPS/motion columns remain compatible with the older recorder. No road/safety/calibration claim follows from a successful recording.
 
 ## Collaboration and privacy
 
-Private source: https://github.com/risheekaiyar/ride-ledger . VarunAiyar was invited November 3; invitation acceptance is separate from hackathon eligibility. Use your own GitHub account, feature branches and reviewed changes. Never commit raw routes, odometer/bike photos, credentials, local tools or signing keys. The owner's local checkout was originally published through the connected app; terminal Git authentication/history synchronization requires separate setup.
+Public source: https://github.com/risheekaiyar/ride-ledger . VarunAiyar was invited November 3; invitation acceptance is separate from hackathon eligibility. Use your own GitHub account, feature branches and reviewed changes. Never commit raw routes, odometer/bike photos, credentials, local tools or signing keys. The owner's local checkout was originally published through the connected app; terminal Git authentication/history synchronization requires separate setup.
 
 The private web interface is hosted at https://odo-ride-ledger-risheek.risheekaiyar.chatgpt.site . Each browser stores its own imported data; it is not cross-device synchronization. Export a private backup before clearing browser data.
