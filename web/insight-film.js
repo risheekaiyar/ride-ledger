@@ -7,7 +7,7 @@ function create(host,ride,data,chapters){
  const format=(id,v)=>{const d=OdoInsightReel.definitions[id];if(d.unit==='s'){const seconds=Math.round(v);return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}return v.toFixed(d.unit==='g'?2:id==='distance'||id==='average'||id==='peak'?1:0);};
  function draw(progress){
   if(disposed)throw Error('Insight film is closed.');const index=Math.min(chapters.length-1,Math.floor(progress*chapters.length)),p=progress===1?1:progress*chapters.length-index,c=chapters[index],meta=OdoInsightReel.scenes[c.scene];
-  if(sceneId!==c.scene){scene?.dispose();scene=null;sceneId=c.scene;scene=c.scene==='route'?OdoJourneyRadar.create(host,ride,{pixelRatio:1}):OdoInsightScene.create(host,data,{onUnavailable:()=>{disposed=true;}});}
+  if(sceneId!==c.scene){scene?.dispose();scene=null;sceneId=c.scene;scene=c.scene==='route'?OdoTrackScene.create(host,ride,{autoRender:false,transparent:true,continuous:true,pixelRatio:1,onUnavailable:()=>{disposed=true;}}):OdoInsightScene.create(host,data,{onUnavailable:()=>{disposed=true;}});}
   const visual=c.scene==='route'?scene.renderFrame(p*ride.duration,p):scene.draw(c.scene,p,Math.min(1.6,p*5));
   ctx.fillStyle='#191c20';ctx.fillRect(0,0,720,1280);const glow=ctx.createRadialGradient(360,550,20,360,550,500);glow.addColorStop(0,'#343a41');glow.addColorStop(1,'#191c20');ctx.fillStyle=glow;ctx.fillRect(0,0,720,1280);
   ctx.fillStyle='#f5f7f8';ctx.font='800 48px sans-serif';ctx.fillText('odo',44,65);ctx.fillStyle='#b0bac2';ctx.font='14px monospace';ctx.fillText('RIDE INSIGHTS',149,60);ctx.textAlign='right';ctx.fillText(`${String(index+1).padStart(2,'0')} / ${String(chapters.length).padStart(2,'0')}`,676,60);ctx.textAlign='left';

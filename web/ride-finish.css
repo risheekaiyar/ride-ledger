@@ -21,5 +21,5 @@
 .reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools{bottom:39px;right:26px;left:26px;justify-content:flex-end;gap:9px}
 .reel-radar-hint{margin-right:auto;color:var(--odo-dim);font:9px monospace;letter-spacing:.5px}
 .reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools button,.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools select{background:var(--odo-active);border-color:var(--odo-quiet);color:var(--odo-soft)}
-#reel-scene canvas[data-renderer=journey-radar]:focus-visible{outline:1px solid var(--odo-cyan);outline-offset:-3px;border-radius:20px}
+#reel-scene canvas[data-renderer=webgl-route]:focus-visible{outline:1px solid var(--odo-cyan);outline-offset:-3px;border-radius:20px}
 @media(max-width:760px){.reel-stage:has(#reel-scene[data-scene=route]){height:535px;min-height:535px;max-height:none}#reel-scene[data-scene=route]{inset:123px 0 96px}.reel-stage:has(#reel-scene[data-scene=route]) #reel-route-tools{left:20px;right:20px;bottom:38px}.reel-radar-hint{font-size:8px}}

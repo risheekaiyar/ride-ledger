@@ -1,17 +1,17 @@
-# Odo ride insights — 0.3.6
+# Odo ride insights — 0.3.7
 
 Open a saved ride and choose **Play ride insights**. The replay, elevation and app theme share a black, white, red and cyan visual system.
 
 | Chapter | Visualization | What it explains |
 | --- | --- | --- |
-| The journey | Raised white GPS silhouette, racing arrow and cyan progress | Source route fixes with display-only continuity between missing positions |
+| The journey | Solid white 3D road diorama, racing arrow and cyan progress | Source route fixes with display-only continuity between missing positions |
 | Your pace | Analogue needle, colored speed ranges, per-band percentages | Actual replay speed and time-weighted speed distribution |
 | G-force lab | Load radar, recent trace and adjacent synchronized route | GPS-derived forward/braking and, when supported, lateral acceleration |
 | The vertical story | 3D elevation ribbon, meter ticks, reference lines and altitude color legend | Source altitude range; gaps remain open |
 
 Default recaps exclude the moving/under-five time donut and the old event-count chapter. Stop/gap questions remain available in the companion. A flat altitude channel does not produce an empty elevation chapter. Recordings without usable measurements show a useful recording-quality explanation.
 
-The [road preview](RACING-RADAR.md) uses every projected GPS vertex, with subtle raised white roads and cyan replay progress in a wide map composition. Drag horizontally through a full rotation while playback continues. Choose **Road perspective** or **Overhead**, and use **Recenter** to reset rotation. The racing arrow follows the path continuously. Missing positions receive straight visual interpolation in this story view, with no central gap banner. Measurements and source coordinates remain unchanged; unavailable speed stays blank. The main Track Studio uses the same arrow style.
+The [road preview](RACING-RADAR.md) uses every projected GPS vertex, with solid raised white roads, shaded sidewalls, cyan replay progress and cast shadows on a beveled dark platform. Drag horizontally through a full rotation while playback continues. Choose **Isometric 3D** or **Overhead**, and use **Recenter** to reset rotation. The racing arrow follows the path continuously. Missing positions receive straight visual interpolation in this story view, with no central gap banner. Measurements and source coordinates remain unchanged; unavailable speed stays blank. The main Track Studio uses the same arrow style.
 
 Pace percentages use observed intervals only and round to a total of one hundred. The needle uses the source speed at the playhead. G-force playback defaults to **2×**, with 1×, 5× and 10× choices, scrubbing and **Jump to strongest estimate**. Other chapters play for ten seconds. Reduced-motion mode starts paused and still permits manual scrubbing and rotation. Controls remain visible on phones and tablets.
 
@@ -35,10 +35,10 @@ No live Meta credential is configured in this cloud environment. Provider behavi
 
 The current chapters and captions export locally as an **18-second, 720 × 1280, 24 fps** story. The reviewed MP4 contains **432 H.264 frames**. Route inclusion remains explicit, and no social post is made. Closing, cancelling or backgrounding disposes the private renderer/encoder and restores the ride view.
 
-- [Road preview, mobile](previews/road-mobile-synthetic.png)
+- [Road preview, mobile](previews/diorama-mobile-synthetic.png)
 - [Analogue pace, mobile](previews/final-pace-mobile-synthetic.png)
 - [G radar and route, desktop](previews/final-gforce-desktop-synthetic.png)
 - [Elevation ribbon, mobile](previews/elevation-axis-mobile-synthetic.png)
-- [Watch the updated story](previews/road-insights-synthetic.mp4)
+- [Watch the updated story](previews/diorama-insights-synthetic.mp4)
 
-All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `journey-radar-smoke.cjs` additionally checks arrow markers, source-preserving relief, forward/reverse scrubbing, gap handling, full rotation and Canvas-only rendering. `visual-direction-smoke.cjs` verifies meter labels, source/legend agreement and the palette across app pages. Physical Android performance and live public-map behavior still need the demo device check.
+All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `route-diorama-smoke.cjs` checks the actual WebGL scene, arrow markers, preserved source geometry, forward/reverse scrubbing, display continuity, measured gap integrity, full rotation, cleanup and the readable no-WebGL fallback. `visual-direction-smoke.cjs` verifies meter labels, source/legend agreement and the palette across app pages. Physical Android performance and live public-map behavior still need the demo device check.
