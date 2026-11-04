@@ -15,6 +15,9 @@ function trackFallback(message){
  $('#map-label').textContent=message;$('#track-hint').textContent='Recorded route · offline';
 }
 function updateTrackReadouts(s){
+ updateSampleInspector(s.time);const ride=current();if(ride)updateTelemetryAccessibility(ride,s.time);
+ if($('#timeline-readout'))$('#timeline-readout').textContent=clock(s.time)+' · '+fmt(s.speed,0)+' km/h';
+ const dot=$('#route-dot');if(dot)dot.style.visibility=s.gap?'hidden':'visible';if(marker?.getElement)marker.getElement().hidden=s.gap;
  if($('#track-clock'))$('#track-clock').textContent=clock(s.time);
  if($('#track-speed'))$('#track-speed').innerHTML=`${fmt(s.speed,0)}<small> km/h</small>`;
  if($('#track-gap'))$('#track-gap').hidden=!s.gap;
@@ -45,6 +48,12 @@ stopPlay=function(){
  stopBeforeTrack();cancelAnimationFrame(trackPlayback);trackPlayback=0;trackWasPlaying=false;
  setPlaybackButton(false);
 };
+function seekTrackTime(value){
+ const ride=current();if(!ride?.track.length||!Number.isFinite(value))return;
+ stopPlay();const time=Math.max(0,Math.min(ride.duration,value)),index=OdoTelemetry.nearest(ride.track,time);
+ updateBeforeTrack(index);trackTime=time;
+ if(trackScene)trackScene.setTime(time);else{const sample=OdoTelemetry.inspect(ride,time);updateTrackReadouts({time,speed:sample.speed,gap:sample.gap});}
+}
 function animateTrackPlayback(now){
  if(!trackWasPlaying)return;
  const dt=Math.min(.1,(now-trackLastFrame)/1000);trackLastFrame=now;const r=current();if(!r)return stopPlay();
@@ -90,7 +99,7 @@ document.addEventListener('click',event=>{
  // Keep the current 3D view while map consent is open; switch only after the explicit load action.
  if(b.dataset.mapConfirm){stopPlay();trackView='2d';render();}
 },true);
-document.addEventListener('input',e=>{if(e.target.id==='timeline'&&trackWasPlaying)stopPlay();},true);
+document.addEventListener('input',e=>{if(e.target.id==='timeline'&&(trackWasPlaying||playTimer))stopPlay();},true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPlay();});
 window.addEventListener('pagehide',()=>{stopPlay();disposeTrackScene();});
 window.addEventListener('pageshow',()=>mountTrackScene());

@@ -51,3 +51,11 @@ The editor releases its temporary WebGL scene after rendering each format. Downl
 GPX parsing now reads only direct GPX track/segment/point fields from supported 1.0/1.1 namespaces (or legacy unnamespaced GPX). Blank, missing and non-decimal coordinates are rejected. Times require a valid calendar date and explicit UTC/offset timezone; local-time ambiguity is not silently resolved using the importing device. Exact duplicate samples are removed and reported. Conflicting equal timestamps and backwards time fail with the point number. Invalid optional altitude becomes unknown with a warning while valid route positions remain usable. Each file in a batch has its own outcome, so a malformed file does not erase successful imports.
 
 `node scripts/gpx-smoke.cjs` tests namespace/extension boundaries, malformed fields, duplicate handling, segment preservation and mixed batch outcomes in Chromium. `scripts/gpx.test.cjs` covers decimal and calendar/timezone validation.
+
+## Sample inspector and precise seeking
+
+The data room now exposes the nearest recorded GPS fix separately from one-second phone summary bins: horizontal accuracy, speed uncertainty, source altitude, course, raw/linear acceleration peaks and median angular-speed magnitude. Missing fields stay unavailable; raw acceleration explicitly includes gravity, and phone-frame values are not bike-frame forces.
+
+Charts support focus and keyboard seeking. Speed/elevation arrows step recorded fixes, motion arrows step one-second bins, and Shift/Page keys jump ten. Click positions are converted through the actual SVG transform so wide-screen letterboxing does not distort the requested time. Selecting a motion event seeks elapsed time instead of snapping to GPS; motion remains inspectable during a GPS gap while GPS fields and the rider marker stay unavailable. Channel changes preserve the playhead. Seeking pauses replay, and screen-reader values follow the selected channel and source timestamp.
+
+`node scripts/inspector-smoke.cjs` covers keyboard access, SVG-coordinate seeking, shared playback position, GPX unknown measurements, motion bins during GPS gaps and mobile layout. Unit checks cover zero-valued measurements, unavailable fields, timestamp bounds and gap behavior. The mobile screenshot in `previews/sample-inspector-synthetic.png` uses synthetic test measurements.

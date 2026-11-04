@@ -30,5 +30,20 @@ function path(points,duration,width=600,height=130,maxGap=3,zeroBased=true){
  return {d,min,max};
 }
 function nearest(track,time){if(!track.length)return -1;let low=0,high=track.length-1;while(low<high){const mid=Math.floor((low+high)/2);if(track[mid][2]<time)low=mid+1;else high=mid;}return low>0&&Math.abs(track[low-1][2]-time)<=Math.abs(track[low][2]-time)?low-1:low;}
-const api={analyze,series,path,nearest};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
+function inspect(ride,time){
+ const track=ride.track||[],index=nearest(track,time),point=track[index],imported=ride.source==='GPX export';
+ let upper=0,high=track.length;while(upper<high){const mid=(upper+high)>>1;if(track[mid][2]<time)upper=mid+1;else high=mid;}
+ const before=track[upper-1],after=track[upper],exact=point&&point[2]===time;
+ const gap=!point||!Number.isFinite(time)||time<0||time>ride.duration||(!exact&&(!before||!after||before[7]!==after[7]||after[2]-before[2]>(imported?30:3)));
+ const finite=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max?v:null;
+ const sample=gap?null:point,signals=ride.signals||[],second=Math.floor(time);let low=0;high=signals.length;
+ while(low<high){const mid=(low+high)>>1;if(signals[mid][0]<second)low=mid+1;else high=mid;}
+ const motion=signals[low]?.[0]===second&&time>=0&&time<=ride.duration?signals[low]:null;
+ return {index,gap,imported,sampleTime:sample?.[2]??null,motionTime:motion?.[0]??null,
+  speed:finite(sample?.[3],0,251.999),accuracy:imported?null:finite(sample?.[4],0,100000),
+  speedAccuracy:imported?null:finite(sample?.[8],0,1000),altitude:finite(sample?.[5],-1000,10000),
+  course:imported?null:finite(sample?.[6],0,359.999999),
+  acceleration:finite(motion?.[1],0,100000),linearAcceleration:finite(motion?.[2],0,100000),angularSpeed:finite(motion?.[3],0,100000)};
+}
+const api={analyze,series,path,nearest,inspect};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

@@ -35,3 +35,8 @@ test('large straight recordings retain endpoints without thousands of mesh verti
  assert.equal(m.segments[0].points.length,2);assert.equal(m.points.length,50000);
  assert.equal(atTime(m,24999.5).index,25000);
 });
+test('seeking beyond recorded GPS bounds shows a gap instead of an endpoint measurement',()=>{
+ const m=build([p(77,12,2),p(77.001,12,5)]);
+ for(const t of [0,6,NaN]){assert.equal(atTime(m,t).gap,true);assert.equal(atTime(m,t).speed,null);}
+ assert.equal(atTime(m,2).gap,false);assert.equal(atTime(m,5).gap,false);
+});
