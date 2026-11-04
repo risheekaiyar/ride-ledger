@@ -14,6 +14,8 @@ The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and sou
 
 [Screen-state evidence](docs/SCREEN-STATE-EVIDENCE.md) distinguishes observed intervals from missing logs and carries bounded coverage into Meta debriefs.
 
+[Phone signal diagnostics](docs/SENSOR-DIAGNOSTICS.md) expose sample gaps, reported Android statuses and possible range clipping, with bounded motion-channel summaries in the Meta debrief.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.

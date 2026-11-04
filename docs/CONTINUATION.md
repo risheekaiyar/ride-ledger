@@ -6,6 +6,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Current capabilities
 
+- Evidence v5 adds source-aware sensor cards, endpoint gaps, vendor-status distributions and validated per-axis near-range checks. Invalid ranges no longer flag every sample; interpolated percentiles fix small-sample ordering; blank timestamps/axes remain missing. The Meta packet includes validated motion-channel diagnostics, exercised with a mock provider. Local preview restarted with this validator (shell session 57308, port 4178).
 - Responsive garage with local photo handling, manual odometer (including zero), bike-specific evidence totals, saved bike-type recording defaults and the correct associated-ride Meta debrief. Profile rename leaves historical recording names unchanged; photo remove/reselection and persistence are browser-tested. Reviewed synthetic screenshots are in docs/previews/garage-*.png.
 - Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
 
@@ -28,7 +29,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 ## Next local improvements — no external prerequisites
 
 1. Continue polishing the remaining overview and empty states. Library, route-first details, recording setup and garage now have reviewed mobile layouts.
-2. Expose per-channel reported sensor accuracy and clipping diagnostics with clear units. Treat Android status as vendor-reported sensor diagnostics, not calibrated motorcycle accuracy; consider bounded summaries for the Meta debrief.
+2. Add signal comparison views that require compatible setups and account for gaps, source units and possible clipping. Channel diagnostics and bounded Meta summaries are now implemented; actual bike calibration still needs labelled recordings.
 3. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
 4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
 5. Improve story composition and editable captions; inspect exported images and their privacy defaults.
@@ -56,9 +57,10 @@ node scripts/native-import-smoke.cjs
 node scripts/recording-smoke.cjs
 node scripts/confidence-smoke.cjs
 node scripts/garage-smoke.cjs
+node scripts/sensor-health-smoke.cjs
 ```
 
-Latest checks: 84 Node tests pass; Android assembly/lint pass with 14 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
+Latest checks: 95 Node tests pass; Android assembly/lint pass (14 Java tests from the last native change); browser checks pass for sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 

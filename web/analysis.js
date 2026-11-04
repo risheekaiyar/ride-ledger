@@ -1,9 +1,9 @@
-/* Odo evidence pipeline v4. No model calls; no raw-sample uploads. */
+/* Odo evidence pipeline v5. No model calls; no raw-sample uploads. */
 (function(root){
 'use strict';
-const G=9.80665, num=v=>v===''||v==null?null:(Number.isFinite(+v)?+v:null);
-const median=a=>{const b=a.filter(Number.isFinite).sort((x,y)=>x-y);return b.length?b[Math.floor(b.length/2)]:null;};
-const quantile=(a,p)=>{const b=a.filter(Number.isFinite).sort((x,y)=>x-y);return b.length?b[Math.floor((b.length-1)*p)]:null;};
+const G=9.80665, num=v=>v==null||typeof v==='string'&&v.trim()===''?null:(Number.isFinite(+v)?+v:null);
+const quantile=(a,p)=>{const b=a.filter(Number.isFinite).sort((x,y)=>x-y);if(!b.length)return null;const index=(b.length-1)*p,lo=Math.floor(index),fraction=index-lo;return fraction?(1-fraction)*b[lo]+fraction*b[lo+1]:b[lo];};
+const median=a=>quantile(a,.5);
 const distance=(a,b)=>{const d=Math.PI/180,p=(b[1]-a[1])*d,q=(b[0]-a[0])*d;return 12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin(p/2)**2+Math.cos(a[1]*d)*Math.cos(b[1]*d)*Math.sin(q/2)**2)));};
 function csv(s){const lines=s.replace(/^\uFEFF/,'').trim().split(/\r?\n/);const keys=lines.shift().split(',');return lines.filter(Boolean).map(l=>{const v=l.split(',');if(v.length!==keys.length)throw Error('Malformed CSV row');return Object.fromEntries(keys.map((k,i)=>[k,v[i]]));});}
 function analyze(files,name='Recording'){
@@ -13,24 +13,28 @@ function analyze(files,name='Recording'){
  const duration=hasMonotonicEnd?(Number.isFinite(summary.ended_elapsed_ns)?(summary.ended_elapsed_ns-meta.started_elapsed_ns)/1e9:NaN):wallDuration;
  const timeBasis=hasMonotonicEnd?'elapsed-realtime':'wall-clock-fallback';
  if(!(duration>0&&duration<=86400))throw Error('Invalid recording duration');
- const gps=csv(files['gps.csv']), motion=csv(files['motion.csv']), groups={}, bins=new Map();
+ const gps=csv(files['gps.csv']), motion=csv(files['motion.csv']), groups={}, bins=new Map(),sensors=Array.isArray(meta.sensors)?meta.sensors:[];
  const warnings=[], stats=[], start=meta.started_elapsed_ns,knownMotionTypes=new Set([1,2,4,5,6,9,10,11]);let motionExcluded=0;
  if(!hasMonotonicEnd)warnings.push('Legacy export has no monotonic end timestamp; duration falls back to device wall-clock times.');
  else if(!Number.isFinite(wallDuration)||Math.abs(wallDuration-duration)>2)warnings.push('Wall-clock and elapsed durations disagree; the elapsed clock was used.');
- for(const r of motion){const type=+r.type,t=(+r.sensor_elapsed_ns-start)/1e9,x=num(r.x),y=num(r.y),z=num(r.z);const scalar=type===5||type===6;
+ for(const r of motion){const type=+r.type,stamp=num(r.sensor_elapsed_ns),t=stamp===null?NaN:(stamp-start)/1e9,x=num(r.x),y=num(r.y),z=num(r.z);const scalar=type===5||type===6;
   if(!knownMotionTypes.has(type)||!Number.isFinite(t)||t<0||t>duration||x===null||(scalar?x<0:y===null||z===null)){motionExcluded++;continue;}
   const magnitude=scalar?x:Math.hypot(x,y,z);if(!Number.isFinite(magnitude)){motionExcluded++;continue;}
   const a=groups[type]||(groups[type]={n:0,first:t,last:t,gap:0,bad:0,values:[],clipped:0,accuracy:{}});
-  if(a.n&&t<=a.last){a.bad++;motionExcluded++;continue;}if(a.n)a.gap=Math.max(a.gap,t-a.last);a.n++;a.last=t;a.values.push(magnitude);a.accuracy[r.accuracy]=(a.accuracy[r.accuracy]||0)+1;
-  const range=meta.sensors?.find(s=>s.type===type)?.maximum_range;
-  if(range&&[1,4,10].includes(type)&&[x,y,z].filter(v=>v!==null).some(v=>Math.abs(v)>=range*.995))a.clipped++;
+  if(a.n&&t<=a.last){a.bad++;motionExcluded++;continue;}if(a.n)a.gap=Math.max(a.gap,t-a.last);a.n++;a.last=t;a.values.push(magnitude);
+  const accuracy=num(r.accuracy),status=Number.isInteger(accuracy)&&accuracy>=-1&&accuracy<=3?String(accuracy):'unknown';a.accuracy[status]=(a.accuracy[status]||0)+1;
+  const range=sensors.find(s=>s?.type===type)?.maximum_range;
+  if(Number.isFinite(range)&&range>0&&[1,4,10].includes(type)&&[x,y,z].some(v=>Math.abs(v)>=range*.995))a.clipped++;
   const second=Math.floor(t);if(second<0||second>duration)continue;
   if([1,4,10].includes(type)){const b=bins.get(second)||{t:second,acc:[],lin:[],gyro:[]};b[type===1?'acc':type===10?'lin':'gyro'].push(magnitude);bins.set(second,b);}
  }
- for(const [type,a] of Object.entries(groups)){const scalar=['5','6'].includes(type);stats.push({type:+type,label:meta.sensors?.find(s=>s.type===+type)?.label||type,n:a.n,hz:a.last>a.first?(a.n-1)/(a.last-a.first):0,maxGap:a.gap,nonMonotonic:a.bad,median:median(a.values),p95:quantile(a.values,.95),peak:quantile(a.values,1),clipped:a.clipped,accuracy:a.accuracy,unit:scalar?(type==='5'?'lx':'hPa'):type==='4'?'rad/s':type==='2'?'µT':type==='11'?'unitless':'m/s²'});}
+ for(const [type,a] of Object.entries(groups)){
+  const scalar=['5','6'].includes(type),sensor=sensors.find(s=>s?.type===+type);
+  stats.push({type:+type,label:sensor?.label||type,n:a.n,hz:a.last>a.first?(a.n-1)/(a.last-a.first):0,maxGap:a.gap,nonMonotonic:a.bad,median:median(a.values),p95:quantile(a.values,.95),peak:quantile(a.values,1),clipped:a.clipped,accuracy:a.accuracy,unit:scalar?(type==='5'?'lx':'hPa'):type==='4'?'rad/s':type==='2'?'µT':type==='11'?'unitless':'m/s²',diagnosticsVersion:1,firstSeconds:a.first,lastSeconds:a.last,maximumRange:Number.isFinite(sensor?.maximum_range)&&sensor.maximum_range>0?sensor.maximum_range:null,reportingMode:[0,1,2,3].includes(sensor?.reporting_mode)?sensor.reporting_mode:null});
+ }
  let lastTime=-Infinity,segment=0,accepted=0,duplicates=0,movingSeconds=0,observedSeconds=0,stoppedSeconds=0,speedIntegral=0;
  const track=[];
- for(const r of gps){const t=(+r.fix_elapsed_ns-start)/1e9,lat=num(r.latitude_deg),lon=num(r.longitude_deg),acc=num(r.accuracy_m),speed=num(r.speed_mps),sa=num(r.speed_accuracy_mps);
+ for(const r of gps){const stamp=num(r.fix_elapsed_ns),t=stamp===null?NaN:(stamp-start)/1e9,lat=num(r.latitude_deg),lon=num(r.longitude_deg),acc=num(r.accuracy_m),speed=num(r.speed_mps),sa=num(r.speed_accuracy_mps);
   const ok=Number.isFinite(t)&&t>=0&&t<=duration&&r.accepted==='true'&&r.mock!=='true'&&lat!==null&&Math.abs(lat)<=90&&lon!==null&&Math.abs(lon)<=180&&acc!==null&&acc>=0&&acc<=30&&num(r.age_seconds)!==null&&+r.age_seconds>=0&&+r.age_seconds<=15;
   if(!ok){segment++;continue;}if(t<=lastTime){duplicates++;segment++;continue;}if(t-lastTime>3)segment++;lastTime=t;accepted++;
   const sp=speed!==null&&speed>=0&&speed<70&&(sa===null||(sa>=0&&sa<=2))?speed*3.6:null;
@@ -70,8 +74,25 @@ function analyze(files,name='Recording'){
  const rawMeters=summary.estimated_distance_m,rawKm=Number.isFinite(rawMeters)&&rawMeters>=0&&rawMeters<=duration*70+1?rawMeters/1000:null;
  const distanceIntegrity=rawKm!==null&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length;
  if(rawKm===null)warnings.push('Recorder distance is missing or invalid; distance and its full-trip average remain unknown.');
- const ride={schema:1,algorithm:'odo-evidence-4',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceIntegrity,distanceKm:rawKm,distanceReliable:false,averageSpeed:rawKm===null?null:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:screen.off,screenObservedSeconds:screen.observed,screenEventsExcluded:screen.excluded,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
+ const ride={schema:1,algorithm:'odo-evidence-5',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceIntegrity,distanceKm:rawKm,distanceReliable:false,averageSpeed:rawKm===null?null:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:screen.off,screenObservedSeconds:screen.observed,screenEventsExcluded:screen.excluded,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
  ride.distanceReliable=distanceSupported(ride);return ride;
+}
+// Normalize persisted summaries for both the UI and the location-free model packet.
+// Missing range/timing metadata in legacy journals stays unknown until reimport.
+function sensorDiagnostics(s,duration){
+ const knownTypes=[1,2,4,5,6,9,10,11],count=v=>Number.isInteger(v)&&v>=0&&v<=100000000;
+ if(!s||!knownTypes.includes(s.type)||!count(s.n)||!s.n||!Number.isFinite(duration)||duration<=0)return null;
+ const detailed=s.diagnosticsVersion===1;
+ if(detailed&&(!Number.isFinite(s.firstSeconds)||s.firstSeconds<0||!Number.isFinite(s.lastSeconds)||s.lastSeconds<s.firstSeconds||s.lastSeconds>duration||s.maximumRange!==null&&(!Number.isFinite(s.maximumRange)||s.maximumRange<=0)||s.reportingMode!==null&&![0,1,2,3].includes(s.reportingMode)))return null;
+ const statusCounts={no_contact:0,unreliable:0,low:0,medium:0,high:0,unknown:0},keys={'-1':'no_contact','0':'unreliable','1':'low','2':'medium','3':'high'};
+ let total=0,invalid=false;
+ for(const [code,n] of Object.entries(s.accuracy&&typeof s.accuracy==='object'&&!Array.isArray(s.accuracy)?s.accuracy:{})){
+  if(!count(n)||total+n>s.n){invalid=true;break;}total+=n;statusCounts[Object.hasOwn(keys,code)?keys[code]:'unknown']+=n;
+ }
+ if(invalid){for(const key in statusCounts)statusCounts[key]=0;total=0;}
+ statusCounts.unknown+=s.n-total;
+ const range=detailed?s.maximumRange:null,nearRange=range!==null&&[1,4,10].includes(s.type)&&count(s.clipped)&&s.clipped<=s.n?s.clipped:null;
+ return {type:s.type,samples:s.n,sampleRateHz:s.n>1&&Number.isFinite(s.hz)&&s.hz>0?s.hz:null,maxGapSeconds:s.n>1&&Number.isFinite(s.maxGap)&&s.maxGap>=0&&s.maxGap<=duration?s.maxGap:null,firstSeconds:detailed?s.firstSeconds:null,lastSeconds:detailed?s.lastSeconds:null,leadingGapSeconds:detailed?s.firstSeconds:null,trailingGapSeconds:detailed?Math.max(0,duration-s.lastSeconds):null,maximumRange:range,nearRangeSamples:nearRange,statusCounts,detailed};
 }
 function screenTiming(rows,start,duration){
  const states={initial_screen_on:false,initial_screen_off:true,screen_on:false,screen_off:true};
@@ -126,11 +147,14 @@ function validateBackup(x){
   for(const p of r.track)if(!Array.isArray(p)||p.length!==9||!finite(p[0],-180,180)||!finite(p[1],-90,90)||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid track in backup.');
   for(const p of r.signals)if(!Array.isArray(p)||p.length!==5||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid signal in backup.');
   for(const e of r.events)if(!/^[a-z0-9-]+$/i.test(e.id)||!['impact','braking','acceleration'].includes(e.kind)||!finite(e.t)||!finite(e.g)||!finite(e.lon,-180,180)||!finite(e.lat,-90,90))throw Error('Invalid event in backup.');
-  for(const s of r.stats)if(![s.type,s.n,s.hz,s.maxGap,s.nonMonotonic,s.median,s.p95,s.peak,s.clipped].every(v=>finite(v)))throw Error('Invalid sensor summary in backup.');
+  for(const s of r.stats){
+   if(![s.type,s.n,s.hz,s.maxGap,s.nonMonotonic,s.median,s.p95,s.peak,s.clipped].every(v=>finite(v)))throw Error('Invalid sensor summary in backup.');
+   if(s.diagnosticsVersion!==undefined&&(s.diagnosticsVersion!==1||!sensorDiagnostics(s,r.duration)||!Number.isInteger(s.clipped)||s.clipped<0||s.clipped>s.n))throw Error('Invalid sensor diagnostics in backup.');
+  }
   // Accept old backups, preserving their measurements/annotations while rechecking display confidence.
   if(r.distanceIntegrity===undefined)r.distanceReliable=distanceSupported(r);
  }
  return x;
 }
-const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage,screenTiming};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
+const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage,screenTiming,sensorDiagnostics};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
 })(typeof self!=='undefined'?self:globalThis);
