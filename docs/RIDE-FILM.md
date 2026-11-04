@@ -1,6 +1,14 @@
 # Offline ride films
 
-**Make clip** in Track Studio opens a local motion editor with a slowly orbiting 3D road model, moving rider marker, recorded-time timeline and motorsport typography. Choose an orange or ice edition, edit the headline, scrub the preview and render a 12- or 18-second portrait clip at 720 × 1280.
+**Make clip** in Track Studio opens a local motion editor with a slowly orbiting 3D road model, moving rider marker, recorded-time timeline and motorsport typography. Choose an orange or ice edition, edit the headline, scrub the preview and render a 12- or 18-second clip.
+
+| Format | Encoded dimensions |
+| --- | --- |
+| Story 9:16 | 720 × 1280 |
+| Portrait 4:5 | 720 × 900 |
+| Square 1:1 | 720 × 720 |
+
+Each format has its own composition: headline size, track viewport, timeline and stat positions adapt to the available height. Compact frames use a lower camera angle to make the raised road and kerbs clearer. The scene is rendered at the new viewport size, preserving its geometry proportions. Changing format keeps the headline, edition, preview position and sharing choices, clears the old rendered clip and checks encoder support for the new dimensions. Late support responses from earlier selections are ignored; a frame encoder with mismatched dimensions is rejected.
 
 Route inclusion must be selected before rendering. Replay speed starts off; enabling it preserves GPS/GPX source labels and leaves gaps unknown. Distances retain the app's existing confidence checks. The entire recorded duration maps onto the clip, including intervals before/after usable GPS. No coordinates, original timestamps, bike identifier, raw sensor rows or private notes are printed. The model uses stylized road width and flat source elevation, not reconstructed terrain.
 
@@ -14,13 +22,18 @@ The current APK is required for Android video sharing. Real device codec support
 
 ## Review and validation
 
-The committed clip, decoded frame and editor screenshots were refreshed after the higher-contrast track treatment, wider illustrative kerbs and closed-loop geometry refinement. The export settings and source/privacy labels are unchanged.
+The committed clips and decoded frames use the higher-contrast track treatment, wider illustrative kerbs and closed-loop geometry refinement. Route and speed sharing remain explicit choices.
 
 - [Actual exported MP4](previews/ride-film-synthetic.mp4) — synthetic test circuit, 12 seconds, H.264, 720 × 1280, exactly 288 frames at 24 fps, no audio.
 - [Decoded video frame](previews/ride-film-frame-synthetic.png)
 - [Mobile editor](previews/ride-film-editor-mobile.png) · [Desktop editor](previews/ride-film-editor-desktop.png)
+- [Portrait MP4](previews/ride-film-portrait-synthetic.mp4) · [Decoded portrait frame](previews/ride-film-portrait-frame-synthetic.png)
+- [Square MP4](previews/ride-film-square-synthetic.mp4) · [Decoded square frame](previews/ride-film-square-frame-synthetic.png)
+- [Square editor on mobile](previews/ride-film-square-editor-mobile.png) · [Portrait editor on desktop](previews/ride-film-portrait-editor-desktop.png)
 
 The 18-second option was also rendered and verified as 432 frames at 24 fps, with speed explicitly included; both durations stayed below the 12 MB cap. The fixture is never loaded as product data. `scripts/ride-film-smoke.cjs` renders the clip and verifies it with `ffprobe`, exercises route/speed defaults, cancellation, backgrounding, native success/error callbacks, old-APK/unsupported states and resource cleanup. `scripts/film-codec-smoke.cjs` checks a playable silent WebM fallback and stopped capture tracks. Existing track and poster browser checks pass. Node tests cover provenance, gaps, codec negotiation and early cancellation; Java tests cover native media naming, container signatures and decoded bounds. No model API call or external upload is used by these checks.
+
+`scripts/film-formats-smoke.cjs` additionally renders real portrait and square H.264 clips and inspects their dimensions, 288 frames, exact 12-second duration and lack of audio. It checks all three preview layouts at 320–1440px, independent scene/canvas sizing, invalidation of old media and out-of-order codec responses. The current full Node suite has 139 passing tests. Android assembly and lint pass; native video dimension bounds already permit all three formats, but physical sharing receivers remain unverified.
 
 ## Bundled dependency
 

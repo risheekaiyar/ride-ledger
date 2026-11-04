@@ -28,3 +28,16 @@ test('cancelled or invalid exports never start a capture stream',async()=>{
  await assert.rejects(film.record(canvas,()=>{},{codec:{mode:'realtime',mime:'video/mp4'},signal:controller.signal}),{name:'AbortError'});
  await assert.rejects(film.record(canvas,()=>{},{codec:{mode:'realtime',mime:'video/mp4'},duration:300}),/12 or 18/);assert.equal(captures,0);
 });
+test('video support is checked for the selected aspect ratio, with invalid formats rejected',async()=>{
+ const originals={VideoEncoder:globalThis.VideoEncoder,VideoFrame:globalThis.VideoFrame,Mp4Muxer:globalThis.Mp4Muxer},configs=[];
+ try{
+  globalThis.VideoEncoder={isConfigSupported:async config=>{configs.push(config);return {supported:true};}};globalThis.VideoFrame=function(){};globalThis.Mp4Muxer={};
+  for(const [format,height] of [['story',1280],['portrait',900],['square',720]]){const codec=await film.encoder(format);assert.equal(codec.config.width,720);assert.equal(codec.config.height,height);assert.equal(codec.config.framerate,24);}
+  assert.equal(configs.length,3);await assert.rejects(film.encoder('constructor'),/clip format/);await assert.rejects(film.encoder('other'),/clip format/);assert.equal(configs.length,3);
+ }finally{for(const [key,value] of Object.entries(originals)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}}
+});
+test('a stale frame encoder cannot silently encode a differently sized composition',async()=>{
+ const canvas={width:720,height:720},codec={mode:'frames',config:{width:720,height:1280}};let draws=0;
+ await assert.rejects(film.record(canvas,()=>{draws++;},{codec}),/format changed/);assert.equal(draws,1);
+ await assert.rejects(film.record(canvas,()=>{draws++;},{codec:{mode:'frames',config:{width:720,height:800}}}),/Unsupported clip encoding dimensions/);assert.equal(draws,1);
+});
