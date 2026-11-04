@@ -25,6 +25,7 @@ public class DashboardActivity extends Activity {
     private CompanionClient companion;
     private final Handler main=new Handler(Looper.getMainLooper());
     private final ExecutorService io=Executors.newSingleThreadExecutor();
+    private final java.util.concurrent.atomic.AtomicBoolean sharingClip=new java.util.concurrent.atomic.AtomicBoolean();
     private ValueCallback<Uri[]> fileChoice;
     private boolean widgetPending=false,destroyed=false;
     private boolean dashboardReady=false,setupPending=false;
@@ -50,7 +51,7 @@ public class DashboardActivity extends Activity {
                     String p=u.getPath();if(p==null||p.contains("..")||p.contains("\\"))return blocked();if(p.equals("/"))p="/index.html";
                     try{String mime=p.endsWith(".js")?"text/javascript":p.endsWith(".css")?"text/css":p.endsWith(".svg")?"image/svg+xml":p.endsWith(".webmanifest")?"application/manifest+json":"text/html";
                         WebResourceResponse response=new WebResourceResponse(mime,"UTF-8",getAssets().open("odo"+p));
-                        response.setResponseHeaders(Collections.singletonMap("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self' https://tile.openstreetmap.org; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"));return response;
+                        response.setResponseHeaders(Collections.singletonMap("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; media-src 'self' blob:; connect-src 'self' https://tile.openstreetmap.org; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"));return response;
                     }catch(IOException e){return blocked();}
                 }
                 if("https".equals(u.getScheme())&&"tile.openstreetmap.org".equals(u.getHost()))return null;
@@ -87,6 +88,7 @@ public class DashboardActivity extends Activity {
     @Override public void onRequestPermissionsResult(int code,String[] permissions,int[] results){super.onRequestPermissionsResult(code,permissions,results);if(code==12){boolean ok=checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED&&(Build.VERSION.SDK_INT<33||checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED);if(ok)startRide(pendingPlacement,pendingTypes);else toast("Precise location and notifications are required. Use Start again after granting them.");}}
     private void js(String code){main.post(()->{if(!destroyed)web.evaluateJavascript(code,null);});}
     private void toast(String s){main.post(()->Toast.makeText(this,s,Toast.LENGTH_LONG).show());}
+    private void clipReply(String id,String error){js("window.odoClipShared&&window.odoClipShared("+JSONObject.quote(id)+","+(error==null?"null":JSONObject.quote(error))+")");}
     private void error(String s){js("window.odoNativeError&&window.odoNativeError("+JSONObject.quote(s)+")");}
     private void sendZip(String id,InputStream in){
         try(InputStream source=in;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n;long total=0;while((n=source.read(b))!=-1){total+=n;if(total>40L*1024*1024)throw new IOException("Too large");out.write(b,0,n);}String encoded=Base64.encodeToString(out.toByteArray(),Base64.NO_WRAP);js("window.odoNativeRide("+JSONObject.quote(id)+","+JSONObject.quote(encoded)+")");}catch(Exception e){error("Import failed or ZIP exceeds 40 MB. Original files are unchanged.");}
@@ -126,11 +128,41 @@ public class DashboardActivity extends Activity {
                 android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.length,options);
                 if(!"image/png".equals(options.outMimeType)||options.outWidth<1||options.outHeight<1||options.outWidth>2160||options.outHeight>3840)throw new IOException("Invalid story image");
                 File directory=new File(getCacheDir(),"stories");if(!directory.exists()&&!directory.mkdirs())throw new IOException();
-                File[] previous=directory.listFiles();if(previous!=null)for(File f:previous)if(f.getName().matches("odo-[a-f0-9-]{36}\\.png")&&System.currentTimeMillis()-f.lastModified()>86400000L)f.delete();
+                File[] previous=directory.listFiles();if(previous!=null)for(File f:previous)if(StoryMedia.validName(f.getName())&&System.currentTimeMillis()-f.lastModified()>86400000L)f.delete();
                 File image=new File(directory,"odo-"+UUID.randomUUID()+".png");try(FileOutputStream out=new FileOutputStream(image)){out.write(bytes);}
                 Uri uri=Uri.parse("content://"+getPackageName()+".stories/"+image.getName());
                 main.post(()->{if(destroyed)return;Intent share=new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);share.setClipData(ClipData.newRawUri("Odo ride story",uri));try{startActivity(Intent.createChooser(share,"Share your Odo story"));}catch(Exception e){toast("No app is available to share this image.");}});
             }catch(Exception e){toast("Could not prepare story image. Original ride data is unchanged.");}});
+        }
+
+        @JavascriptInterface public void shareClip(String id,String data){
+            if(id==null||!id.matches("clip_[a-f0-9]{32}"))return;
+            String extension=StoryMedia.videoExtension(data);
+            if(extension==null){clipReply(id,"Clip format or size is unsupported.");return;}
+            if(!sharingClip.compareAndSet(false,true)){clipReply(id,"Another clip is being prepared. Try again shortly.");return;}
+            try{io.execute(()->{
+                File output=null;
+                try{
+                    byte[] bytes=Base64.decode(data.substring(data.indexOf(',')+1),Base64.DEFAULT);
+                    if(!StoryMedia.videoHeader(bytes,extension))throw new IOException("Invalid video header");
+                    File directory=new File(getCacheDir(),"stories");if(!directory.exists()&&!directory.mkdirs())throw new IOException();
+                    File[] previous=directory.listFiles();if(previous!=null)for(File f:previous)if(StoryMedia.validName(f.getName())&&System.currentTimeMillis()-f.lastModified()>86400000L)f.delete();
+                    output=new File(directory,"odo-"+UUID.randomUUID()+"."+extension);try(FileOutputStream out=new FileOutputStream(output)){out.write(bytes);}
+                    android.media.MediaMetadataRetriever reader=new android.media.MediaMetadataRetriever();
+                    try{
+                        reader.setDataSource(output.getAbsolutePath());
+                        if(!"yes".equals(reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_VIDEO))||"yes".equals(reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO))||!StoryMedia.videoBounds(reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH),reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT),reader.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)))throw new IOException("Unsupported video dimensions or duration");
+                    }finally{reader.release();}
+                    File ready=output;Uri uri=Uri.parse("content://"+getPackageName()+".stories/"+ready.getName());
+                    main.post(()->{
+                        try{
+                            if(destroyed){ready.delete();return;}
+                            Intent share=new Intent(Intent.ACTION_SEND).setType(StoryMedia.mime(ready.getName())).putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            share.setClipData(ClipData.newRawUri("Odo ride clip",uri));startActivity(Intent.createChooser(share,"Share your Odo clip"));clipReply(id,null);
+                        }catch(Exception error){ready.delete();clipReply(id,"No app is available to share this clip.");}finally{sharingClip.set(false);}
+                    });
+                }catch(Exception error){if(output!=null)output.delete();sharingClip.set(false);clipReply(id,"Android could not read this clip. Try a PNG poster or another video format.");}
+            });}catch(RejectedExecutionException error){sharingClip.set(false);clipReply(id,"The app is closing. Reopen Odo to share the clip.");}
         }
 
         @JavascriptInterface public void companionBubble(){main.post(()->{

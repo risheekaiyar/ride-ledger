@@ -1,14 +1,14 @@
 /* Offline, lit 3D route diorama. No imagery service, map tiles or synthetic ride measurements. */
 (function(root){
 'use strict';
-function create(container,ride,{onState=()=>{},onUnavailable=()=>{}}={}){
+function create(container,ride,{onState=()=>{},onUnavailable=()=>{},autoRender=true,pixelRatio=Math.min(devicePixelRatio,2),shadowSize=2048}={}){
  const T=root.THREE,model=OdoTrackModel.build(ride.track,{gapLimit:ride.source==='GPX export'?30:3,speedMode:ride.source==='GPX export'?'interval':'samples'});if(!T||!model||!model.segments.length)throw Error('This recording needs a connected route to build its track preview.');
- const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;
+ const renderer=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.max(.5,Math.min(pixelRatio,2)));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;
  renderer.domElement.setAttribute('aria-label','Interactive 3D route model. Drag to orbit; use camera buttons or arrow keys.');renderer.domElement.tabIndex=0;container.append(renderer.domElement);
  const scene=new T.Scene();scene.background=new T.Color('#0b1018');scene.fog=new T.Fog('#0b1018',950,2000);
  const camera=new T.PerspectiveCamera(36,1,.5,1800);let azimuth=-.68,polar=.74,radius=560,mode='orbit',elevation=false,disposed=false,frame=0,last=0,time=ride.track[0][2],target=new T.Vector3(0,0,0),dragging=false;
  scene.add(new T.HemisphereLight('#d5e6ff','#18232a',1.5));
- const key=new T.DirectionalLight('#fff2db',3);key.position.set(-120,260,140);key.castShadow=true;key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-250,right:250,top:250,bottom:-250,near:1,far:700});key.shadow.bias=-.0004;key.shadow.normalBias=.3;scene.add(key);
+ const key=new T.DirectionalLight('#fff2db',3);key.position.set(-120,260,140);key.castShadow=true;key.shadow.mapSize.set(shadowSize,shadowSize);Object.assign(key.shadow.camera,{left:-250,right:250,top:250,bottom:-250,near:1,far:700});key.shadow.bias=-.0004;key.shadow.normalBias=.3;scene.add(key);
  const rim=new T.DirectionalLight('#8daaff',1.5);rim.position.set(150,100,-220);scene.add(rim);
  const warm=new T.PointLight('#ff784b',1200,500,2);warm.position.set(-180,65,120);scene.add(warm);
  const plane=new T.Mesh(new T.PlaneGeometry(6000,6000),new T.MeshStandardMaterial({color:'#0b1018',roughness:1}));plane.rotation.x=-Math.PI/2;plane.position.y=-7;plane.receiveShadow=true;scene.add(plane);
@@ -35,7 +35,7 @@ function create(container,ride,{onState=()=>{},onUnavailable=()=>{}}={}){
  function marker(point,label,color){const group=new T.Group();group.position.set(point.x,height(point)+12,point.z);const post=new T.Mesh(new T.CylinderGeometry(.38,.38,17,8),new T.MeshStandardMaterial({color:'#b8c8d4',metalness:.6,roughness:.3}));post.position.y=8;post.position.x=10;post.userData.ownMaterial=true;group.add(post);const canvas=document.createElement('canvas');canvas.width=256;canvas.height=80;const ctx=canvas.getContext('2d');ctx.fillStyle='#151c29';ctx.fillRect(0,0,256,80);ctx.fillStyle=color;ctx.fillRect(0,0,7,80);ctx.fillStyle='#f7f0e3';ctx.font=label.length>9?'600 20px monospace':'600 26px monospace';ctx.fillText(label,24,48);const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;const sprite=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:true}));sprite.scale.set(28,8.75,1);sprite.position.set(10,20,0);sprite.userData.ownMaterial=true;group.add(sprite);roadGroup.add(group);}
  // Batch alternating kerbs into two draw calls, including long routes.
  function mergeSurfaces(parts,material){if(!parts.length)return;const positions=[],normals=[];for(const g of parts){const flat=g.toNonIndexed();positions.push(...flat.attributes.position.array);normals.push(...flat.attributes.normal.array);flat.dispose();g.dispose();}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('normal',new T.Float32BufferAttribute(normals,3));makeMesh(g,material);}
- function rebuild(){clearRoad();const redKerbs=[],whiteKerbs=[];
+ function rebuild(){clearRoad();renderer.shadowMap.needsUpdate=true;const redKerbs=[],whiteKerbs=[];
  for(const segment of model.segments){
   const input=segment.points.filter((p,i,a)=>!i||Math.hypot(p.x-a[i-1].x,p.z-a[i-1].z)>.025);if(input.length<2)continue;
   const curve=new T.CatmullRomCurve3(input.map(p=>new T.Vector3(p.x,height(p),p.z)),false,'centripetal');
@@ -80,13 +80,17 @@ function create(container,ride,{onState=()=>{},onUnavailable=()=>{}}={}){
  const wheel=e=>{e.preventDefault();radius=Math.max(65,Math.min(1100,radius*Math.exp(e.deltaY*.001)));};
  const keyboard=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','0'].includes(e.key)){e.preventDefault();mode='manual';if(e.key==='ArrowLeft')azimuth-=.12;if(e.key==='ArrowRight')azimuth+=.12;if(e.key==='ArrowUp')polar=Math.max(.12,polar-.08);if(e.key==='ArrowDown')polar=Math.min(1.35,polar+.08);if(e.key==='+')radius=Math.max(65,radius*.9);if(e.key==='-')radius=Math.min(1100,radius*1.1);if(e.key==='0')reset();}};
  const lost=e=>{e.preventDefault();if(!disposed)onUnavailable();};
- const canvas=renderer.domElement;canvas.addEventListener('webglcontextlost',lost);canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});canvas.addEventListener('keydown',keyboard);canvas.style.touchAction='none';reset();setTime(time);frame=requestAnimationFrame(animate);
+ const canvas=renderer.domElement;canvas.addEventListener('webglcontextlost',lost);canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('wheel',wheel,{passive:false});canvas.addEventListener('keydown',keyboard);canvas.style.touchAction='none';reset();setTime(time);if(autoRender)frame=requestAnimationFrame(animate);
+ function renderFrame(value,progress=0){
+  if(disposed)throw Error('The track renderer is closed.');
+  const p=Math.max(0,Math.min(1,progress));setTime(value);mode='manual';target.set(0,0,0);azimuth=-.8+p*.7;polar=.86+Math.sin(p*Math.PI)*.08;radius=fit();placeCamera();renderer.render(scene,camera);return canvas;
+ }
  function snapshot(){
   placeCamera();renderer.render(scene,camera);
   const scale=Math.min(1,2160/canvas.width,3840/canvas.height);if(scale===1)return canvas.toDataURL('image/png');
   const output=document.createElement('canvas');output.width=Math.max(1,Math.round(canvas.width*scale));output.height=Math.max(1,Math.round(canvas.height*scale));output.getContext('2d').drawImage(canvas,0,0,output.width,output.height);return output.toDataURL('image/png');
  }
- return {setTime,preset,model,snapshot,setElevation(value){elevation=Boolean(value&&model.elevationAvailable);rebuild();if(mode==='orbit'||mode==='top')radius=fit();setTime(time);},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('keydown',keyboard);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const material of Array.isArray(o.material)?o.material:[o.material]){material.map?.dispose();material.dispose();}}});renderer.dispose();renderer.forceContextLoss();canvas.remove();}};
+ return {setTime,preset,model,snapshot,renderFrame,setElevation(value){elevation=Boolean(value&&model.elevationAvailable);rebuild();if(mode==='orbit'||mode==='top')radius=fit();setTime(time);},dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);observer.disconnect();canvas.removeEventListener('webglcontextlost',lost);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('keydown',keyboard);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const material of Array.isArray(o.material)?o.material:[o.material]){material.map?.dispose();material.dispose();}}});renderer.dispose();renderer.forceContextLoss();canvas.remove();}};
 }
 root.OdoTrackScene={create};
 })(window);

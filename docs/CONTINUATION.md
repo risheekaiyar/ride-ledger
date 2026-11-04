@@ -2,10 +2,13 @@
 
 The user explicitly wants iterative improvements to aesthetics and technical data-reading functions while asleep. Continue useful local work and push tested checkpoints regularly to `origin/UI-Improvement`, without force. Preserve user changes and use the existing checkout. No deployment or environment publication is authorized by this continuation.
 
+The user subsequently requested commits and pushes approximately every 30 minutes while work continues. Carry this cadence across context changes; use the latest pushed commit time as the next interval's start. A checkpoint summary does not finish the broader improvement goal.
+
 **Do not pause the entire goal for missing Meta credentials, documentation access or hardware.** Those prerequisites block only their corresponding live checks. UI, analysis, import, export, accessibility and regression improvements remain actionable. Pick the next useful local improvement below, implement it, verify it and push.
 
 ## Current capabilities
 
+- Motion Studio renders local 12/18-second portrait 3D clips. Preferred H.264 encoding renders every frame into a 24 fps MP4; real-time MP4/WebM fallback rejects insufficient render frames. Route inclusion is required explicitly and speed defaults off. Cancellation/background/close cleanup, native share callbacks, old APK behavior and 320–1440px layouts are browser-tested. Java validates bounded local media before read-only sharing; physical codec/receiver trials remain pending. Reviewed synthetic MP4 and screenshots are in docs/previews. See RIDE-FILM.md.
 - Evidence v5 adds source-aware sensor cards, endpoint gaps, vendor-status distributions and validated per-axis near-range checks. Invalid ranges no longer flag every sample; interpolated percentiles fix small-sample ordering; blank timestamps/axes remain missing. The Meta packet includes validated motion-channel diagnostics, exercised with a mock provider. Local preview restarted with this validator (shell session 57308, port 4178).
 - Responsive garage with local photo handling, manual odometer (including zero), bike-specific evidence totals, saved bike-type recording defaults and the correct associated-ride Meta debrief. Profile rename leaves historical recording names unchanged; photo remove/reselection and persistence are browser-tested. Reviewed synthetic screenshots are in docs/previews/garage-*.png.
 - Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
@@ -30,7 +33,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 1. Continue polishing the remaining overview and empty states. Library, route-first details, recording setup and garage now have reviewed mobile layouts.
 2. Add signal comparison views that require compatible setups and account for gaps, source units and possible clipping. Channel diagnostics and bounded Meta summaries are now implemented; actual bike calibration still needs labelled recordings.
-3. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
+3. Improve motion/story composition using actual exported frames and clips. Video export is now implemented and inspected; consider other aspect ratios or camera treatments while retaining source labels and opt-in speed. Keep native hardware behavior explicitly unverified until a physical test.
 4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
 5. Improve story composition and editable captions; inspect exported images and their privacy defaults.
 6. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
@@ -58,9 +61,11 @@ node scripts/recording-smoke.cjs
 node scripts/confidence-smoke.cjs
 node scripts/garage-smoke.cjs
 node scripts/sensor-health-smoke.cjs
+node scripts/ride-film-smoke.cjs
+node scripts/film-codec-smoke.cjs
 ```
 
-Latest checks: 95 Node tests pass; Android assembly/lint pass (14 Java tests from the last native change); browser checks pass for sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are review artifacts, not product example rides.
+Latest checks: 100 Node tests and 17 Java tests pass; Android assembly/lint pass. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 

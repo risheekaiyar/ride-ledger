@@ -18,6 +18,8 @@ Drag to orbit, pinch/wheel to zoom, or choose Overview, Flyover, Chase and Overh
 
 ## Export and privacy
 
+Make clip opens the [motion editor](RIDE-FILM.md) for an offline 12- or 18-second portrait video, with explicit route inclusion and replay speed off by default. Its renderer is separate from the interactive view and releases its resources on close.
+
 The Save image action exports the current camera frame to PNG after confirming route-shape inclusion. Even an unlabelled shape can reveal locations. The exported frame has no coordinate or timestamp labels. Frame exports are bounded to the native image transport’s 2160×3840 limit. Android uses the existing private image provider/system share sheet; browsers download the PNG. No post or remote upload is made. Opening Track Studio makes no tile/API requests. Loading the separate geographic map requires the existing tile-provider consent.
 
 ## Renderer and checks
