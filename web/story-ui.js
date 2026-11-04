@@ -54,7 +54,7 @@ shareCard=function(){
  async function routeImage(format){
   if(images.has(format))return images.get(format);
   const {heroTop,heroBottom}=storyLayout(format),host=document.createElement('div');host.style.cssText=`position:fixed;left:-12000px;top:0;width:1000px;height:${heroBottom-heroTop}px;pointer-events:none`;host.setAttribute('aria-hidden','true');document.body.append(host);
-  let scene;try{scene=OdoTrackScene.create(host,ride);const data=scene.snapshot(),img=new Image();img.src=data;await img.decode();images.set(format,img);return img;}catch(error){images.set(format,null);return null;}finally{scene?.dispose();host.remove();}
+  let scene;try{scene=OdoTrackScene.create(host,ride);scene.preset('poster');const data=scene.snapshot(),img=new Image();img.src=data;await img.decode();images.set(format,img);return img;}catch(error){images.set(format,null);return null;}finally{scene?.dispose();host.remove();}
  }
  async function draw(){
   const version=++generation,format=$('#story-format').value,includeRoute=$('#story-route').checked,caption=$('#story-title').value,accent=$('#story-accent').value,canvas=$('#story-canvas'),button=$('#story-download');

@@ -14,6 +14,8 @@ The current APK is required for Android video sharing. Real device codec support
 
 ## Review and validation
 
+The committed clip, decoded frame and editor screenshots were refreshed after the higher-contrast track treatment, wider illustrative kerbs and closed-loop geometry refinement. The export settings and source/privacy labels are unchanged.
+
 - [Actual exported MP4](previews/ride-film-synthetic.mp4) — synthetic test circuit, 12 seconds, H.264, 720 × 1280, exactly 288 frames at 24 fps, no audio.
 - [Decoded video frame](previews/ride-film-frame-synthetic.png)
 - [Mobile editor](previews/ride-film-editor-mobile.png) · [Desktop editor](previews/ride-film-editor-desktop.png)
