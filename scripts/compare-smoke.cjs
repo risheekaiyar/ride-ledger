@@ -13,12 +13,15 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{rid
   for(const width of [320,390,650,768,1050,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width,`Comparison overflow at ${width}`);}
   await page.setViewportSize({width:1440,height:1100});await page.screenshot({path:'/tmp/odo-compare-desktop.png'});
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/odo-compare-mobile.png'});
-  await page.locator('.compare-channel').first().scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/odo-compare-signals.png'});
+  await page.locator('.compare-channel').first().evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({path:'/tmp/odo-compare-signals.png'});
   await page.getByRole('button',{name:'Ask Odo about these rides',exact:true}).click();assert.equal(requests.length,0);
   const context=JSON.parse(await page.locator('.odo-comparison-payload').textContent());assert.equal(context.route_matched,true);
   await page.getByRole('button',{name:'Send to Meta',exact:true}).click();await page.locator('.companion-turn').waitFor();assert.equal(requests.length,1);assert.equal(requests[0].comparison.channels.length,3);assert(!JSON.stringify(requests[0]).includes('Private'));
   await page.locator('[data-companion-trip="1"]').click();assert.equal(await page.evaluate(()=>selected),records[1].id);
   await page.evaluate(id=>{selected=id;navigate('explore');},records[0].id);
+  // Identical summaries from a different ride must not inherit the previous conversation.
+  await page.evaluate(async original=>{const copy={...original,id:String(Number(original.id)-86400000*10),title:'Synthetic · identical evidence, different ride'};await saveRide(copy);compareRideId=copy.id;render();},records[1]);
+  await page.getByRole('button',{name:'Ask Odo about these rides',exact:true}).click();assert.equal(await page.locator('.companion-turn').count(),0);await page.getByRole('button',{name:'Close companion',exact:true}).click();
   await page.locator('#compare-ride').selectOption(records[2].id);assert.equal(await page.locator('.compare-channel-state.qualified').count(),0);assert.match(await page.locator('.compare-delta').first().textContent(),/withheld/);
   await page.getByRole('button',{name:'Ask Odo about these rides',exact:true}).click();assert.equal(await page.locator('.companion-turn').count(),0);await page.getByRole('button',{name:'Close companion',exact:true}).click();
   await page.locator(`[data-compare-context="${records[2].id}"]`).click();assert(await page.locator('[name="mount_condition"]').isDisabled());

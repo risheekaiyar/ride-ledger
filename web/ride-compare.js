@@ -27,7 +27,8 @@ function routeSamples(ride){
  }
  return samples;
 }
-const percentile=(values,p)=>{if(!values.length)return null;const a=[...values].sort((a,b)=>a-b),t=(a.length-1)*p,i=Math.floor(t),f=t-i;return f?(1-f)*a[i]+f*a[i+1]:a[i];};
+const quantile=(a,p)=>{if(!a.length)return null;const t=(a.length-1)*p,i=Math.floor(t),f=t-i;return f?(1-f)*a[i]+f*a[i+1]:a[i];};
+const percentile=(values,p)=>quantile([...values].sort((a,b)=>a-b),p);
 function routes(a,b){
  const first=routeSamples(a),second=routeSamples(b);if(!first||!second)return {matched:null,medianMeters:null,p90Meters:null};
  const distances=first.map((p,i)=>analysis.distance(p,second[i])),medianMeters=percentile(distances,.5),p90Meters=percentile(distances,.9);
@@ -40,8 +41,8 @@ function profile(ride,definition){
   if(seen.has(t)){bins.delete(t);continue;}seen.add(t);
   if(Number.isFinite(value)&&value>=0&&value<=1000)bins.set(t,value);
  }
- const points=[...bins].sort((a,b)=>a[0]-b[0]),values=points.map(p=>p[1]),stats=ride.stats?.find(s=>s.type===definition.type),diagnostics=analysis.sensorDiagnostics(stats,ride.duration);
- return {points,bins:points.length,completeSeconds,coverage:completeSeconds?points.length/completeSeconds:0,median:percentile(values,.5),p95:percentile(values,.95),diagnostics};
+ const points=[...bins].sort((a,b)=>a[0]-b[0]),values=points.map(p=>p[1]).sort((a,b)=>a-b),stats=ride.stats?.find(s=>s.type===definition.type),diagnostics=analysis.sensorDiagnostics(stats,ride.duration);
+ return {points,bins:points.length,completeSeconds,coverage:completeSeconds?points.length/completeSeconds:0,median:quantile(values,.5),p95:quantile(values,.95),diagnostics};
 }
 function compare(a,b){
  const checks=setup(a,b),route=routes(a,b),setupMatched=all(checks);

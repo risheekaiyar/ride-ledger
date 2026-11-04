@@ -15,3 +15,5 @@ Run `node --test --test-isolation=none scripts/ride-compare.test.cjs scripts/com
 - [Desktop comparison](previews/compare-desktop-synthetic.png)
 - [Mobile comparison](previews/compare-mobile-synthetic.png)
 - [Phone signal card](previews/compare-signals-synthetic.png)
+
+[Signal inspection](SIGNAL-INSPECTION.md) adds readable mobile axes, original-bin scrubbing and bounded min/max rendering for long recordings. The two rides follow the same elapsed-time percentage, not a spatial alignment.

@@ -8,7 +8,7 @@ function museSetup(options={}){
  const selectedRides=[ride,...(comparison?[comparison]:[])];
  const evidence=selectedRides.map(r=>OdoCompanion.evidence(r,r.source==='GPX export'?null:OdoRideInsights.summary(r,OdoRideInsights.analyze(r))));
  // Reset context after any evidence change; stale replies must not appear to explain new facts.
- const fingerprint=JSON.stringify({evidence,comparison:comparisonContext});
+ const fingerprint=JSON.stringify({selection:selectedRides.map(r=>r.id),evidence,comparison:comparisonContext});
  let conversation=odoConversations.get(ride.id);
  if(!conversation||conversation.fingerprint!==fingerprint){conversation={fingerprint,turns:[]};odoConversations.set(ride.id,conversation);}
  const evidenceLinks=ids=>ids.map(id=>{const n=Number(id.replace('trip_',''))-1;return selectedRides[n]?`<button class="evidence-link" data-companion-trip="${n}">↗ ${esc(selectedRides[n].title)}</button>`:'';}).join('');

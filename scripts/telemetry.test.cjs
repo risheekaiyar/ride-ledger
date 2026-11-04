@@ -26,3 +26,19 @@ test('GPX provenance and invalid optional measurements remain unknown in inspect
  const invalid=inspect({duration:1,track:[[77,12,0,30,-1,99999,450,0,-1]],signals:[[0,-1,null,-1,null]]},0);
  for(const field of ['accuracy','speedAccuracy','altitude','course','acceleration','linearAcceleration','angularSpeed'])assert.equal(invalid[field],null);
 });
+test('long traces preserve every column extreme with bounded paths and original sample lookup',()=>{
+ const points=Array.from({length:50000},(_,i)=>[i,30,0]);points[20000][1]=0;points[20001][1]=150;
+ const result=path(points,49999,600,150);assert(result.aggregated);assert.equal(result.max,150);assert.equal(result.count,50000);assert(result.d.includes(',10.000V140.000'));assert(result.d.length+result.dots.length<40000);assert(!/[LH]/.test(result.d));assert.equal(result.gaps,'');
+});
+test('trace reduction marks subpixel segment gaps and missing sample intervals',()=>{
+ const points=Array.from({length:50000},(_,i)=>[i,30,i<20000?0:1]).filter(p=>p[0]!==30000);
+ const result=path(points,50000,600,150,1);assert(result.gapColumns>0);assert.match(result.gaps,/M239,0H240/);assert.match(result.gaps,/M359,0H361/);assert.match(result.gaps,/M599,0H600/);
+});
+test('outside-window values cannot distort chart limits and isolated values remain visible',()=>{
+ const result=path([[-1,999,0],[0,20,0],[1,null,0],[2,0,0],[4,999,0]],3);assert.equal(result.max,20);assert.equal((result.dots.match(/M/g)||[]).length,2);assert.equal(result.gaps,'M0,0H600 ');
+});
+test('large elevation arrays avoid argument-stack overflow while keeping source extrema',()=>{
+ const track=Array.from({length:150000},(_,i)=>p(i*.5,20,0,800+Math.sin(i/30)));track[45678][5]=1234;
+ const result=analyze({duration:75000,track});assert.equal(result.altitudeMax,1234);assert(result.altitudeMin>=799);assert(result.altitudeMin<800);
+ const plotted=path(track.map(p=>[p[2],p[5],p[7]]),75000,600,150,3,false);assert.equal(plotted.max,1234);assert(plotted.d.length<30000);
+});
