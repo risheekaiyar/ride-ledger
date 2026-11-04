@@ -1,0 +1,29 @@
+{
+  "kind": "saved-live-synthetic",
+  "model": "muse-spark-1.3",
+  "tested_utc": "2026-11-04T21:46:06.996Z",
+  "frame_sha256": "b0777c3da331b3bb77ddb5ab267568b6ac969c2312670fe0373b5d1bc6300d85",
+  "facts": {
+    "source": "synthetic_gps",
+    "elapsed_s": 5100,
+    "speed_kmh": 0,
+    "elevation_m": 980,
+    "low_seconds": 180,
+    "phone_peak_candidate": false
+  },
+  "review": {
+    "evidence_ids": [
+      "frame",
+      "ride_window"
+    ],
+    "question_intent": "pause",
+    "visual_cue": "mountains"
+  },
+  "usage": {
+    "input_tokens": 540,
+    "output_tokens": 558
+  },
+  "elapsed_ms": 6945,
+  "requests": 1,
+  "estimated_usd": 0.0030465
+}

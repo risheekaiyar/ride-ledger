@@ -6,6 +6,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {DatabaseSync}=require('node:sqlite');
 const {createRuntime}=require('./muse-runtime.cjs');
+const {frameBodyLimit}=require('./field-frame.cjs');
 
 function createQuota(filename,limit){
  if(!Number.isSafeInteger(limit)||limit<1||limit>10000)throw Error('Set an explicit lifetime request limit between 1 and 10000.');
@@ -33,12 +34,13 @@ function createGateway({key,tokenHash,quota,tls,provider}){
   const token=authorization.slice(7);
   if(token.length<32||!crypto.timingSafeEqual(crypto.createHash('sha256').update(token).digest(),expected))return reply(401,{error:'Authentication required.'});
   if(req.method==='GET'&&req.url==='/api/muse/status')return reply(200,runtime.status());
-  if(req.method!=='POST'||req.url!=='/api/muse/insights')return reply(404,{error:'Not found.'});
+  const isFrame=req.url==='/api/muse/frame';
+  if(req.method!=='POST'||(!isFrame&&req.url!=='/api/muse/insights'))return reply(404,{error:'Not found.'});
   if(req.headers['content-type']!=='application/json')return reply(415,{error:'JSON required.'});
   let size=0,chunks=[];
-  try{for await(const chunk of req){size+=chunk.length;if(size>12000)return reply(413,{error:'Request too large.'});chunks.push(chunk);}
+  try{for await(const chunk of req){size+=chunk.length;if(size>(isFrame?frameBodyLimit:12000))return reply(413,{error:'Request too large.'});chunks.push(chunk);}
    const body=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-   const result=await runtime.ask(body);reply(200,result);
+   const result=isFrame?await runtime.askFrame(body):await runtime.ask(body);reply(200,result);
   }catch(e){
    // Do not return upstream payloads, credentials or stack traces to the client.
    const message=String(e.message);const known=/^(Provide a question|Invalid |Evidence packet|Persistent request allowance|Odo test request allowance|Meta response|Meta returned|Meta API returned)/.test(message);
