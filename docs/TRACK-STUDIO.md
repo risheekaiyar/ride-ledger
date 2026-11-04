@@ -2,11 +2,11 @@
 
 The ride-detail, overview and route-lab preview now render a physical road model locally in WebGL. Each connected recording segment becomes a raised asphalt ribbon with side walls, red/white kerbs, edge markings, lighting and shadows. A checkered finish and moving rider token give the replay a motorsport presentation. The token is illustrative, without simulated bike lean.
 
-Drag to orbit, pinch/wheel to zoom, or choose Overview, Flyover, Chase and Overhead. Arrow keys orbit the focused canvas, +/- zoom, and 0 resets the camera. Portrait and landscape views fit the whole model automatically. Flyover honors reduced-motion preferences. Replay shares the existing speed/elevation/motion timeline and updates its instrument readouts. Backgrounding the page pauses replay. WebGL failure or context loss leaves a usable 2D route.
+Drag to orbit, pinch/wheel to zoom, or choose Overview, Flyover, Chase and Overhead. Expand opens an immersive modal without replacing the active renderer or resetting the playhead; Escape restores the original layout. The north indicator follows the actual camera projection. Arrow keys orbit the focused canvas, +/- zoom, and 0 resets the camera. Portrait and landscape views fit the whole model automatically. Flyover honors reduced-motion preferences. Replay shares the existing speed/elevation/motion timeline and updates its instrument readouts. Backgrounding the page pauses replay. WebGL failure or context loss leaves a usable 2D route.
 
 ![Track Studio rendering of the synthetic test circuit](previews/track-studio-desktop.png)
 
-[Portrait screenshot](previews/track-studio-mobile.png). These are synthetic test data, not an imported user ride.
+[Portrait screenshot](previews/track-studio-mobile.png) · [Expanded mobile view](previews/track-studio-expanded-mobile.png). These are synthetic test data, not an imported user ride.
 
 ## Source fidelity
 
@@ -18,7 +18,7 @@ Drag to orbit, pinch/wheel to zoom, or choose Overview, Flyover, Chase and Overh
 
 ## Export and privacy
 
-The Image action exports the current camera frame to PNG after confirming route-shape inclusion. Even an unlabelled shape can reveal locations. The exported frame has no coordinate or timestamp labels. Android uses the existing private image provider/system share sheet; browsers download the PNG. No post or remote upload is made. Opening Track Studio makes no tile/API requests. Loading the separate geographic map requires the existing tile-provider consent.
+The Save image action exports the current camera frame to PNG after confirming route-shape inclusion. Even an unlabelled shape can reveal locations. The exported frame has no coordinate or timestamp labels. Frame exports are bounded to the native image transport’s 2160×3840 limit. Android uses the existing private image provider/system share sheet; browsers download the PNG. No post or remote upload is made. Opening Track Studio makes no tile/API requests. Loading the separate geographic map requires the existing tile-provider consent.
 
 ## Renderer and checks
 

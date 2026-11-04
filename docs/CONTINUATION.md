@@ -6,7 +6,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Current capabilities
 
-- Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
+- Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
 
 - Dark motorsport/editorial mobile presentation, real route thumbnails, explicit source badges and mobile Settings navigation.
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
@@ -20,11 +20,11 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Next local improvements — no external prerequisites
 
-2. Improve chart accessibility and keyboard inspection; keep route, telemetry cursor and visible sample readouts synchronized.
-3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
-4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
-5. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
-6. Improve rendering performance for long recordings without connecting gaps or discarding extrema silently.
+1. Improve chart accessibility and keyboard inspection; keep route, telemetry cursor and visible sample readouts synchronized.
+2. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
+3. Improve story composition and editable captions; inspect exported images and their privacy defaults.
+4. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
+5. Improve rendering performance for long recordings without connecting gaps or discarding extrema silently.
 
 Use judgment to choose other meaningful aesthetic/data-reading work; this queue is not a reason to wait for the user.
 

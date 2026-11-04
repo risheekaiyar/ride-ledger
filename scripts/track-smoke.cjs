@@ -20,6 +20,13 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
   await page.locator('[data-track-camera=follow]').click();await page.waitForTimeout(800);await page.locator('.track-viewport').screenshot({path:'/tmp/odo-track-chase.png'});await page.locator('[data-track-camera=orbit]').click();
   await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
   await page.locator('.track-studio').screenshot({path:'/tmp/odo-track-mobile.png'});
+  await page.evaluate(()=>{window.sceneBeforeExpand=trackScene;window.timeBeforeExpand=trackTime;});
+  await page.getByRole('button',{name:'Expand track preview',exact:true}).click();await page.locator('.track-expanded-dialog[open]').waitFor();
+  assert.equal(await page.evaluate(()=>trackScene===window.sceneBeforeExpand&&trackTime===window.timeBeforeExpand),true);
+  await page.screenshot({path:'/tmp/odo-track-expanded-mobile.png'});
+  await page.locator('[data-track-action=snapshot]').click();await page.getByRole('button',{name:'Cancel',exact:true}).click();assert.equal(await page.locator('.track-expanded-dialog').evaluate(d=>d.open),true);
+  await page.keyboard.press('Escape');assert.equal(await page.locator('.track-expanded-dialog').count(),0);assert.equal(await page.evaluate(()=>trackScene===window.sceneBeforeExpand),true);
+  await page.getByRole('button',{name:'Expand track preview',exact:true}).click();await page.locator('[data-track-view="2d"]').click();assert.equal(await page.locator('.track-expanded-dialog').count(),0);await page.locator('[data-track-view="3d"]').click();
   // Seeking a gap must not show the preceding speed as current telemetry.
   await page.evaluate(()=>{const t=current().track;t[100][7]=1;t[101][7]=1;render();trackScene.setTime((t[99][2]+t[100][2])/2);});
   assert.equal(await page.locator('#track-gap').isHidden(),false);assert.equal(await page.locator('#telemetry-speed').textContent(),'—');
@@ -32,6 +39,6 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
   const fallback=await browser.newPage();await fallback.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/.test(type)?null:get.call(this,type,...args);};});
   await fallback.goto('http://127.0.0.1:4178');await fallback.waitForSelector('.studio-hero');await fallback.evaluate(seed);await fallback.locator('#map-canvas[data-renderer=fallback] svg').waitFor();
   assert.deepEqual(errors,[]);assert.deepEqual(remote,[]);
-  console.log('PASS: real WebGL track, cameras, playback, PNG, offline consent, portrait fit, gaps, missing elevation, repeated disposal, context-loss and no-WebGL fallback; no external requests');
+  console.log('PASS: real WebGL track, cameras, playback, PNG, offline consent, portrait fit, expanded replay, nested export dialog, gaps, missing elevation, repeated disposal, context-loss and no-WebGL fallback; no external requests');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});
