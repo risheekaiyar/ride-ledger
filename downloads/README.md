@@ -1,5 +1,13 @@
 # Download Odo for Android
 
+## Field Journal review build · 0.4.0
+
+[Download the standalone ODOme Field Journal APK](ODOme-Field-Journal-0.4.0.apk?raw=true) for Android 8 or later. It has its own package and opens the **Mountains to Coast** synthetic sample. Your installed recorder can stay on the phone. [Watch the 36-second walkthrough](../docs/previews/field-journal-walkthrough.mp4) · [Read the field-journal guide](../docs/FIELD-JOURNAL.md).
+
+The APK comes from private [build 41920681992](https://github.com/risheekaiyar/ride-ledger/actions/runs/41920681992), source commit `cbf60e4526b36d21380012ccd03be62044bd9838`. Google’s APK verifier confirmed the v2 signature. All 82 packaged dashboard files match that commit. The manifest declares `app.rideledger.fieldjournal`, version `0.4.0-preview`, code 11. The SHA-256 is `64e40932fee87dd9bc02bdcef8680df4f1618de2acc7e56fac0142fe097bcaf1`.
+
+## Recorder release · 0.3.7
+
 [**Download Odo 0.3.7 APK**](https://github.com/risheekaiyar/ride-ledger/raw/refs/heads/main/downloads/ride-ledger-0.3.7-debug.apk)
 
 Sign in with a GitHub account that has access to this private repository.

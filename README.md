@@ -1,8 +1,8 @@
-# Odo — Strava for bikers
+# ODOme · A private motorcycle journey journal
 
 **ODOme Field Journal 0.4.0 review branch.** Open **Field journal → Sample expedition → Replay tested Spark review**. This displays the genuine, saved response from one synthetic image request. Choose a different frame to review a fresh request, or add a private rider memory offline. The separate **ODOme Field Journal** Android preview launches the sample and can coexist with the recorder. [Walkthrough, evaluation and build instructions](docs/FIELD-JOURNAL.md).
 
-**Android download:** [Odo 0.3.7 APK](https://github.com/risheekaiyar/ride-ledger/raw/refs/heads/main/downloads/ride-ledger-0.3.7-debug.apk) · [Install notes and checksum](downloads/README.md).
+[**Install Field Journal 0.4.0**](downloads/ODOme-Field-Journal-0.4.0.apk?raw=true) · [**Watch the 36-second demo**](docs/previews/field-journal-walkthrough.mp4) · [Recorder 0.3.7 and checksums](downloads/README.md).
 
 The `main` branch includes the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
 

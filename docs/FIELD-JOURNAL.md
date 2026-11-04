@@ -37,6 +37,10 @@ The API requires a separately entitled, billed team. The published Spark team li
 
 ## Try the built version
 
+[Install the side-by-side preview APK](../downloads/ODOme-Field-Journal-0.4.0.apk?raw=true) · [Watch the captioned walkthrough](previews/field-journal-walkthrough.mp4) · [Desktop](previews/field-journal-desktop-synthetic.png) · [Phone-sized browser](previews/field-journal-phone-synthetic.png).
+
+The [Android build](https://github.com/risheekaiyar/ride-ledger/actions/runs/41920681992) passed assembly, debug lint, the existing 17 Java unit tests and all 187 Node tests. The downloaded preview passed independent APK signing, package-identity and asset checks. Browser interactions passed at 320, 390, 768 and 1440 px. The owner’s physical Android handset has not been tested.
+
 1. Open **Field journal** in Odo or launch the separately installable **ODOme Field Journal** preview. On desktop run `node scripts/serve.cjs` and open `http://127.0.0.1:4178/?journal=demo`.
 2. At **The overlook**, choose **Replay tested Spark review**. The app checks the packaged JPEG’s SHA-256 and the ride facts before showing the saved live response. The sample stays outside the rider’s library. Choose **Taking photographs** and save it. Edit or remove it to see which parts of the story change.
 3. To inspect the original flow, remove the example frame and open **Open sample clip**. Scrub the six-second clip, match its frame to the ride time, then keep it locally. **Review for Spark** shows the actual JPEG, dimensions, size and all ride fields. Sending requires a separate checkbox and button. A fresh live send needs a separately configured gateway and allowance. Removing a frame removes its model interpretation and preserves independently written memories.
