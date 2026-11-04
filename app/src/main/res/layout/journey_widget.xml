@@ -1,5 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:padding="18dp" android:background="@drawable/widget_background">
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="odo ↗" android:textStyle="bold" android:textSize="26sp" android:textColor="#D3FA66" />
-    <TextView android:id="@+id/widget_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Start journey" android:textSize="16sp" android:layout_marginTop="8dp" android:textColor="#F0F5E8" />
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tap while parked" android:textSize="10sp" android:layout_marginTop="5dp" android:textColor="#A5B09C" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="odo ↗" android:textStyle="bold" android:textSize="26sp" android:textColor="#3BD8E6" />
+    <TextView android:id="@+id/widget_action" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Start journey" android:textSize="16sp" android:layout_marginTop="8dp" android:textColor="#F5F7F8" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tap while parked" android:textSize="10sp" android:layout_marginTop="5dp" android:textColor="#B0BAC2" />
 </LinearLayout>

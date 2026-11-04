@@ -2,7 +2,7 @@
 
 The `UI-Improvement` branch adds the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
 
-[Animated ride insights](docs/ANIMATED-INSIGHTS.md) turn the debrief into a playable 3D recap: route flyover, speed distribution, a moving/slow/missing-time ring, speed-change moments and an altitude sculpture. At runtime, Meta `muse-spark-1.3` selects chapter order and supported metric emphasis, explains patterns and suggests a next step. The same chapters export as an 18-second story video. [Watch the synthetic recap](docs/previews/insight-recap-synthetic.mp4) (mocked model captions; live Meta access must be configured for the hackathon demo).
+[Animated ride insights](docs/ANIMATED-INSIGHTS.md) now open with a [racing-game road preview](docs/RACING-RADAR.md): a true WebGL diorama with solid white roads, shaded sidewalls, a beveled dark base, real shadows, a racing arrow, cyan replay progress and manual 360° rotation. Story playback connects missing positions visually without changing the measured statistics. Other chapters include an analogue speed dial, slow G-force radar beside the route, and a 3D elevation ribbon with meter ticks and altitude-based colors. The app uses a shared black, white, red and cyan palette. Meta `muse-spark-1.3` directs the recap and asks questions linked to highlighted map sections. [Watch the updated synthetic story](docs/previews/diorama-insights-synthetic.mp4) (mock model captions; configure live Meta access for the hackathon demo).
 
 The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route into a lit, raised road model with racing kerbs, orbit/chase/overhead cameras, synchronized telemetry and PNG export. No tile service is required.
 
@@ -12,7 +12,7 @@ The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference wi
 
 The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
 
-The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and source-aware ride totals together, with recording defaults and a debrief of that bike's latest ride.
+[Garage studio](docs/GARAGE.md) adds family/color-matched 360° motorcycle illustrations, interactive ignition-style clusters, separate actual/projected odometers, bounded distance corrections and Meta-curated public reference photos.
 
 [Distance confidence](docs/DISTANCE-CONFIDENCE.md) now survives annotation edits and backup restores; missing distance remains unknown and accepted-fix percentage is checked separately from GPS time coverage.
 
@@ -36,11 +36,11 @@ A local Muse runtime has been tested against Meta using synthetic cases and an o
 
 Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload passed: https://github.com/risheekaiyar/ride-ledger/actions/runs/41663136844 .
 
-Version **0.3.0** adds a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
+Version **0.3.7** updates a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
 
 The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay an offline 3D track model, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.
 
-This release does not yet connect Muse, a live multi-user community, automatic cross-device sync, bike Bluetooth or road speed-limit data. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
+The Meta-only companion requires a configured runtime key. Live multi-user community, automatic cross-device sync, bike Bluetooth and road speed-limit data remain unconnected. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
 
 Local Android assemble/lint/10 Java tests and 10 Node analysis tests passed. The new Android dashboard and home-screen widget require an on-device trial. Install the matching local APK as **Update**, after exporting old rides; keep the existing installation/storage. Older generic recordings remain unclassified until edited.
 
@@ -52,7 +52,7 @@ Use JDK 17, Android SDK platform 35/build-tools 34.0.0, and the included Gradle 
 
 Run `node --test scripts/analysis.test.cjs` for the evidence pipeline tests. Run `node scripts/serve.cjs`, then open http://127.0.0.1:4178 for the local web interface. It needs no package installation. `?review=1` loads dist/private-review.json only on the local preview, if privately prepared; that file is never included in the deployed site.
 
-The APK is generated at app/build/outputs/apk/debug/app-debug.apk and copied locally to dist/ride-ledger-0.3.0-debug.apk. Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
+The APK is generated at app/build/outputs/apk/debug/app-debug.apk and copied locally to dist/ride-ledger-0.3.7-debug.apk. Cloud debug builds can use a different signing key and might not update over the owner's local APK. See [BUILD-STATUS.md](BUILD-STATUS.md) and [PHONE-TEST.md](PHONE-TEST.md).
 
 Raw ZIP exports contain metadata.json, summary.json, gps.csv, motion.csv, events.csv and sensor_summary.json. GPS/motion columns remain compatible with the older recorder. No road/safety/calibration claim follows from a successful recording.
 

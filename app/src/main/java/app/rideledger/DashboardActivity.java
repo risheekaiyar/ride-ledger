@@ -51,10 +51,10 @@ public class DashboardActivity extends Activity {
                     String p=u.getPath();if(p==null||p.contains("..")||p.contains("\\"))return blocked();if(p.equals("/"))p="/index.html";
                     try{String mime=p.endsWith(".js")?"text/javascript":p.endsWith(".css")?"text/css":p.endsWith(".svg")?"image/svg+xml":p.endsWith(".webmanifest")?"application/manifest+json":"text/html";
                         WebResourceResponse response=new WebResourceResponse(mime,"UTF-8",getAssets().open("odo"+p));
-                        response.setResponseHeaders(Collections.singletonMap("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; media-src 'self' blob:; connect-src 'self' https://tile.openstreetmap.org; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"));return response;
+                        response.setResponseHeaders(Collections.singletonMap("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://upload.wikimedia.org; media-src 'self' blob:; connect-src 'self' https://tile.openstreetmap.org https://commons.wikimedia.org; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"));return response;
                     }catch(IOException e){return blocked();}
                 }
-                if("https".equals(u.getScheme())&&"tile.openstreetmap.org".equals(u.getHost()))return null;
+                if("https".equals(u.getScheme())&&Arrays.asList("tile.openstreetmap.org","commons.wikimedia.org","upload.wikimedia.org").contains(u.getHost()))return null;
                 return blocked();
             }
             private WebResourceResponse blocked(){return new WebResourceResponse("text/plain","UTF-8",403,"Blocked",Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));}
@@ -182,6 +182,10 @@ public class DashboardActivity extends Activity {
                 if(!"Rigid mount".equals(placement))mount="Not mounted";
                 else if("Not mounted".equals(mount))mount="Unknown";
                 context.put("bike_id",bike).put("bike_type",type).put("mount_condition",mount);
+                String model=supplied.optString("bike_model",""),color=supplied.optString("bike_color",""),family=supplied.optString("bike_family","");
+                if(model.matches("[a-z0-9-]{1,60}"))context.put("bike_model",model);
+                if(color.matches("#[a-fA-F0-9]{6}"))context.put("bike_color",color);
+                if(Arrays.asList("adventure","rally","sport","naked","classic","touring","scooter").contains(family))context.put("bike_family",family);
                 JSONArray input=new JSONArray(sensorJson);ArrayList<Integer> list=new ArrayList<>();for(int i=0;i<input.length()&&i<8;i++){int t=input.getInt(i);if(Arrays.asList(1,4,11,9,10,2,5,6).contains(t)&&!list.contains(t))list.add(t);}int[] types=list.stream().mapToInt(Integer::intValue).toArray();main.post(()->{recordingContext=context.toString();activityType="walk".equals(activity)?"walk":"ride";startRide(placement,types);});}catch(JSONException ignored){}
         }
         @JavascriptInterface public void stop(){main.post(()->stopRide());}

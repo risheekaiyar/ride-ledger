@@ -1,0 +1,5 @@
+function actionGlyph(kind){const path=kind==='import'?'<path d="M12 3v11m-4-4 4 4 4-4M5 15v5h14v-5"/>':kind==='stop'?'<rect x="8" y="8" width="8" height="8" rx="1"/><circle cx="12" cy="12" r="9"/>':'<path d="m9 7 8 5-8 5z"/><path d="M5 5a10 10 0 1 1-2 10"/>';return `<svg viewBox="0 0 24 24" class="action-glyph" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;}
+function polishJourneyActions(){const upload=$('#import-btn'),record=$('#record-btn');if(upload)upload.innerHTML=actionGlyph('import')+'<span>Import ride</span>';if(record){record.innerHTML=actionGlyph(recording?'stop':'record')+`<span>${recording?'Finish ride':'Start journey'}</span>`;record.classList.toggle('journey-running',recording);}}
+const renderBeforePolish=render;render=function(){renderBeforePolish();polishJourneyActions();};
+const stateBeforePolish=window.odoNativeState;if(stateBeforePolish)window.odoNativeState=(...args)=>{stateBeforePolish(...args);polishJourneyActions();};
+polishJourneyActions();

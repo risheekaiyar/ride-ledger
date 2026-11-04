@@ -1,54 +1,44 @@
-# Odo animated ride insights
+# Odo ride insights — 0.3.7
 
-Open a saved ride and choose **Play ride insights**, or use the same action on Overview. The recap is a playable, source-aware visual debrief rather than a collection of chat cards. It runs locally, including without a network connection.
+Open a saved ride and choose **Play ride insights**. The replay, elevation and app theme share a black, white, red and cyan visual system.
 
-## What is implemented
-
-| Chapter | Visual | Supported insight |
+| Chapter | Visualization | What it explains |
 | --- | --- | --- |
-| The journey | Moving rider on the raised, lit 3D road model | Recorded route, duration and estimated distance; missing route intervals stay open |
-| Your pace | Animated 3D speed-band columns | Time-weighted speed distribution, leading band, observed average and peak |
-| Time well spent | Sculpted three-part time ring | Moving, low-speed and unobserved time, plus the longest continuously observed moving stretch |
-| Ride flow | Moving scan across a 3D speed trace with event beacons | Saved GPS speed-reduction/increase candidates; **Inspect nearest moment** opens its original signal and time |
-| The vertical story | Animated altitude sculpture | Source altitude range and extrema; missing display bins stay open |
+| The journey | Solid white 3D road diorama, racing arrow and cyan progress | Source route fixes with display-only continuity between missing positions |
+| Your pace | Analogue needle, colored speed ranges, per-band percentages | Actual replay speed and time-weighted speed distribution |
+| G-force lab | Load radar, recent trace and adjacent synchronized route | GPS-derived forward/braking and, when supported, lateral acceleration |
+| The vertical story | 3D elevation ribbon, meter ticks, reference lines and altitude color legend | Source altitude range; gaps remain open |
 
-Chapters appear only when their measurements are available. GPX imports use interval speed estimates and never acquire phone-sensor events. Ride flow uses existing candidates with an available GPS speed observation; it does not introduce a new event detector. Display geometry is bounded to 96 time bins; numerical summaries use all eligible intervals. Event marks are grouped by time bin, while inspection uses the original event time.
+Default recaps exclude the moving/under-five time donut and the old event-count chapter. Stop/gap questions remain available in the companion. A flat altitude channel does not produce an empty elevation chapter. Recordings without usable measurements show a useful recording-quality explanation.
 
-Playback advances through ten-second chapters, with pause, previous/next, direct chapter selection and scrubbing. Metric reveals, camera motion and chapter transitions animate. Mobile playback controls stay visible. Reduced-motion preferences disable automatic playback and camera orbit; facts remain readable without WebGL. Backgrounding pauses playback, and closing disposes the private renderer and restores the original ride viewer.
+The [road preview](RACING-RADAR.md) uses every projected GPS vertex, with solid raised white roads, shaded sidewalls, cyan replay progress and cast shadows on a beveled dark platform. Drag horizontally through a full rotation while playback continues. Choose **Isometric 3D** or **Overhead**, and use **Recenter** to reset rotation. The racing arrow follows the path continuously. Missing positions receive straight visual interpolation in this story view, with no central gap banner. Measurements and source coordinates remain unchanged; unavailable speed stays blank. The main Track Studio uses the same arrow style.
 
-## Meta does runtime work
+Pace percentages use observed intervals only and round to a total of one hundred. The needle uses the source speed at the playhead. G-force playback defaults to **2×**, with 1×, 5× and 10× choices, scrubbing and **Jump to strongest estimate**. Other chapters play for ten seconds. Reduced-motion mode starts paused and still permits manual scrubbing and rotation. Controls remain visible on phones and tablets.
 
-**Make it mine · Meta** opens four intent choices: the whole ride, pace/rhythm, highlights/fun facts, and confidence/next ride. The rider can inspect the payload before explicitly choosing **Generate with Meta**.
+## Measurement boundaries
 
-The existing Meta-only gateway calls **`muse-spark-1.3`** at **`https://api.meta.ai/v1/responses`**, with `store:false`. For a recap, the model receives a bounded fact catalog, source type, time-weighted speed bands and the existing bike/placement/sensor-health context. No route coordinates, raw samples, ride identifiers, titles or notes enter the request. The provider key remains on the server.
+G estimates use consecutive accepted GPS observations: change in speed divided by elapsed time and standard gravity; lateral load uses average speed times heading-change rate divided by gravity. Native intervals must be connected within three seconds and pass location/speed uncertainty limits. Lateral estimates additionally require usable course, tighter fix accuracy and sufficient speed. GPX supplies only a longitudinal estimate. Missing lateral data is shown as unavailable and a horizontal forward/brake indicator, not a zero-lateral dot. Gaps are not bridged. These are **GPS estimates, not motorcycle IMU readings** or riding-skill scores.
 
-The model acts as the recap's editor: it orders the available visual chapters, chooses which supported measurements to emphasize, writes each headline and interpretation, and proposes a useful next step. This is a separate strict structured-output contract from ordinary companion chat. Both server and browser validate the returned scenes and fact references. The application renders all numerical values from local measurements; model prose containing digits is rejected. Missing, duplicate or unsupported scenes and inconsistent input time totals are rejected. Only one whole ride enters a recap request.
+Elevation uses a bounded, gap-aware source envelope and an exaggerated display scale. Each section shows the source peak within its time window. A shared numeric mapping drives its color, the meter axis and the cyan/white/red legend. Reference ticks bracket the actual source range, including negative altitudes. Labels fit the mobile viewport. Color denotes source altitude, not road grade. Range does not establish total climbing or a verified altitude datum. Numerical summaries use all supported intervals; visual elevation bins are bounded to ninety-six. The route backdrop is cached and its recent trail uses a bounded lookup.
 
-Model interpretations are labeled **META / PERSONALIZED**. The offline alternative is labeled **ON-DEVICE / RIDE FACTS**. Replies are cached only in memory for the same ride and evidence fingerprint. Closing a recap prevents a late reply from overwriting another view. Runtime requests still consume the configured bounded allowance.
+## Meta performs runtime work
 
-This checkpoint was tested with **mock provider replies**, not a live Meta call: the current cloud runtime has no Meta credential configured. A real model call in the finished project's runtime remains necessary for hackathon eligibility. See [the runtime setup](UI-IMPROVEMENT.md) and [the companion gateway](COMPANION-GATEWAY.md) for connection details. No environment or application was published during this work.
+**Make it mine · Meta** opens intent choices, a map section selector, rider-reported stop reason and weather. Selecting a section highlights its actual time range and clock time. **Street map** loads OpenStreetMap roads and landmarks; the offline highlight remains usable without tiles. The Meta model can attach its chapters or follow-up question to one of these validated sections. It receives the elapsed section references, not coordinates or street-map imagery, and must not claim to know a junction or a stop's cause.
 
-## Share the animated insight
+The Meta-only gateway calls **`muse-spark-1.3`** at **`https://api.meta.ai/v1/responses`**, with `store:false` and a server-side key. The model orders chapters, selects supported measurement emphasis, interprets patterns, asks map-linked questions and supplies the next-step takeaway. Server and browser validate scene/fact/section references. The app renders quantities from local measurements; model prose cannot introduce new numbers. Raw samples, coordinates, private bike nicknames, ride titles and notes are excluded.
 
-Expand **Export an animated story**, explicitly include the route shape, displayed stats and captions, then render. The result is an **18-second, 720 × 1280** film using the current local or Meta-curated chapter sequence and captions. Supported browsers render all **432 frames at 24 fps** into H.264 MP4; the existing real-time codec fallback remains available. Saving stays local; Android uses the existing native share-sheet transport.
+After successful personalization the details collapse, the phone scrolls to the top, and the new recap plays. Reduced-motion preferences keep it paused. Pending or stale replies cannot overwrite a closed recap. Local facts and model interpretations have distinct attribution.
 
-The renderer is reused for one chapter at a time, with no simultaneous main-view scene. Cancellation, backgrounding or closing cancels the encoder, removes temporary renderers, revokes obsolete media URLs, and restores the recap. Changing narration invalidates a previous export. Physical Android codecs and receiving apps still need device trials.
+No live Meta credential is configured in this cloud environment. Provider behavior was tested with explicit mocks. Configure the [companion gateway](COMPANION-GATEWAY.md) and perform a real runtime request before demonstrating hackathon eligibility.
 
-## Demo and reviewed artifacts
+## Sharing and validation
 
-1. Import a timed GPX or phone recording and open **Play ride insights**.
-2. Play through the route, pace and time ring; use a recording with saved speed-change candidates for Ride flow.
-3. Select **Make it mine · Meta**, choose an intent and generate. In a configured runtime, show how the model changes the order, measurement emphasis, explanations and takeaway.
-4. Inspect a Ride flow marker in the original signal timeline.
-5. Export and play the animated story.
+The current chapters and captions export locally as an **18-second, 720 × 1280, 24 fps** story. The reviewed MP4 contains **432 H.264 frames**. Route inclusion remains explicit, and no social post is made. Closing, cancelling or backgrounding disposes the private renderer/encoder and restores the ride view.
 
-The committed [synthetic MP4](previews/insight-recap-synthetic.mp4) uses explicitly mocked model captions and a synthetic circuit, not a rider's private data or evidence of a live model call. Desktop and mobile previews include `insight-route-desktop-synthetic.png`, `insight-pace-mobile-synthetic.png`, `insight-flow-mobile-synthetic.png` and `insight-meta-mobile-synthetic.png`.
+- [Road preview, mobile](previews/diorama-mobile-synthetic.png)
+- [Analogue pace, mobile](previews/final-pace-mobile-synthetic.png)
+- [G radar and route, desktop](previews/final-gforce-desktop-synthetic.png)
+- [Elevation ribbon, mobile](previews/elevation-axis-mobile-synthetic.png)
+- [Watch the updated story](previews/diorama-insights-synthetic.mp4)
 
-## Validation
-
-- Node coverage includes weighted intervals, threshold crossings, missing intervals, stationary/empty trips, GPX provenance, candidate filtering, bounded long-ride geometry, strict model contracts and privacy exclusions.
-- `scripts/insight-reel-smoke.cjs` checks actual rendered frame changes, pause/scrub, all chapter types available to its GPX fixture, responsive controls, model-directed order/fact emphasis and a real decoded video export.
-- `scripts/insight-reel-lifecycle-smoke.cjs` checks the native Ride flow scene, exact event inspection, cancellation/background/close, late model replies, WebGL fallback and Overview entry.
-- Existing overview/track browser regressions and Android `assembleDebug lintDebug` cover integration.
-
-No chapter claims calibrated lean, throttle technique, road cause, legal-speed adherence or an overall riding-skill/safety score. Altitude range is not accumulated ascent. The model can explain recorded pace and rhythm and suggest a useful follow-up, but the supplied phone evidence does not establish those unsupported measurements.
+All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `route-diorama-smoke.cjs` checks the actual WebGL scene, arrow markers, preserved source geometry, forward/reverse scrubbing, display continuity, measured gap integrity, full rotation, cleanup and the readable no-WebGL fallback. `visual-direction-smoke.cjs` verifies meter labels, source/legend agreement and the palette across app pages. Physical Android performance and live public-map behavior still need the demo device check.
