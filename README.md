@@ -20,7 +20,7 @@ The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and sou
 
 [Ride comparison](docs/RIDE-COMPARISON.md) puts two phone recordings side by side, checks setup and sensor quality, and sends the selected pair’s bounded evidence to Meta only on request.
 
-[Signal inspection](docs/SIGNAL-INSPECTION.md) keeps long recordings readable, preserves extrema and gaps, and lets you inspect original samples with touch or keyboard.
+[Signal inspection](docs/SIGNAL-INSPECTION.md) keeps long recordings readable, preserves extrema and gaps, and offers focused 5-minute, 1-minute and 15-second views. Touch and keyboard inspection read original samples, including phone motion from recordings with no usable GPS fixes.
 
 The [journal landing and overview](docs/OVERVIEW.md) now open returning riders directly to Rides and keep the latest ride, Odo debrief, source-aware totals and bike profile together.
 

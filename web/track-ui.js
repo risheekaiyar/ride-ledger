@@ -23,7 +23,6 @@ function updateTrackReadouts(s){
  if($('#track-gap'))$('#track-gap').hidden=!s.gap;
  if($('#telemetry-speed'))$('#telemetry-speed').textContent=fmt(s.speed,0);
  if($('#telemetry-moment'))$('#telemetry-moment').textContent=s.gap?'Recording gap':clock(s.time)+' / '+clock(current().duration);
- const cursor=$('#telemetry-cursor');if(cursor){const x=Math.max(0,Math.min(600,s.time/current().duration*600));cursor.setAttribute('x1',x);cursor.setAttribute('x2',x);}
 }
 function mountTrackScene(){
  const container=$('#map-canvas'),ride=current();
@@ -40,7 +39,7 @@ const renderBeforeTrack=render;
 render=function(){collapseTrackPreview();disposeTrackScene();renderBeforeTrack();mountTrackScene();};
 const updateBeforeTrack=updateTimeline;
 updateTimeline=function(index){
- updateBeforeTrack(index);const point=current()?.track[index];if(!point)return;
+ updateBeforeTrack(index);const point=current()?.track[index];if(!point){trackTime=0;return;}
  trackTime=point[2];if(trackScene)trackScene.setTime(trackTime);else updateTrackReadouts({time:trackTime,speed:point[3],gap:false});
 };
 const stopBeforeTrack=stopPlay;
@@ -49,8 +48,10 @@ stopPlay=function(){
  setPlaybackButton(false);
 };
 function seekTrackTime(value){
- const ride=current();if(!ride?.track.length||!Number.isFinite(value))return;
- stopPlay();const time=Math.max(0,Math.min(ride.duration,value)),index=OdoTelemetry.nearest(ride.track,time);
+ const ride=current();if(!ride||!Number.isFinite(value))return;
+ stopPlay();const time=Math.max(0,Math.min(ride.duration,value));
+ if(!ride.track?.length){trackTime=time;updateTrackReadouts({time,speed:null,gap:true});return;}
+ const index=OdoTelemetry.nearest(ride.track,time);
  updateBeforeTrack(index);trackTime=time;
  if(trackScene)trackScene.setTime(time);else{const sample=OdoTelemetry.inspect(ride,time);updateTrackReadouts({time,speed:sample.speed,gap:sample.gap});}
 }

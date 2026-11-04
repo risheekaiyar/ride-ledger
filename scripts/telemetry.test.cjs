@@ -42,3 +42,32 @@ test('large elevation arrays avoid argument-stack overflow while keeping source 
  const result=analyze({duration:75000,track});assert.equal(result.altitudeMax,1234);assert(result.altitudeMin>=799);assert(result.altitudeMin<800);
  const plotted=path(track.map(p=>[p[2],p[5],p[7]]),75000,600,150,3,false);assert.equal(plotted.max,1234);assert(plotted.d.length<30000);
 });
+const {windowRange,windowPath}=require('../web/telemetry.js');
+test('time windows retain their span at the ride edges and handle short or invalid durations',()=>{
+ assert.deepEqual(windowRange(3600,60,1800),{start:1770,end:1830});assert.deepEqual(windowRange(3600,60,3599),{start:3540,end:3600});assert.deepEqual(windowRange(3600,60,0),{start:0,end:60});
+ assert.deepEqual(windowRange(10,15,4),{start:0,end:10});assert.deepEqual(windowRange(100,null,60),{start:0,end:100});assert.deepEqual(windowRange(NaN,60,5),{start:0,end:0});
+});
+test('focused traces clip existing lines at boundaries without changing source samples',()=>{
+ const points=[[0,0,0],[2,20,0],[4,40,0]],original=structuredClone(points),focused=windowPath(points,4,1,3,600,150,3,false);
+ assert.equal(focused.min,10);assert.equal(focused.max,30);assert.match(focused.d,/M0.00,140.00 L300.00,75.00 L600.00,10.00/);assert.equal(focused.gaps,'');assert.deepEqual(points,original);
+ assert.deepEqual(windowPath(points,4,0,4),path(points,4,600,150));
+});
+test('zoom never joins a recording gap, missing value, reversed time or segment boundary',()=>{
+ for(const points of [[[0,10,0],[10,30,0]],[[0,10,0],[1,20,1]],[[0,10,0],[.5,null,0],[1,20,0]],[[1,10,0],[0,20,0]]]){
+  const result=windowPath(points,12,.25,.75,600,150,3);assert.equal(result.d,'');
+ }
+ const result=windowPath([[0,20,0],[1,0,0],[2,null,0],[3,30,0],[4,30,0]],5,.5,4.5,600,150,1);
+ assert.equal(result.min,0);assert.match(result.gaps,/M75,0H375/);assert.match(result.gaps,/M525,0H600/);
+});
+test('focused GPX steps preserve interval estimates and long-window extrema stay bounded',()=>{
+ const steps=[[0,20,0],[10,20,0],[10,40,0],[20,40,0]],step=windowPath(steps,20,5,15,600,150,30);
+ assert.equal((step.d.match(/M/g)||[]).length,2);assert.equal(step.gaps,'');assert.equal(step.max,40);
+ const points=Array.from({length:50000},(_,i)=>[i,1,0]);points[24000][1]=4;points[100][1]=90;
+ const result=windowPath(points,50000,20000,30000,600,150,1);assert(result.aggregated);assert.equal(result.max,4);assert(result.d.length<40000);
+ assert.equal(windowPath(points,50000,24000,24000).d,'');
+});
+test('phone-only inspection retains measured zero while GPS fields remain unavailable',()=>{
+ const sample=inspect({duration:3,track:[],signals:[[1,0,0,0,1]]},1.5);
+ assert.equal(sample.gap,true);assert.equal(sample.index,-1);assert.equal(sample.sampleTime,null);assert.equal(sample.speed,null);assert.equal(sample.accuracy,null);assert.equal(sample.motionTime,1);
+ assert.equal(sample.acceleration,0);assert.equal(sample.linearAcceleration,0);assert.equal(sample.angularSpeed,0);
+});

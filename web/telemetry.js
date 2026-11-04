@@ -50,6 +50,32 @@ function path(points,duration,width=600,height=130,maxGap=3,zeroBased=true){
  let gaps='',gapColumns=0,start=null;for(let i=0;i<=width;i++){const gap=i<width&&missing[i];if(gap)gapColumns++;if(gap&&start===null)start=i;if(!gap&&start!==null){gaps+=`M${start},0H${i} `;start=null;}}
  return {d,dots,gaps,min,max,aggregated,gapColumns,count:valid.length};
 }
+function windowRange(duration,span,center=0){
+ if(!(duration>0)||!Number.isFinite(duration))return {start:0,end:0};
+ const length=Number.isFinite(span)&&span>0?Math.min(duration,span):duration;
+ const start=Math.max(0,Math.min(duration-length,Math.floor((Number.isFinite(center)?center:0)-length/2)));
+ return {start,end:start+length};
+}
+function windowPath(points,duration,start,end,width=600,height=150,maxGap=3,zeroBased=true){
+ if(!(duration>0)||!Number.isFinite(duration))return path([],0,width,height,maxGap,zeroBased);
+ start=Math.max(0,Number.isFinite(start)?start:0);end=Math.min(duration,Number.isFinite(end)?end:duration);
+ if(!(end>start))return path([],0,width,height,maxGap,zeroBased);
+ if(start===0&&end===duration)return path(points,duration,width,height,maxGap,zeroBased);
+ // Clip existing connected line segments for display only. Inspection/statistics retain source samples.
+ const clipped=[];let last=null,group=0;
+ const append=(time,value)=>{const previous=clipped.at(-1),relative=time-start;if(previous&&previous[0]===relative&&previous[1]===value&&previous[2]===group)return;clipped.push([relative,value,group]);};
+ for(const point of points){
+  if(!Number.isFinite(point[0])||!Number.isFinite(point[1])||point[0]<0||point[0]>duration){last=null;group++;continue;}
+  const connected=last&&last[2]===point[2]&&point[0]>last[0]&&point[0]-last[0]<=maxGap;
+  if(connected){
+   const left=Math.max(start,last[0]),right=Math.min(end,point[0]);
+   if(right>left){const value=time=>time===last[0]?last[1]:time===point[0]?point[1]:last[1]+(point[1]-last[1])*(time-last[0])/(point[0]-last[0]);append(left,value(left));append(right,value(right));}
+   else if(point[0]>=start&&point[0]<=end)append(point[0],point[1]);
+  }else{group++;if(point[0]>=start&&point[0]<=end)append(point[0],point[1]);}
+  last=point;
+ }
+ return path(clipped,end-start,width,height,maxGap,zeroBased);
+}
 function nearest(track,time){if(!track.length)return -1;let low=0,high=track.length-1;while(low<high){const mid=Math.floor((low+high)/2);if(track[mid][2]<time)low=mid+1;else high=mid;}return low>0&&Math.abs(track[low-1][2]-time)<=Math.abs(track[low][2]-time)?low-1:low;}
 function inspect(ride,time){
  const track=ride.track||[],index=nearest(track,time),point=track[index],imported=ride.source==='GPX export';
@@ -66,5 +92,5 @@ function inspect(ride,time){
   course:imported?null:finite(sample?.[6],0,359.999999),
   acceleration:finite(motion?.[1],0,100000),linearAcceleration:finite(motion?.[2],0,100000),angularSpeed:finite(motion?.[3],0,100000)};
 }
-const api={analyze,series,path,nearest,inspect};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
+const api={analyze,series,path,windowRange,windowPath,nearest,inspect};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
