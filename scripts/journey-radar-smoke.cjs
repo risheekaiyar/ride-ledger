@@ -23,13 +23,13 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright'),{see
    const gap=model.points.find((q,i)=>i&&q.segment!==model.points[i-1].segment);scene.renderFrame((model.points[gap.index-1].time+gap.time)/2);const hidden=scene.markerState()===null;scene.renderFrame(gap.time);const resumed=scene.markerState()!==null;
    const sample=model.points[connected.index],previous=model.points[connected.index-1],at=OdoTrackModel.atTime(model,time);const interpolation=Math.abs(at.x-(previous.x+sample.x)/2)<1e-8&&Math.abs(at.z-(previous.z+sample.z)/2)<1e-8;
    const count=model.points.length,unchanged=JSON.stringify(ride)===before;scene.dispose();scene.dispose();const removed=host.childElementCount===0;
-   // Family art and color must affect rendered pixels, including when no WebGL context exists.
+   // Navigation arrows are independent of bike type and paint, including without WebGL.
    const getContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='2d'?getContext.call(this,type,...args):null;};
    const variants=[];try{for(const family of ['adventure','sport','naked','rally','touring','classic','scooter']){const s=OdoJourneyRadar.create(host,ride,{pixelRatio:1,bikeProfile:{family,color:'#ed3344'}});s.renderFrame(time);variants.push(s.snapshot());s.dispose();}const s=OdoJourneyRadar.create(host,ride,{pixelRatio:1,bikeProfile:{family:'sport',color:'#347aff'}});s.renderFrame(time);variants.push(s.snapshot());s.dispose();}finally{HTMLCanvasElement.prototype.getContext=getContext;host.remove();}
    return {marker,fullTurn,quarter,sameReset:initial===reset,sameReverse:initial===reverse,hidden,resumed,interpolation,count,expected:ride.track.length,unchanged,removed,unique:new Set(variants).size};
   });
-  assert.equal(result.marker.family,'rally');assert.equal(result.marker.color,'#e74738');assert(Math.abs(result.marker.x-result.fullTurn.x)<1e-8);assert(Math.abs(result.marker.y-result.fullTurn.y)<1e-8);assert(Math.hypot(result.marker.x-result.quarter.x,result.marker.y-result.quarter.y)>1);
-  for(const key of ['sameReset','sameReverse','hidden','resumed','interpolation','unchanged','removed'])assert(result[key],key);assert.equal(result.count,result.expected);assert.equal(result.unique,8);assert.deepEqual(errors,[]);
-  console.log('PASS: GPS radar, all seven bike families and paint, exact sample interpolation, gaps, 360° rotation, reverse scrubbing, 320–1440px layout, cleanup and Canvas-only rendering.');
+  assert.equal(result.marker.type,'arrow');assert(Number.isFinite(result.marker.heading));assert(Math.abs(result.marker.x-result.fullTurn.x)<1e-8);assert(Math.abs(result.marker.y-result.fullTurn.y)<1e-8);assert(Math.hypot(result.marker.x-result.quarter.x,result.marker.y-result.quarter.y)>1);
+  for(const key of ['sameReset','sameReverse','hidden','resumed','interpolation','unchanged','removed'])assert(result[key],key);assert.equal(result.count,result.expected);assert.equal(result.unique,1);assert.deepEqual(errors,[]);
+  console.log('PASS: GPS radar, raised silhouette and bike-independent arrow, exact sample interpolation, gaps, 360° rotation, reverse scrubbing, 320–1440px layout, cleanup and Canvas-only rendering.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

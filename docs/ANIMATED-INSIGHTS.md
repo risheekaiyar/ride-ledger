@@ -1,17 +1,17 @@
-# Odo ride insights — 0.3.4
+# Odo ride insights — 0.3.5
 
-Open a saved ride and choose **Play ride insights**. This update was rebuilt from `UI-Improvement`; the rejected `odo/replay-garage-0.3.2` branch was not merged.
+Open a saved ride and choose **Play ride insights**. The replay, elevation and app theme share a black, white, red and cyan visual system.
 
 | Chapter | Visualization | What it explains |
 | --- | --- | --- |
-| The journey | Circular racing-game radar, cyan progress, illustrated garage-matched motorcycle | The exact recorded horizontal route, with visible recording gaps |
+| The journey | Raised white GPS silhouette, racing arrow and cyan progress | The exact recorded horizontal route, with visible recording gaps |
 | Your pace | Analogue needle, colored speed ranges, per-band percentages | Actual replay speed and time-weighted speed distribution |
 | G-force lab | Load radar, recent trace and adjacent synchronized route | GPS-derived forward/braking and, when supported, lateral acceleration |
-| The vertical story | Continuous colored 3D elevation ribbon and legend | Source altitude range; gaps remain open |
+| The vertical story | 3D elevation ribbon, meter ticks, reference lines and altitude color legend | Source altitude range; gaps remain open |
 
 Default recaps exclude the moving/under-five time donut and the old event-count chapter. Stop/gap questions remain available in the companion. A flat altitude channel does not produce an empty elevation chapter. Recordings without usable measurements show a useful recording-quality explanation.
 
-The [journey radar](RACING-RADAR.md) uses every projected GPS vertex, with pale recorded roads and cyan replay progress. Drag horizontally through a full rotation while playback continues; the map stays where you put it. Choose **Radar** or **Isometric**, and use **Recenter** to reset rotation. A directional arrow follows the recorded path; the illustrated motorcycle stays upright. The bike family and color come from the recording's saved metadata, with the associated garage profile as a fallback for older recordings. The separate Track Studio retains its white raised route silhouette.
+The [journey radar](RACING-RADAR.md) uses every projected GPS vertex, with a white top edge, shaded silhouette walls and cyan replay progress. Drag horizontally through a full rotation while playback continues. Choose **3D silhouette** or **Overhead**, and use **Recenter** to reset rotation. The racing arrow follows the recorded path; recording gaps hide the marker. The main Track Studio uses the same arrow style.
 
 Pace percentages use observed intervals only and round to a total of one hundred. The needle uses the source speed at the playhead. G-force playback defaults to **2×**, with 1×, 5× and 10× choices, scrubbing and **Jump to strongest estimate**. Other chapters play for ten seconds. Reduced-motion mode starts paused and still permits manual scrubbing and rotation. Controls remain visible on phones and tablets.
 
@@ -19,7 +19,7 @@ Pace percentages use observed intervals only and round to a total of one hundred
 
 G estimates use consecutive accepted GPS observations: change in speed divided by elapsed time and standard gravity; lateral load uses average speed times heading-change rate divided by gravity. Native intervals must be connected within three seconds and pass location/speed uncertainty limits. Lateral estimates additionally require usable course, tighter fix accuracy and sufficient speed. GPX supplies only a longitudinal estimate. Missing lateral data is shown as unavailable and a horizontal forward/brake indicator, not a zero-lateral dot. Gaps are not bridged. These are **GPS estimates, not motorcycle IMU readings** or riding-skill scores.
 
-Elevation uses a bounded, gap-aware source envelope and an exaggerated display scale. Color denotes source altitude, not road grade. Range does not establish total climbing or a verified altitude datum. Numerical summaries use all supported intervals; visual elevation bins are bounded to ninety-six. The radar's route backdrop is cached and its recent trail uses a bounded lookup.
+Elevation uses a bounded, gap-aware source envelope and an exaggerated display scale. Each section shows the source peak within its time window. A shared numeric mapping drives its color, the meter axis and the cyan/white/red legend. Reference ticks bracket the actual source range, including negative altitudes. Labels fit the mobile viewport. Color denotes source altitude, not road grade. Range does not establish total climbing or a verified altitude datum. Numerical summaries use all supported intervals; visual elevation bins are bounded to ninety-six. The radar's route backdrop is cached and its recent trail uses a bounded lookup.
 
 ## Meta performs runtime work
 
@@ -35,10 +35,10 @@ No live Meta credential is configured in this cloud environment. Provider behavi
 
 The current chapters and captions export locally as an **18-second, 720 × 1280, 24 fps** story. The reviewed MP4 contains **432 H.264 frames**. Route inclusion remains explicit, and no social post is made. Closing, cancelling or backgrounding disposes the private renderer/encoder and restores the ride view.
 
-- [Journey radar, mobile](previews/radar-mobile-synthetic.png)
+- [Journey radar, mobile](previews/arrow-mobile-synthetic.png)
 - [Analogue pace, mobile](previews/final-pace-mobile-synthetic.png)
 - [G radar and route, desktop](previews/final-gforce-desktop-synthetic.png)
-- [Elevation ribbon, mobile](previews/final-elevation-mobile-synthetic.png)
-- [Watch the updated story](previews/radar-insights-synthetic.mp4)
+- [Elevation ribbon, mobile](previews/elevation-axis-mobile-synthetic.png)
+- [Watch the updated story](previews/arrow-insights-synthetic.mp4)
 
-All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `journey-radar-smoke.cjs` additionally checks seven bike families, paint, forward/reverse scrubbing, gap handling, full rotation and Canvas-only rendering. Physical Android performance and live public-map behavior still need the demo device check.
+All preview data is synthetic. Model captions and external service responses in regression checks are mocked. `insight-reel-smoke.cjs` exercises all chapters, slow G playback, full manual rotation, 320–1440px layouts, map-linked requests, automatic return/playback, a real video export and reduced motion. `insight-reel-lifecycle-smoke.cjs` covers cancellation, backgrounding, stale replies and rendering fallback. `journey-radar-smoke.cjs` additionally checks arrow markers, source-preserving relief, forward/reverse scrubbing, gap handling, full rotation and Canvas-only rendering. `visual-direction-smoke.cjs` verifies meter labels, source/legend agreement and the palette across app pages. Physical Android performance and live public-map behavior still need the demo device check.

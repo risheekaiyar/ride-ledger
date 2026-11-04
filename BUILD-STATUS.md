@@ -1,14 +1,14 @@
-# Current branch build: 0.3.4
+# Current branch build: 0.3.5
 
-The journey insight preview now uses a racing-game radar with cyan GPS progress, full manual rotation, an isometric option, and seven original motorcycle illustrations matched to saved bike type and paint. See [RACING-RADAR.md](docs/RACING-RADAR.md) for scope and review artifacts. Work is on `UI-Improvement`; no deployment, merge or environment publication was performed.
+Racing arrows replace bike markers in both journey insights and the main 3D replay. The journey uses raised white route walls and cyan progress. Elevation has a source-driven color scale, meter ticks, reference lines and a matching legend. The app, plots, story exports, launcher icon and widget share a black/white/red/cyan palette. See [RACING-RADAR.md](docs/RACING-RADAR.md) for review artifacts and measurement boundaries.
 
-The generated APK is `app/build/outputs/apk/debug/app-debug.apk`; a local copy is `dist/ride-ledger-0.3.4-debug.apk`. Packaged radar, artwork, CSS and film assets were checked against the source. Version name is **0.3.4**, version code **7**.
+Work is on `UI-Improvement`. No deployment, merge or environment publication was performed. The APK is `app/build/outputs/apk/debug/app-debug.apk`, copied locally to `dist/ride-ledger-0.3.5-debug.apk` (**version code 8**). Packaged renderers, elevation scale, theme and entry point match source. Asset synchronization now removes deleted generated files; the retired bike-marker artwork is absent from the package.
 
-Verified locally: **167 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date), plus the new radar, full insight and lifecycle browser checks. Lint reports zero errors and nine existing warnings. The radar browser checks cover all seven families and paint, GPS gaps, reverse scrubbing, full rotation, 320–1440px controls, disposal and Canvas-only rendering. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
+Verified locally: **171 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date). Lint has **0 errors and 9 existing warnings**. Browser checks passed for both route renderers, exact GPS replay/gaps, 360° rotation, meter-axis/legend agreement, 320–1440px layouts, negative/five-digit tick labels, shared theme, Meta personalization, actual MP4 output, lifecycle cleanup, Overview and Garage. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
 
-Meta responses and street tiles were mocked for regression checks. This environment has no live Meta credential; configure the demo runtime before judging. Physical Android recording and playback performance still need the demo device check. The new bike markers are family illustrations, not OEM CAD. Prior route/Garage/recording/Overview checks remain documented under 0.3.3; this pass reran the affected insight flows.
+Meta responses and external reference services were mocked in regression checks. No live Meta key is configured here. Physical Android sensor recording and playback performance still need the demo device check. Garage bike models remain family illustrations.
 
-Local APK SHA-256: `d843749126781d86b8d5e18a34155b7cfd96fb5253c9ecc72a43c25e77e44e73`.
+Local APK SHA-256: `9008b57872116d1dcb378db9484995b5c687de04f52a1faf7939e1f50fbbb4b8`.
 
 ## Historical releases
 

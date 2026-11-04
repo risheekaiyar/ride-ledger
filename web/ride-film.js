@@ -34,13 +34,13 @@ function paint(canvas,scene,ride,progress,{headline='THE RIDE, REPLAYED.',accent
  const layout=square?{brand:63,line:84,headline:128,font:38,source:185,caption:496,timeline:524,bar:541,label:582,value:634,footer:655,motto:null}
   :compact?{brand:75,line:100,headline:153,font:48,source:223,caption:600,timeline:635,bar:652,label:710,value:771,footer:829,motto:801}
   :{brand:89,line:119,headline:190,font:57,source:283,caption:858,timeline:910,bar:929,label:1003,value:1084,footer:1196,motto:1152};
- const s=frame(ride,scene.model,progress,includeSpeed),x=canvas.getContext('2d'),cream='#f2ebdc',muted='#98a8b5',ink='#0b1018',color=accent==='ice'?'#8bd9da':'#ff825c';
+ const s=frame(ride,scene.model,progress,includeSpeed),x=canvas.getContext('2d'),cream='#f5f7f8',muted='#b0bac2',ink='#111316',color=accent==='ice'?'#3bd8e6':'#ff4655';
  if(canvas.width!==WIDTH||canvas.height!==h){canvas.width=WIDTH;canvas.height=h;}
  x.clearRect(0,0,WIDTH,h);x.fillStyle=ink;x.fillRect(0,0,WIDTH,h);
- const light=x.createRadialGradient(620,h*.21,0,440,h*.35,700);light.addColorStop(0,'#27323e');light.addColorStop(1,ink);x.fillStyle=light;x.fillRect(0,0,WIDTH,h);
+ const light=x.createRadialGradient(620,h*.21,0,440,h*.35,700);light.addColorStop(0,'#343a41');light.addColorStop(1,ink);x.fillStyle=light;x.fillRect(0,0,WIDTH,h);
  x.fillStyle=color;x.fillRect(38,layout.brand-(compact?40:47),6,compact?44:53);x.fillStyle=cream;x.font=`800 ${compact?50:61}px Arial,sans-serif`;x.fillText('odo',57,layout.brand);
  x.fillStyle=muted;x.textAlign='right';x.font='13px monospace';x.fillText('RIDE FILM / 01',682,layout.brand-26);x.fillStyle=color;x.fillText('YOUR WORLD. RIDDEN.',682,layout.brand-1);x.textAlign='left';
- x.strokeStyle='#ffffff24';x.beginPath();x.moveTo(38,layout.line);x.lineTo(682,layout.line);x.stroke();
+ x.strokeStyle='#f5f7f824';x.beginPath();x.moveTo(38,layout.line);x.lineTo(682,layout.line);x.stroke();
  const words=(String(headline).trim()||'THE RIDE, REPLAYED.').toUpperCase().slice(0,50).split(/\s+/);let size=layout.font,lines=[];
  while(size>=28){x.font=`italic 900 ${size}px Arial,sans-serif`;let line='';lines=[];for(const word of words){const next=line?`${line} ${word}`:word;if(x.measureText(next).width>644&&line){lines.push(line);line=word;}else line=next;}if(line)lines.push(line);if(lines.length<=2)break;size-=2;}
  x.fillStyle=cream;lines.slice(0,2).forEach((line,i)=>x.fillText(line,38,layout.headline+i*size,644));
@@ -54,15 +54,15 @@ function paint(canvas,scene,ride,progress,{headline='THE RIDE, REPLAYED.',accent
   x.fillStyle=cream;x.font=`600 ${compact?42:55}px Arial`;x.fillText(s.speed===null?'—':String(Math.round(s.speed)),38,routeBottom-(compact?53:75));
   x.fillStyle=muted;x.font='12px monospace';x.fillText('KM/H',38,routeBottom-(compact?30:52));x.fillText(s.speedLabel,38,routeBottom-(compact?10:32));
  }
- if(s.gap){x.fillStyle='#402a26';x.fillRect(474,routeBottom-68,208,38);x.fillStyle='#ffc0a5';x.font='12px monospace';x.textAlign='center';x.fillText('GPS RECORDING GAP',578,routeBottom-43);x.textAlign='left';}
+ if(s.gap){x.fillStyle='#343a41';x.fillRect(474,routeBottom-68,208,38);x.fillStyle='#ff8993';x.font='12px monospace';x.textAlign='center';x.fillText('GPS RECORDING GAP',578,routeBottom-43);x.textAlign='left';}
  x.fillStyle=muted;x.font='12px monospace';x.fillText('RIDE TIMELINE',38,layout.timeline);x.textAlign='right';x.fillStyle=cream;x.fillText(`${timestamp(s.time)} / ${timestamp(ride.duration)}`,682,layout.timeline);x.textAlign='left';
- x.fillStyle='#2e3a46';x.fillRect(38,layout.bar,644,4);x.fillStyle=color;x.fillRect(38,layout.bar,644*s.progress,4);x.beginPath();x.arc(38+644*s.progress,layout.bar+2,5,0,Math.PI*2);x.fill();
- for(let i=0;i<=4;i++){x.fillStyle='#697b8a';x.fillRect(38+161*i,layout.bar+15,1,6);}
+ x.fillStyle='#343a41';x.fillRect(38,layout.bar,644,4);x.fillStyle=color;x.fillRect(38,layout.bar,644*s.progress,4);x.beginPath();x.arc(38+644*s.progress,layout.bar+2,5,0,Math.PI*2);x.fill();
+ for(let i=0;i<=4;i++){x.fillStyle='#89949d';x.fillRect(38+161*i,layout.bar+15,1,6);}
  x.fillStyle=color;x.font='11px monospace';x.fillText(s.distanceLabel,38,layout.label);x.fillText('RECORDED TIME',388,layout.label);
  x.fillStyle=cream;x.font=`600 ${compact?54:69}px Arial`;x.fillText(s.distance===null?'—':s.distance.toFixed(1),38,layout.value,300);x.font=`500 ${compact?46:55}px Arial`;x.fillText(timestamp(ride.duration),388,layout.value-4,294);
- x.strokeStyle='#ffffff22';x.beginPath();x.moveTo(352,layout.label-17);x.lineTo(352,layout.value+16);x.stroke();
+ x.strokeStyle='#f5f7f822';x.beginPath();x.moveTo(352,layout.label-17);x.lineTo(352,layout.value+16);x.stroke();
  if(layout.motto){x.fillStyle=muted;x.font='11px monospace';x.fillText('THE ROUTE. THE RHYTHM. THE RIDE.',38,layout.motto);}
- for(let row=0;row<2;row++)for(let col=0;col<12;col++){x.fillStyle=(row+col)%2?cream:'#33404b';x.fillRect(38+col*8,layout.footer-13+row*8,8,8);}
+ for(let row=0;row<2;row++)for(let col=0;col<12;col++){x.fillStyle=(row+col)%2?cream:'#343a41';x.fillRect(38+col*8,layout.footer-13+row*8,8,8);}
  x.fillStyle=muted;x.textAlign='right';x.font='11px monospace';x.fillText('ODO / PRIVATE RIDE JOURNAL',682,layout.footer);x.textAlign='left';
  x.fillStyle=color;x.fillRect(0,h-45,WIDTH,45);x.fillStyle=ink;x.font='bold 12px monospace';x.fillText('RECORD / REPLAY / REMEMBER',38,h-17);
  return s;

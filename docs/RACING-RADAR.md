@@ -1,31 +1,29 @@
-# Journey radar — 0.3.4
+# Racing replay and elevation — 0.3.5
 
-Open a saved ride → **Play ride insights** → **The journey**. The journey now plays inside a dark circular radar inspired by the supplied racing-game minimaps. Recorded roads are pale; the replayed portion lights cyan. A compass, path-direction arrow, start/finish marks and a precise GPS anchor make the current position readable.
+Open a saved ride → **Play ride insights** → **The journey**. A faceted racing arrow follows a raised white GPS silhouette. Shaded walls provide depth; cyan marks the replayed portion. The default view is **3D silhouette** with an **Overhead** option. Drag through 360° while playback continues, or use the arrow keys. Recenter resets the map rotation. The main Track Studio also uses a racing arrow. Bike markers have been removed from both replay views.
 
-Drag horizontally to rotate through 360° while playback continues. **Radar** shows the route overhead; **Isometric** tilts the map plane. **Recenter** restores north-up. Keyboard users can rotate with the arrow keys, zoom with +/−, and reset with 0. Reduced-motion preferences start the recap paused.
+The route uses every projected GPS vertex. Display extrusion adds visual depth without changing horizontal shape, smoothing corners or closing open trails. The marker interpolates within connected fixes and disappears in recording gaps. Trailing arrow echoes use previous GPS positions within the same segment. Their direction represents the recorded path, not measured steering or lean. Native gaps over three seconds and GPX gaps over thirty seconds stay open. Reverse scrubbing rebuilds progress correctly. Radar relief geometry is cached between camera changes and works without WebGL.
 
-## Bike artwork
+## Elevation in meters
 
-Seven original, locally drawn illustrations distinguish adventure, rally, sport, naked, touring, classic and scooter families. Tall screens, beaks, spoke wheels and panniers distinguish adventure bikes; sport bikes have swept fairings, cast wheels and compact tails. Paint follows the saved ride profile. Existing garage fallback rules apply to older rides. These are family illustrations, not manufacturer-specific CAD or stock photographs.
+The 3D graph shows the highest source altitude in each complete time window, bounded to 96 windows. Missing windows split the ribbon. Reference lines and evenly spaced meter ticks bracket the source range. The axis is fitted together with its text, including negative and five-digit altitudes. A cyan → white → red scale represents low, middle and high source altitude; section colors and legend values come from the same numeric mapping in `elevation-scale.js`. The top surface is unlit so its color agrees with the legend; shaded sides communicate depth. The meter axis and legend are included in exported videos.
 
-The motorcycle stays upright and recognizable while the map rotates. The small arrow conveys **GPS path direction**, not measured motorcycle attitude, lean or steering. The artwork is rendered into the video too. No stock image, watermark, external image fetch or image-generation service is needed.
+Altitude remains a source measurement with unverified datum and accuracy. The vertical display scale is exaggerated. Altitude range is not accumulated climbing or road grade.
 
-## Source fidelity
+## Shared dark palette
 
-The renderer uses every projected GPS vertex, including short corners. It applies one horizontal scale and rotation without spline smoothing or closing open routes. The playhead interpolates only within connected source intervals; native recording gaps over three seconds and GPX gaps over thirty seconds stay open. The marker disappears inside a gap, with a visible recording-gap label. Backward seeking rebuilds progress correctly.
+`theme.css` defines neutral black/charcoal surfaces and white type, with cyan for data and focus and red for recording/action accents. Owned stylesheets use these tokens across the overview, ride library, detail, Garage, companion, recording, settings and sharing flows. Canvas/SVG plots and story exports use the same palette. The launcher icon and Android widget use it too. Garage bike paint and model-inspired instrument faces remain representations of the selected bike.
 
-Range rings and the grid are display guides. Surrounding streets and terrain are not inferred from the route. Street-map context remains available in the personalization section map. This Canvas renderer works without WebGL; other 3D chapters retain their existing renderers.
+Meta retains the existing runtime chapter ordering, supported interpretations and map-linked questions. This visual update adds no model providers or outbound data. Regression responses are explicitly mocked; a live key is still required to verify the demo runtime.
 
-Meta still performs the existing runtime analysis, orders chapters, links questions to supported sections and personalizes captions. This visual update does not add model providers or broaden the data sent to Meta. The attached future ODOme brief is roadmap context; its video-analysis and community proposals are not claimed as implemented here.
+## Review and validation
 
-## Review artifacts and checks
+All preview routes are synthetic; the video uses mock Meta captions.
 
-All routes shown below are synthetic. The exported story's model captions use a mocked Meta response.
+- [Raised route and arrow, mobile](previews/arrow-mobile-synthetic.png)
+- [Elevation axis, mobile](previews/elevation-axis-mobile-synthetic.png)
+- [Elevation axis, desktop](previews/elevation-axis-desktop-synthetic.png)
+- [Dark overview](previews/dark-overview-synthetic.png)
+- [Rendered story](previews/arrow-insights-synthetic.mp4)
 
-- [Mobile radar](previews/radar-mobile-synthetic.png)
-- [Desktop radar](previews/radar-desktop-synthetic.png)
-- [Isometric view](previews/radar-isometric-synthetic.png)
-- [Original bike artwork examples](previews/radar-bike-art.png)
-- [18-second rendered story](previews/radar-insights-synthetic.mp4)
-
-`journey-radar.test.cjs` checks shape-preserving rotations, path direction, gaps, resumed segments, stationary segments and dateline crossings. `journey-radar-smoke.cjs` checks all seven bike families, color differences, exact interpolation, forward/backward seeking, full rotation, responsive controls, disposal and rendering without WebGL. The existing insight and lifecycle checks exercise all chapters, mocked Meta personalization, actual MP4 output, backgrounding and cancellation. No live Meta credential or physical Android device was available for this pass.
+Checks include projection/direction/gap unit tests; numeric elevation ticks, colors and gap segmentation; both route renderers; 320–1440px layout and axis visibility; shared palette across app pages; mocked Meta personalization; actual MP4 rendering; disposal/backgrounding; and Overview/Garage interactions. Physical Android recording and playback performance still need the demo device check.
