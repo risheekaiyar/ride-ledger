@@ -6,6 +6,8 @@ The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route in
 
 The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
 
+The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.

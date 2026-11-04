@@ -13,6 +13,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 - Sample inspector with explicit measurement provenance, keyboard-accessible chart seeking and elapsed-time inspection of phone motion during GPS gaps.
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
 - Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
+- Recording setup now checks native sensor availability and GPS/permission state, permits GPS-only capture, normalizes Pocket/Bag to Not mounted and resets mount security for each ride. The idle widget opens setup after dashboard readiness; active recording Stop remains direct. Browser checks use mock hardware; actual phone behavior needs a trial.
 - Native recordings now export an exact monotonic end timestamp; analysis uses elapsed duration and explicitly labels legacy wall-clock fallbacks. Motion row validation rejects missing axes and out-of-window data.
 - Strict GPX XML/namespace validation, timezone-aware timestamps, duplicate handling and per-file batch errors. Invalid optional altitude stays unknown.
 - Timed GPX import with content-based IDs separate from native IDs. Native ZIP import preserves bike/placement/mount metadata and user annotations.
@@ -23,12 +24,13 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Next local improvements — no external prerequisites
 
-1. Continue polishing recording setup and garage around the supplied Ryval visual direction. The reference-based library and route-first detail passes are implemented and checked, with preserved source labels and a shared mobile dock. Improve legibility and touch targets without obscuring ride evidence.
-2. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
-3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
-4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
-5. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
-6. Improve rendering performance for long recordings without connecting gaps or discarding extrema silently.
+1. Audit distance confidence through import, backup and ride edits: the current edit handler can recompute distanceReliable from kind/quality/finalized alone and discard a prior import count-integrity failure. Missing or negative summary distance also needs explicit unknown handling. Preserve provenance; user annotations must not improve measurement confidence.
+2. Continue polishing garage around the supplied Ryval visual direction. Library, route-first details and recording setup now have reviewed mobile layouts.
+3. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
+4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
+5. Improve story composition and editable captions; inspect exported images and their privacy defaults.
+6. Add useful local comparison views with explicit comparability rules and time/coverage-aware calculations. Keep raw sensor measurements separate from inferred bike dynamics.
+7. Improve rendering performance for long recordings without connecting gaps or discarding extrema silently.
 
 Use judgment to choose other meaningful aesthetic/data-reading work; this queue is not a reason to wait for the user.
 
@@ -48,6 +50,7 @@ node scripts/story-smoke.cjs
 node scripts/gpx-smoke.cjs
 node scripts/inspector-smoke.cjs
 node scripts/native-import-smoke.cjs
+node scripts/recording-smoke.cjs
 ```
 
 Latest checks: 69 Node tests pass; Android assembly/lint pass with 14 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.

@@ -4,6 +4,9 @@ import android.Manifest;
 import android.app.*;
 import android.content.*;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.*;
 import android.util.Base64;
@@ -24,6 +27,7 @@ public class DashboardActivity extends Activity {
     private final ExecutorService io=Executors.newSingleThreadExecutor();
     private ValueCallback<Uri[]> fileChoice;
     private boolean widgetPending=false,destroyed=false;
+    private boolean dashboardReady=false,setupPending=false;
     private String pendingPlacement;
     private String activityType="ride";
     private String recordingContext="{}";
@@ -63,9 +67,12 @@ public class DashboardActivity extends Activity {
         web.loadUrl(ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
     }
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);if("CONFIGURE_COMPANION".equals(intent.getAction()))companion.configure(this);widgetPending="WIDGET_TOGGLE".equals(intent.getAction());if(hasWindowFocus())onWindowFocusChanged(true);}
-    @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&widgetPending){widgetPending=false;if(RideService.running)stopRide();else startRide(getPreferences(0).getString("placement","Pocket"),new int[]{1,4,11,9,10});}}
+    @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&widgetPending){widgetPending=false;if(RideService.running)stopRide();else setupPending=true;}if(focused)openPendingSetup();}
+    private void openPendingSetup(){if(setupPending&&dashboardReady&&hasWindowFocus()){setupPending=false;if(!RideService.running)js("window.odoOpenRecordingSetup&&window.odoOpenRecordingSetup()");}}
     private void startRide(String placement,int[] types){
         if(RideService.running){toast("Already recording");return;}
+        LocationManager locationManager=getSystemService(LocationManager.class);
+        if(locationManager==null||!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){toast("Enable phone location before starting your journey.");return;}
         if(placement==null)placement="Pocket";
         if(types==null)types=new int[]{1,4,11,9,10};
         pendingPlacement=placement;pendingTypes=types;
@@ -92,6 +99,25 @@ public class DashboardActivity extends Activity {
         }
     }
     public final class Bridge {
+        @JavascriptInterface public void ready(){main.post(()->{dashboardReady=true;openPendingSetup();});}
+        @JavascriptInterface public String recordingCapabilities(){
+            try{
+                SensorManager manager=getSystemService(SensorManager.class);
+                LocationManager locationManager=getSystemService(LocationManager.class);
+                JSONArray list=new JSONArray();
+                for(int type:new int[]{1,4,11,9,10,2,5,6}){
+                    Sensor sensor=manager==null?null:manager.getDefaultSensor(type);
+                    JSONObject item=new JSONObject().put("type",type).put("available",sensor!=null);
+                    if(sensor!=null)item.put("name",sensor.getName()).put("resolution",sensor.getResolution()).put("maximum_range",sensor.getMaximumRange());
+                    list.put(item);
+                }
+                return new JSONObject().put("schema",1).put("sensors",list)
+                    .put("gps_enabled",locationManager!=null&&locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                    .put("precise_location",checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED)
+                    .put("notifications",Build.VERSION.SDK_INT<33||checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED).toString();
+            }catch(Exception error){return "{\"schema\":1,\"status\":\"unavailable\"}";}
+        }
+        @JavascriptInterface public void openLocationSettings(){main.post(()->{try{startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));}catch(Exception error){toast("Open Location in Android settings.");}});}
         @JavascriptInterface public void shareStory(String data){
             if(data==null||!data.startsWith("data:image/png;base64,")||data.length()>12*1024*1024){toast("Story image is too large or unsupported.");return;}
             io.execute(()->{try{
@@ -121,8 +147,10 @@ public class DashboardActivity extends Activity {
             try{JSONObject supplied=new JSONObject(contextJson),context=new JSONObject();
                 String bike=supplied.optString("bike_id","").trim(),type=supplied.optString("bike_type","Unknown"),mount=supplied.optString("mount_condition","Unknown");
                 if(bike.length()>100||!Arrays.asList("Unknown","Adventure","Sport","Touring","Roadster","Cruiser","Scooter","Off-road").contains(type)||!Arrays.asList("Unknown","Stable","Slipping","Not mounted").contains(mount))return;
+                if(!"Rigid mount".equals(placement))mount="Not mounted";
+                else if("Not mounted".equals(mount))mount="Unknown";
                 context.put("bike_id",bike).put("bike_type",type).put("mount_condition",mount);
-                JSONArray input=new JSONArray(sensorJson);ArrayList<Integer> list=new ArrayList<>();for(int i=0;i<input.length()&&i<8;i++){int t=input.getInt(i);if(Arrays.asList(1,4,11,9,10,2,5,6).contains(t)&&!list.contains(t))list.add(t);}if(list.isEmpty())return;int[] types=list.stream().mapToInt(Integer::intValue).toArray();main.post(()->{recordingContext=context.toString();activityType="walk".equals(activity)?"walk":"ride";startRide(placement,types);});}catch(JSONException ignored){}
+                JSONArray input=new JSONArray(sensorJson);ArrayList<Integer> list=new ArrayList<>();for(int i=0;i<input.length()&&i<8;i++){int t=input.getInt(i);if(Arrays.asList(1,4,11,9,10,2,5,6).contains(t)&&!list.contains(t))list.add(t);}int[] types=list.stream().mapToInt(Integer::intValue).toArray();main.post(()->{recordingContext=context.toString();activityType="walk".equals(activity)?"walk":"ride";startRide(placement,types);});}catch(JSONException ignored){}
         }
         @JavascriptInterface public void stop(){main.post(()->stopRide());}
         @JavascriptInterface public void listRides(){io.execute(()->{try{JSONArray list=new JSONArray();File[] dirs=new File(getFilesDir(),"rides").listFiles(File::isDirectory);if(dirs!=null){Arrays.sort(dirs,Comparator.comparing(File::getName));for(File d:dirs)if(new File(d,"summary.json").isFile())list.put(new JSONObject().put("id",d.getName()));}js("window.odoNativeList("+list+")");}catch(Exception e){error("Could not list recordings.");}});}

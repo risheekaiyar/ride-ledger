@@ -14,7 +14,7 @@ Prepared 3 November 2026. This is a functional personal journal and recorder pre
 - Editable recurring labels, ride notes, one-time and recurring trip plans; same-direction/placement repeated-location candidates require at least three distinct rides. This is proximity matching, not road map matching or confirmed hazard detection.
 - Bike profile, manual odometer, local photo, and milestones based on imported records. No invented lifetime mileage, states visited or network coverage.
 - Private share-card drafts omit route, timestamps, speeds and sensor values. A live multi-user feed, following and group invitations are not connected.
-- Android retains the foreground recorder and original ZIP export. Dashboard Start/Stop calls it through a restricted bridge. A home-screen widget opens a visible activity before recording, using the last dashboard placement and default motion sensors; first use may request permissions. The notification can stop recording. No floating-overlay permission is required.
+- Android retains the foreground recorder and original ZIP export. Dashboard Start/Stop calls it through a restricted bridge. The home-screen widget opens the recording setup before a new ride, so activity, bike and placement can be reviewed. It stops an active recording directly; first use may request permissions. The notification can stop recording. No floating-overlay permission is required.
 - Fixed scalar sensor summaries: Vivo light-sensor vendor extra channels are preserved in raw exports but ignored when calculating lux. Pressure also uses x only.
 
 ## Measurement boundaries
@@ -37,7 +37,7 @@ Production community and cross-device synchronization need an authenticated shar
 
 Export existing rides, then install the matching locally signed 0.3.0 APK using **Update**. Do not uninstall or clear storage. Open the app; saved original phone rides are imported into its local dashboard when not recording. Classify older generic recordings as ride or walk. Original files remain under the recorder's private storage and can be exported using the top Recorder controls link.
 
-Add the widget from the Android home-screen widget picker: Ride Ledger → Start journey. Test one short parked → walk → parked recording, Stop from the widget or notification, and verify a saved ZIP before the next commute. The new Android WebView/bridge/widget flow has compiled and passed static checks but has not been tested on the owner's phone yet.
+Add the widget from the Android home-screen widget picker: Odo → Set up journey. Test one short parked → walk → parked recording, Stop from the widget or notification, and verify a saved ZIP before the next commute. The new Android WebView/bridge/widget flow has compiled and passed static checks but has not been tested on the owner's phone yet.
 
 Web: import the supplied ZIPs into the private site. They stay in that browser. Another browser/phone has its own records. Export a private JSON backup before clearing browser storage. Hosted source contains no recordings or preloaded private routes.
 
