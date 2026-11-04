@@ -1,12 +1,12 @@
-# Odo UI-Improvement — ongoing work
+# Odo UI-Improvement — handoff at requested stop
 
-The user explicitly wants iterative improvements to aesthetics and technical data-reading functions while asleep. Continue useful local work and push tested checkpoints regularly to `origin/UI-Improvement`, without force. Preserve user changes and use the existing checkout. No deployment or environment publication is authorized by this continuation.
+The user requested that work stop after the next commit, with the final pass strengthening Meta insights and their presentation. **This checkpoint is the stopping point. Do not automatically resume the backlog below.** The session ends with this final reviewed commit on `UI-Improvement`. Any further implementation requires a new user request.
 
-The user subsequently requested commits and pushes approximately every 30 minutes while work continues. Carry this cadence across context changes; use the latest pushed commit time as the next interval's start. A checkpoint summary does not finish the broader improvement goal.
-
-**Do not pause the entire goal for missing Meta credentials, documentation access or hardware.** Those prerequisites block only their corresponding live checks. UI, analysis, import, export, accessibility and regression improvements remain actionable. Pick the next useful local improvement below, implement it, verify it and push.
+Earlier instructions authorized regular commits/pushes while working; the new stop instruction supersedes indefinite iteration. No deployment, merge or environment publication is authorized.
 
 ## Current capabilities
+
+- Final pass: separate raw acceleration, linear acceleration and angular-speed traces, readable sub-unit scales, small nonzero readouts and exact phone-channel restoration through Meta citations. The companion has six context-sensitive insight directions, locally calculated evidence cards and styled model observation/follow-up cards. Requests remain explicit and Meta-only; pending questions cannot be edited away. Browser replies are mocked; the cloud preview has no configured Meta credential. See COMPANION-INSIGHTS.md and SIGNAL-INSPECTION.md.
 
 - Motion Studio now exports Story 9:16 (720×1280), Portrait 4:5 (720×900) and Square 1:1 (720×720). Each has its own typography/layout, scene dimensions and camera framing; compact versions use a lower angle. Changing format invalidates old media, rechecks encoder dimensions and ignores stale asynchronous responses. Real 12-second / 288-frame H.264 clips and decoded frames are reviewed for every format. See RIDE-FILM.md and film-formats-smoke.cjs.
 
@@ -27,7 +27,7 @@ The user subsequently requested commits and pushes approximately every 30 minute
 - Route Lab now has explicit two-ride comparison, setup and coarse same-direction GPS checks, three gap-aware phone-signal charts, equal-weight complete-second median/P95 summaries, and blocked deltas for insufficient diagnostics. The selected pair and failed checks enter bounded Meta evidence without identifiers or coordinates. Context editing preserves pair selection. See RIDE-COMPARISON.md.
 
 - Motion Studio renders local 12/18-second 3D clips in three aspect ratios. Preferred H.264 encoding renders every frame into a 24 fps MP4; real-time MP4/WebM fallback rejects insufficient render frames. Route inclusion is required explicitly and speed defaults off. Cancellation/background/close cleanup, native share callbacks, old APK behavior and 320–1440px layouts are browser-tested. Java validates bounded local media before read-only sharing; physical codec/receiver trials remain pending. Reviewed synthetic MP4 and screenshots are in docs/previews. See RIDE-FILM.md.
-- Evidence v5 adds source-aware sensor cards, endpoint gaps, vendor-status distributions and validated per-axis near-range checks. Invalid ranges no longer flag every sample; interpolated percentiles fix small-sample ordering; blank timestamps/axes remain missing. The Meta packet includes validated motion-channel diagnostics, exercised with a mock provider. Local preview restarted with the focused evidence validator (shell session 31073, port 4178).
+- Evidence v5 adds source-aware sensor cards, endpoint gaps, vendor-status distributions and validated per-axis near-range checks. Invalid ranges no longer flag every sample; interpolated percentiles fix small-sample ordering; blank timestamps/axes remain missing. The Meta packet includes validated motion-channel diagnostics, exercised with a mock provider. Local preview restarted with the focused evidence validator (shell session 19273, port 4178).
 - Responsive garage with local photo handling, manual odometer (including zero), bike-specific evidence totals, saved bike-type recording defaults and the correct associated-ride Meta debrief. Profile rename leaves historical recording names unchanged; photo remove/reselection and persistence are browser-tested. Reviewed synthetic screenshots are in docs/previews/garage-*.png.
 - Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
 
@@ -47,17 +47,17 @@ The user subsequently requested commits and pushes approximately every 30 minute
 - Meta companion evidence preview, bounded follow-ups and citations; compatible-ride selection requires known matching bike/phone/setup.
 - Authenticated HTTPS gateway with persistent SQLite request reservations; encrypted Android token storage and a draggable chat overlay. These are built and locally tested; live/hardware behavior remains unverified.
 
-## Next local improvements — no external prerequisites
+## Potential future work — only if the user resumes
 
 1. Continue improving large-library storage and import performance. Initial preview rendering now uses 20-row batches; IndexedDB still loads all analyzed recordings. Consider loading lightweight journal metadata separately from full sample arrays while preserving backups and evidence access.
-2. Continue refining long-recording inspection. Recorded candidates now open their exact timestamp and focused signal window. Consider a clearer overview of recording gaps or more direct source-channel selection; actual bike calibration still needs labelled recordings.
+2. Continue refining long-recording inspection. Recorded candidates now open their exact timestamp and focused signal window. Consider a clearer overview of recording gaps or gap navigation; raw, linear and angular phone channels are now individually selectable; actual bike calibration still needs labelled recordings.
 3. Improve motion/story composition using actual exported frames and clips. Video export is now implemented and inspected; all three aspect ratios are implemented; consider more camera treatments or stronger open-route compositions while retaining source labels and opt-in speed. Keep native hardware behavior explicitly unverified until a physical test.
 4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
 5. Improve story composition and editable captions; inspect exported images and their privacy defaults.
 6. Improve comparison interpretation and evidence inspection. Keep raw phone signals separate from inferred bike dynamics.
 7. Continue checking large imports and route-list performance. Long signal traces now use bounded range displays without changing statistics or original-sample inspection.
 
-Use judgment to choose other meaningful aesthetic/data-reading work; this queue is not a reason to wait for the user.
+This is a backlog for a future user-authorized session, not an instruction to continue after this checkpoint.
 
 ## Validation
 
@@ -78,6 +78,8 @@ node scripts/inspector-smoke.cjs
 node scripts/trace-window-smoke.cjs
 node scripts/moments-smoke.cjs
 node scripts/focused-companion-smoke.cjs
+node scripts/motion-channels-smoke.cjs
+node scripts/companion-brief-smoke.cjs
 node scripts/native-import-smoke.cjs
 node scripts/recording-smoke.cjs
 node scripts/confidence-smoke.cjs
@@ -92,7 +94,7 @@ node scripts/long-trace-smoke.cjs
 node scripts/overview-smoke.cjs
 ```
 
-Latest checks: 139 Node tests pass; Android assembly/lint pass. Actual story, portrait and square H.264 exports pass dimensions/frame-count/duration checks. Format changes, stale codec callbacks, old-media invalidation and closed-dialog cleanup pass; the real-time WebM fallback also passes. Moment navigation covers chronological batches, exact seeking, camera/source retention, gaps, missing channels and short recordings in 320–1440px Chromium layouts. Existing trace-window, focused-companion and comparison checks pass. The focused debrief passes explicit-send, privacy, interval restoration, fractional timing, zero-GPS and responsive browser checks, plus existing comparison, general UI, trace-window and overlay regressions. No live model request was made in this pass. The 3D refinement passes track, poster and actual H.264 export browser checks, with reviewed open-route and refreshed motion artifacts. The preceding focused-window pass verified original-sample, telemetry, long-trace and 3D replay regressions. The preceding library batching/search pass also passed library, overview and UI browser checks. Previous checkpoints ran 17 Java tests successfully; this focused-window pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
+Latest checks: 143 Node tests pass; Android assembly/lint pass. Individual motion channels, small values, no-GPS seeking, selected-channel Meta citations, six insight directions and evidence/response cards pass responsive Chromium checks. General UI, paired comparison, focused debrief, sample inspection and native overlay regressions also pass. Model responses are mocked. Actual story, portrait and square H.264 exports pass dimensions/frame-count/duration checks. Format changes, stale codec callbacks, old-media invalidation and closed-dialog cleanup pass; the real-time WebM fallback also passes. Moment navigation covers chronological batches, exact seeking, camera/source retention, gaps, missing channels and short recordings in 320–1440px Chromium layouts. Existing trace-window, focused-companion and comparison checks pass. The focused debrief passes explicit-send, privacy, interval restoration, fractional timing, zero-GPS and responsive browser checks, plus existing comparison, general UI, trace-window and overlay regressions. No live model request was made in this pass. The 3D refinement passes track, poster and actual H.264 export browser checks, with reviewed open-route and refreshed motion artifacts. The preceding focused-window pass verified original-sample, telemetry, long-trace and 3D replay regressions. The preceding library batching/search pass also passed library, overview and UI browser checks. Previous checkpoints ran 17 Java tests successfully; this focused-window pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 
@@ -102,4 +104,4 @@ Latest checks: 139 Node tests pass; Android assembly/lint pass. Actual story, po
 - No Android device is attached. Keystore, overlays, keyboard/rotation, permission revocation and actual sharing receivers need hardware trials.
 - Sensor calibration needs labelled real rides. Manufacturer-specific adapters need representative exports. Terrain/satellite rendering needs a selected source with suitable licensing/access.
 
-These external checks do not block the local improvement queue above.
+These are remaining validation/integration tasks for a future session. The current session stops at the user-requested final checkpoint.

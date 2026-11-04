@@ -1,4 +1,4 @@
-const test=require('node:test'),assert=require('node:assert/strict'),{analyze,path,nearest}=require('../web/telemetry.js');
+const test=require('node:test'),assert=require('node:assert/strict'),{analyze,path,nearest,series}=require('../web/telemetry.js');
 const p=(t,speed,segment=0,altitude=null)=>[0,0,t,speed,2,altitude,0,segment,1];
 test('speed histogram weights elapsed time and splits band crossings',()=>{const t=analyze({duration:3,track:[p(0,0),p(2,20),p(3,20)]});assert.equal(t.observed,3);assert.equal(t.seconds[0],.5);assert.equal(t.seconds[1],1.5);assert.equal(t.seconds[2],1);assert.equal(t.seconds.reduce((a,b)=>a+b,0),3);assert.equal(t.average,40/3);});
 test('gaps and segment boundaries never become speed coverage or stopped time',()=>{const t=analyze({duration:30,track:[p(0,0),p(1,0),p(2,60,1),p(30,60,1)]});assert.equal(t.observed,1);assert.equal(t.unobserved,29);assert.equal(t.lowSpeed,1);assert.equal(t.moving,0);});
@@ -70,4 +70,21 @@ test('phone-only inspection retains measured zero while GPS fields remain unavai
  const sample=inspect({duration:3,track:[],signals:[[1,0,0,0,1]]},1.5);
  assert.equal(sample.gap,true);assert.equal(sample.index,-1);assert.equal(sample.sampleTime,null);assert.equal(sample.speed,null);assert.equal(sample.accuracy,null);assert.equal(sample.motionTime,1);
  assert.equal(sample.acceleration,0);assert.equal(sample.linearAcceleration,0);assert.equal(sample.angularSpeed,0);
+});
+test('individual phone traces retain each recorded measure, missing bins and measured zero',()=>{
+ const ride={duration:5,track:[],signals:[[0,1,.1,.2],[1,0,0,0],[3,2,null,.4],[4,-1,Infinity,'0']]},before=JSON.stringify(ride);
+ assert.deepEqual(series(ride,'motion'),[[0,1,0],[1,0,0],[3,2,0],[4,null,0]]);
+ assert.deepEqual(series(ride,'linear_acceleration'),[[0,.1,0],[1,0,0],[3,null,0],[4,null,0]]);
+ assert.deepEqual(series(ride,'rotation'),[[0,.2,0],[1,0,0],[3,.4,0],[4,null,0]]);
+ const trace=path(series(ride,'rotation'),ride.duration,600,150,1);assert.equal((trace.d.match(/M/g)||[]).length,2);assert.equal((trace.d.match(/L/g)||[]).length,1);
+ assert.equal(inspect(ride,1.5).angularSpeed,0);assert.equal(inspect(ride,2.5).angularSpeed,null);assert.equal(JSON.stringify(ride),before);
+});
+test('GPX inspection cannot inherit native phone traces or motion readouts',()=>{
+ const ride={duration:5,source:'GPX export',track:[],signals:[[1,2,.2,.3]]};
+ for(const kind of ['motion','linear_acceleration','rotation'])assert.deepEqual(series(ride,kind),[]);
+ const sample=inspect(ride,1);assert.equal(sample.motionTime,null);assert.equal(sample.acceleration,null);assert.equal(sample.linearAcceleration,null);assert.equal(sample.angularSpeed,null);
+});
+test('sub-unit phone signals use their own readable vertical range while zero traces stay finite',()=>{
+ const trace=path([[0,0,0],[1,.2,0]],1,600,150,1);assert.equal(trace.max,.2);assert.match(trace.d,/M0.00,140.00 L600.00,10.00/);
+ const zero=path([[0,0,0],[1,0,0]],1,600,150,1);assert(!/NaN|Infinity/.test(zero.d));assert.match(zero.d,/L600.00,140.00/);
 });

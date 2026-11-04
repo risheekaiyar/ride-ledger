@@ -47,3 +47,7 @@ test('serialized speed precision cannot contradict its observed coverage or uppe
  const tiny={...base,track:[p(.9999,20),p(1,20)]},tinyFocus=summarize(tiny,selection);assert.equal(tinyFocus.speed.observed_seconds,0);assert.equal(tinyFocus.speed.peak_kmh,null);assert.doesNotThrow(()=>packet({question:'Explain',rides:[evidence(tiny)],focus:tinyFocus}));
  const fast={...base,track:[p(0,251.9999),p(1,251.9999)]},fastFocus=summarize(fast,selection);assert.equal(fastFocus.speed.peak_kmh,252);assert.doesNotThrow(()=>packet({question:'Explain',rides:[evidence(fast)],focus:fastFocus}));
 });
+test('focused Meta evidence identifies the selected phone measure without changing its summaries',()=>{
+ const raw=summarize(base,selection);
+ for(const channel of ['linear_acceleration','rotation']){const focus=summarize(base,{...selection,channel});assert.equal(focus.selected_channel,channel);assert.deepEqual(focus.channels,raw.channels);assert.equal(packet({question:'Explain this channel',rides:[evidence(base)],focus}).focus.selected_channel,channel);}
+});

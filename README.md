@@ -24,6 +24,8 @@ The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and sou
 
 [Focused Meta debriefs](docs/FOCUSED-DEBRIEF.md) let riders ask about a selected trace window. Odo sends bounded motion, observed-speed and source-altitude summaries after explicit review and submission; reply citations return to that interval.
 
+[Odo insight briefs](docs/COMPANION-INSIGHTS.md) present Meta explanations as linked observation cards, with local evidence tiles and six directions covering ride patterns, sensor confidence, setup, comparisons or focused windows, next recordings, and story ideas. Raw, linear and angular phone channels retain their distinct measurements throughout the experience.
+
 The [journal landing and overview](docs/OVERVIEW.md) now open returning riders directly to Rides and keep the latest ride, Odo debrief, source-aware totals and bike profile together.
 
 # Odo / Ride Ledger — private riding journal

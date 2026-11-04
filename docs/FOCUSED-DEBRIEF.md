@@ -2,7 +2,7 @@
 
 Choose a 15-second, one-minute or five-minute window in ride details, then select **Ask Odo about this window**. The companion identifies the selected channel and elapsed range, shows the evidence before sending, and pre-fills a question about coverage and phone setup. Opening the dialog makes no model request. **Send to Meta** uses the existing Meta-only runtime (`muse-spark-1.3`), server-held credential and explicit request allowance.
 
-A focused request includes one recording. It does not automatically add a compatible second ride. The whole-recording context remains available, with the focused summary clearly separated. A new window or channel resets the conversation scope. Follow-ups retain that scope, and a reply's evidence link restores the selected channel, exact range and midpoint in the ride inspector.
+A focused request includes one recording. It does not automatically add a compatible second ride. The whole-recording context remains available, with the focused summary clearly separated. A new window or channel resets the conversation scope. Follow-ups retain that scope, and a reply's evidence link restores the selected channel, exact range and midpoint in the ride inspector. Raw acceleration, linear acceleration and angular speed are distinct selections, with their own units and peak-versus-median definitions. See the [visual insight brief](COMPANION-INSIGHTS.md) for the updated companion presentation.
 
 ## Evidence and interpretation
 
@@ -19,7 +19,7 @@ The model instructions distinguish focused measurements from recording-wide sens
 
 ## Verification
 
-- 134 Node tests pass. Ten focused-evidence tests cover clipping, gaps, partial seconds, duplicate bins, quantiles, source distinctions, privacy, server validation, fractional timing and a mocked provider receiving the focused packet.
+- 143 Node tests pass. Eleven focused-evidence tests cover clipping, gaps, partial seconds, duplicate bins, quantiles, source distinctions, privacy, server validation, selected phone channels, fractional timing and a mocked provider receiving the focused packet.
 - `node scripts/focused-companion-smoke.cjs` checks explicit submission, pair suppression, follow-ups, scope changes, citation restoration, fractional endpoints, zero-GPS motion and 320–1440px layouts. It validates outgoing requests with the actual server packet validator and mocks model replies.
 - Existing comparison, general UI, trace-window and overlay browser checks pass. Android assembly and lint pass with the new asset bundled.
 

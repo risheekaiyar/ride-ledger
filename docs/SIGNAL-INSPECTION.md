@@ -22,6 +22,16 @@ Motion bins can also be inspected when there are **no usable GPS fixes**. GPS fi
 
 [Focused view on mobile](previews/trace-window-mobile-synthetic.png) · [Focused view on desktop](previews/trace-window-desktop-synthetic.png). These fixtures deliberately include a phone acceleration spike inside a GPS gap.
 
+## Separate phone channels
+
+The Phone motion tab now offers **Raw acceleration**, **Linear acceleration** and **Angular speed**. The first two plot recorded one-second bin peaks in g; angular speed plots one-second medians in rad/s. Linear acceleration has estimated gravity removed but remains a phone measurement. Rotation magnitude does not establish motorcycle lean. GPX imports cannot acquire these channels from injected or leftover phone rows.
+
+Switching channels preserves the selected range, playhead and live 3D camera. Keyboard seeking uses one-second bins even with no usable GPS. Missing values remain gaps and measured zero stays zero. Small signals now use their actual vertical range, and small nonzero readouts use extra decimal places or scientific notation instead of appearing as zero. Original data and summary calculations are unchanged.
+
+The selected phone measure enters focused Meta evidence and is restored by reply citations. A raw phone-peak candidate always selects the raw channel. Its candidate annotation disappears when another measure or time is selected.
+
+[Angular speed on mobile](previews/angular-channel-mobile-synthetic.png) · [Angular speed on desktop](previews/angular-channel-desktop-synthetic.png)
+
 ## Moments to inspect
 
 Ride details and Route Lab's single-ride review now show existing event candidates in time order. The compact list starts with three; **Show more moments** appends six at a time, announces progress and moves keyboard focus to the first added row without replacing the 3D scene. Phone raw peaks and GPS speed-change estimates have separate source labels. No new detection thresholds or road-cause classifications are introduced.
@@ -34,7 +44,8 @@ This view excludes invalid times/magnitudes, unsupported kinds and ambiguous dup
 
 ## Verification
 
-- `node --test --test-isolation=none scripts/*.test.cjs`: 137 tests pass, including full-day bounds, retained extrema, gap marking, measured zero, partial intervals, focused-window clipping, focused Meta evidence, candidate validation and a 150,000-point altitude array.
+- `node --test --test-isolation=none scripts/*.test.cjs`: 143 tests pass, including full-day bounds, retained extrema, gap marking, measured zero, partial intervals, focused-window clipping, focused Meta evidence, channel/source distinctions, readable small signals, candidate validation and a 150,000-point altitude array.
+- `node scripts/motion-channels-smoke.cjs`: raw/linear/angular units and source values, small nonzero readings, range/camera retention, GPS gaps, no-GPS keyboard inspection, unavailable channels, scoped Meta evidence/citations, candidate channel reset and 320–1440px layouts. Model responses are mocked.
 - `node scripts/moments-smoke.cjs`: chronological batches, source labels, keyboard focus, exact event timestamps, camera/canvas retention, unchanged source evidence, Route Lab navigation, missing channels, short recordings, focused Meta entry and 320–1440px layouts. No model request is made.
 - `node scripts/trace-window-smoke.cjs`: a one-hour recording with GPS/motion gaps; window controls, actual source inspection, click/keyboard range mapping, camera/canvas retention, unchanged full-ride summaries, empty windows, zero-GPS motion inspection and layouts from 320 to 1440 pixels.
 - `node scripts/comparison-inspector-smoke.cjs`: different-duration mapping, touch/keyboard controls, original-bin values, gaps/endpoints, narrow layouts and 86,399 valid bins per full-day trace.

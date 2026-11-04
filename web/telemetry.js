@@ -1,6 +1,11 @@
 (function(root){
 'use strict';
 const bands=[0,5,20,40,60,80,100,Infinity];
+const motionKinds=Object.freeze({
+ motion:Object.freeze({index:1,field:'acceleration',label:'Raw acceleration',unit:'g',measure:'raw phone acceleration · 1s bin peak',note:'Includes gravity · phone frame',aria:'g, raw phone peak'}),
+ linear_acceleration:Object.freeze({index:2,field:'linearAcceleration',label:'Linear acceleration',unit:'g',measure:'linear phone acceleration · 1s bin peak',note:'Estimated gravity removed · phone frame',aria:'g, linear phone peak'}),
+ rotation:Object.freeze({index:3,field:'angularSpeed',label:'Angular speed',unit:'rad/s',measure:'phone angular speed · 1s bin median',note:'Rotation magnitude · not motorcycle lean',aria:'radians per second, phone angular speed median'})
+});
 function analyze(ride){
  const track=ride.track||[],imported=ride.source==='GPX export',limit=imported?30:3;
  const seconds=Array(bands.length-1).fill(0);let observed=0,integral=0,peak=null,segments=0,gaps=0,lastEnd=-Infinity;
@@ -20,7 +25,7 @@ function analyze(ride){
 }
 function series(ride,kind='speed'){
  if(kind==='speed'&&ride.source==='GPX export')return (ride.track||[]).flatMap((b,i,track)=>{if(!i)return [];const a=track[i-1],dt=b[2]-a[2];return a[7]===b[7]&&dt>0&&dt<=30&&Number.isFinite(b[3])?[[a[2],b[3],b[7]],[b[2],b[3],b[7]]]:[[b[2],null,b[7]]];});
- if(kind==='motion')return (ride.signals||[]).map(p=>[p[0],Number.isFinite(p[1])?p[1]:null,0]);
+ if(Object.hasOwn(motionKinds,kind)){if(ride.source==='GPX export')return [];const index=motionKinds[kind].index;return (ride.signals||[]).map(p=>[p[0],Number.isFinite(p[index])&&p[index]>=0&&p[index]<=100000?p[index]:null,0]);}
  return (ride.track||[]).map(p=>[p[2],Number.isFinite(p[kind==='altitude'?5:3])?p[kind==='altitude'?5:3]:null,p[7]]);
 }
 function path(points,duration,width=600,height=130,maxGap=3,zeroBased=true){
@@ -33,7 +38,7 @@ function path(points,duration,width=600,height=130,maxGap=3,zeroBased=true){
   valid.push({time:p[0],value:p[1],connected});min=Math.min(min,p[1]);max=Math.max(max,p[1]);if(connected)intervals.push([last[0],p[0]]);last=p;
  }
  if(!valid.length)return empty;if(zeroBased)min=Math.min(0,min);
- const span=Math.max(1,max-min),x=time=>time/duration*width,y=value=>height-10-(value-min)/span*(height-20),aggregated=valid.length>width*2;let d='',dots='';
+ const span=max>min?max-min:1,x=time=>time/duration*width,y=value=>height-10-(value-min)/span*(height-20),aggregated=valid.length>width*2;let d='',dots='';
  if(aggregated){
   const buckets=Array.from({length:width},()=>({min:Infinity,max:-Infinity}));
   for(const p of valid){const b=buckets[Math.min(width-1,Math.floor(x(p.time)))];b.min=Math.min(b.min,p.value);b.max=Math.max(b.max,p.value);}
@@ -85,12 +90,12 @@ function inspect(ride,time){
  const finite=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max?v:null;
  const sample=gap?null:point,signals=ride.signals||[],second=Math.floor(time);let low=0;high=signals.length;
  while(low<high){const mid=(low+high)>>1;if(signals[mid][0]<second)low=mid+1;else high=mid;}
- const motion=signals[low]?.[0]===second&&time>=0&&time<=ride.duration?signals[low]:null;
+ const motion=!imported&&signals[low]?.[0]===second&&time>=0&&time<=ride.duration?signals[low]:null;
  return {index,gap,imported,sampleTime:sample?.[2]??null,motionTime:motion?.[0]??null,
   speed:finite(sample?.[3],0,251.999),accuracy:imported?null:finite(sample?.[4],0,100000),
   speedAccuracy:imported?null:finite(sample?.[8],0,1000),altitude:finite(sample?.[5],-1000,10000),
   course:imported?null:finite(sample?.[6],0,359.999999),
   acceleration:finite(motion?.[1],0,100000),linearAcceleration:finite(motion?.[2],0,100000),angularSpeed:finite(motion?.[3],0,100000)};
 }
-const api={analyze,series,path,windowRange,windowPath,nearest,inspect};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
+const api={analyze,series,path,windowRange,windowPath,nearest,inspect,motionKinds};root.OdoTelemetry=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

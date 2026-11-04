@@ -6,10 +6,11 @@ const definitions=[
  {id:'linear_acceleration',index:2,unit:'g',measure:'Complete 1s bin peaks; estimated gravity removed'},
  {id:'rotation',index:3,unit:'rad/s',measure:'Complete 1s bin medians; phone angular speed'}
 ];
+const selectedChannels=['speed','altitude','motion','linear_acceleration','rotation'];
 const round=value=>Number.isFinite(value)?Number(value.toFixed(3)):null;
 const quantile=(values,p)=>{if(!values.length)return null;const t=(values.length-1)*p,i=Math.floor(t),f=t-i;return round(f?values[i]*(1-f)+values[i+1]*f:values[i]);};
 function summarize(ride,selection){
- if(!ride||!selection||!['speed','altitude','motion'].includes(selection.channel)||![ride.duration,selection.start,selection.end].every(Number.isFinite)||selection.start<0||selection.end>ride.duration||selection.end<=selection.start||selection.end-selection.start>300.000001)return null;
+ if(!ride||!selection||!selectedChannels.includes(selection.channel)||![ride.duration,selection.start,selection.end].every(Number.isFinite)||selection.start<0||selection.end>ride.duration||selection.end<=selection.start||selection.end-selection.start>300.000001)return null;
  const start=Math.ceil(selection.start),end=Math.floor(selection.end);if(end<=start)return null;
  const imported=ride.source==='GPX export',rows=new Map(),seen=new Set();
  if(!imported)for(const row of ride.signals||[]){const t=row?.[0];if(!Number.isInteger(t)||t<start||t>=end)continue;if(seen.has(t)){rows.delete(t);continue;}seen.add(t);rows.set(t,row);}
@@ -28,5 +29,5 @@ function summarize(ride,selection){
   speed:{source:imported?'gpx_interval_estimate':'phone_gps',observed_seconds:observedSeconds,average_kmh:observedSeconds?round(integral/observed):null,peak_kmh:observedSeconds?round(peak):null},
   source_altitude:{samples:altCount,minimum_m:round(altMin),maximum_m:round(altMax)},channels};
 }
-const api={definitions,summarize};root.OdoFocusedEvidence=api;if(typeof module!=='undefined')module.exports=api;
+const api={definitions,selectedChannels,summarize};root.OdoFocusedEvidence=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
