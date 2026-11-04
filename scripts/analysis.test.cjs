@@ -18,3 +18,28 @@ test('backup rejects markup in IDs and measurements',()=>{const r=analyze(base,'
 test('unlabelled legacy recording does not inflate motorcycle totals',()=>assert.equal(analyze(base,'20261103-014736-389.zip').kind,'unclassified'));
 test('recording-time bike and mount context survives the evidence pipeline',()=>{const meta=JSON.parse(base['metadata.json']);meta.ride_context={bike_id:'My bike',bike_type:'Adventure',mount_condition:'Slipping'};const r=analyze({...base,'metadata.json':JSON.stringify(meta)});assert.equal(r.bike_id,'My bike');assert.equal(r.mount_condition,'Slipping');assert.equal(r.bike_type,'Adventure');});
 test('GPS timestamps outside the recording cannot enter distance or event evidence',()=>{const files={...base,'gps.csv':base['gps.csv']+'\n999999999999,12,77,2,10,0.2,90,500,true,false,0\n0,12,77,2,10,0.2,90,500,true,false,0'};const r=analyze(files);assert(r.track.every(p=>p[2]>=0&&p[2]<=r.duration));assert.equal(r.accepted,2);});
+test('monotonic end timestamps determine duration through wall-clock adjustments',()=>{
+ for(const ended_epoch_ms of [90000,8000000]){
+  const summary={...JSON.parse(base['summary.json']),ended_epoch_ms,ended_elapsed_ns:11500000000,elapsed_seconds:10,gps_samples:4};
+  const r=analyze({...base,'summary.json':JSON.stringify(summary),'gps.csv':base['gps.csv']+'\n11400000000,12,77.0003,2,10,0.2,90,500,true,false,0'});
+  assert.equal(r.duration,10.5);assert.equal(r.timeBasis,'elapsed-realtime');assert.equal(r.track.at(-1)[2],10.4);assert(r.warnings.some(w=>/durations disagree/.test(w)));
+ }
+});
+test('legacy duration is explicit and malformed monotonic clocks do not silently fall back',()=>{
+ const legacy=analyze(base);assert.equal(legacy.duration,10);assert.equal(legacy.timeBasis,'wall-clock-fallback');assert(legacy.warnings.some(w=>/Legacy export/.test(w)));
+ for(const end of [0,'11000000000',null])assert.throws(()=>analyze({...base,'summary.json':JSON.stringify({...JSON.parse(base['summary.json']),ended_elapsed_ns:end})}),/duration/);
+});
+test('motion summaries exclude out-of-window, incomplete and unknown channels',()=>{
+ const invalid=['0,1,0,0,100,3','999999999999,1,0,0,100,3','2300000000,1,1,,9.8,3','2400000000,1,1,2,,3','2500000000,999,1,2,3,3','2600000000,5,-1,,,3','2700000000,1,1.7e308,1.7e308,1.7e308,3'];
+ const r=analyze({...base,'motion.csv':base['motion.csv']+'\n'+invalid.join('\n')});
+ assert.equal(r.motionExcluded,7);const accelerometer=r.stats.find(s=>s.type===1);assert.equal(accelerometer.n,2);assert.equal(accelerometer.peak,9.80665);assert(Math.abs(accelerometer.hz-10)<1e-8);assert.equal(r.signals.length,1);assert.equal(r.signals[0][1],1);assert(r.warnings.some(w=>/missing vector axes/.test(w)));
+});
+test('invalid optional GPS measurements cannot become speed or altitude evidence',()=>{
+ const gps=base['gps.csv'].replace('10,0.2,90,500','10,-1,450,99999');const r=analyze({...base,'gps.csv':gps});
+ assert.equal(r.track[0][3],null);assert.equal(r.track[0][5],null);assert.equal(r.track[0][6],null);assert.equal(r.track[0][8],null);assert.equal(r.accepted,2);
+});
+test('new timing diagnostics remain optional for legacy backups and validated when present',()=>{
+ const r=analyze(base);r.id='1793676718164';const backup=ride=>({type:'odo-backup',version:1,rides:[ride]});
+ const legacy={...r};delete legacy.timeBasis;delete legacy.motionExcluded;assert.equal(validateBackup(backup(legacy)).rides.length,1);
+ assert.throws(()=>validateBackup(backup({...r,timeBasis:'invented'})),/time basis/);assert.throws(()=>validateBackup(backup({...r,motionExcluded:-1})),/exclusion/);
+});

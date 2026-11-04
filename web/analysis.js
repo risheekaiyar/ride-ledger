@@ -1,4 +1,4 @@
-/* Odo evidence pipeline v1. No model calls; no raw-sample uploads. */
+/* Odo evidence pipeline v2. No model calls; no raw-sample uploads. */
 (function(root){
 'use strict';
 const G=9.80665, num=v=>v===''||v==null?null:(Number.isFinite(+v)?+v:null);
@@ -9,14 +9,19 @@ function csv(s){const lines=s.replace(/^\uFEFF/,'').trim().split(/\r?\n/);const 
 function analyze(files,name='Recording'){
  const json=f=>JSON.parse(files[f]), meta=json('metadata.json'), summary=json('summary.json');
  if(!Number.isFinite(meta.started_epoch_ms)||!Number.isFinite(meta.started_elapsed_ns))throw Error('Unsupported recording metadata');
- const duration=(summary.ended_epoch_ms-meta.started_epoch_ms)/1000;
+ const wallDuration=(summary.ended_epoch_ms-meta.started_epoch_ms)/1000,hasMonotonicEnd=Object.hasOwn(summary,'ended_elapsed_ns');
+ const duration=hasMonotonicEnd?(Number.isFinite(summary.ended_elapsed_ns)?(summary.ended_elapsed_ns-meta.started_elapsed_ns)/1e9:NaN):wallDuration;
+ const timeBasis=hasMonotonicEnd?'elapsed-realtime':'wall-clock-fallback';
  if(!(duration>0&&duration<=86400))throw Error('Invalid recording duration');
  const gps=csv(files['gps.csv']), motion=csv(files['motion.csv']), groups={}, bins=new Map();
- const warnings=[], stats=[], start=meta.started_elapsed_ns;
- for(const r of motion){const type=+r.type,t=(+r.sensor_elapsed_ns-start)/1e9,x=num(r.x),y=num(r.y),z=num(r.z);if(x===null||!Number.isFinite(t))continue;
-  const magnitude=(type===5||type===6)?x:Math.hypot(x,y??0,z??0);
+ const warnings=[], stats=[], start=meta.started_elapsed_ns,knownMotionTypes=new Set([1,2,4,5,6,9,10,11]);let motionExcluded=0;
+ if(!hasMonotonicEnd)warnings.push('Legacy export has no monotonic end timestamp; duration falls back to device wall-clock times.');
+ else if(!Number.isFinite(wallDuration)||Math.abs(wallDuration-duration)>2)warnings.push('Wall-clock and elapsed durations disagree; the elapsed clock was used.');
+ for(const r of motion){const type=+r.type,t=(+r.sensor_elapsed_ns-start)/1e9,x=num(r.x),y=num(r.y),z=num(r.z);const scalar=type===5||type===6;
+  if(!knownMotionTypes.has(type)||!Number.isFinite(t)||t<0||t>duration||x===null||(scalar?x<0:y===null||z===null)){motionExcluded++;continue;}
+  const magnitude=scalar?x:Math.hypot(x,y,z);if(!Number.isFinite(magnitude)){motionExcluded++;continue;}
   const a=groups[type]||(groups[type]={n:0,first:t,last:t,gap:0,bad:0,values:[],clipped:0,accuracy:{}});
-  if(a.n&&t<=a.last){a.bad++;continue;}if(a.n)a.gap=Math.max(a.gap,t-a.last);a.n++;a.last=t;a.values.push(magnitude);a.accuracy[r.accuracy]=(a.accuracy[r.accuracy]||0)+1;
+  if(a.n&&t<=a.last){a.bad++;motionExcluded++;continue;}if(a.n)a.gap=Math.max(a.gap,t-a.last);a.n++;a.last=t;a.values.push(magnitude);a.accuracy[r.accuracy]=(a.accuracy[r.accuracy]||0)+1;
   const range=meta.sensors?.find(s=>s.type===type)?.maximum_range;
   if(range&&[1,4,10].includes(type)&&[x,y,z].filter(v=>v!==null).some(v=>Math.abs(v)>=range*.995))a.clipped++;
   const second=Math.floor(t);if(second<0||second>duration)continue;
@@ -28,8 +33,9 @@ function analyze(files,name='Recording'){
  for(const r of gps){const t=(+r.fix_elapsed_ns-start)/1e9,lat=num(r.latitude_deg),lon=num(r.longitude_deg),acc=num(r.accuracy_m),speed=num(r.speed_mps),sa=num(r.speed_accuracy_mps);
   const ok=Number.isFinite(t)&&t>=0&&t<=duration&&r.accepted==='true'&&r.mock!=='true'&&lat!==null&&Math.abs(lat)<=90&&lon!==null&&Math.abs(lon)<=180&&acc!==null&&acc>=0&&acc<=30&&num(r.age_seconds)!==null&&+r.age_seconds>=0&&+r.age_seconds<=15;
   if(!ok){segment++;continue;}if(t<=lastTime){duplicates++;segment++;continue;}if(t-lastTime>3)segment++;lastTime=t;accepted++;
-  const sp=speed!==null&&speed>=0&&speed<70&&(sa===null||sa<=2)?speed*3.6:null;
-  track.push([lon,lat,t,sp,acc,num(r.altitude_m),num(r.bearing_deg),segment,sa]);
+  const sp=speed!==null&&speed>=0&&speed<70&&(sa===null||(sa>=0&&sa<=2))?speed*3.6:null;
+  const altitude=num(r.altitude_m),course=num(r.bearing_deg);
+  track.push([lon,lat,t,sp,acc,altitude!==null&&altitude>=-1000&&altitude<=10000?altitude:null,course!==null&&course>=0&&course<360?course:null,segment,sa!==null&&sa>=0?sa:null]);
  }
  for(let i=1;i<track.length;i++){const a=track[i-1],b=track[i],dt=b[2]-a[2];if(a[7]!==b[7]||dt>3||a[3]===null||b[3]===null)continue;observedSeconds+=dt;const v=(a[3]+b[3])/2;speedIntegral+=v/3.6*dt;if(v>5)movingSeconds+=dt;else stoppedSeconds+=dt;}
  const toG=v=>v===null?null:v/G;
@@ -51,11 +57,12 @@ function analyze(files,name='Recording'){
  if(summary.end_reason!=='user_stopped')warnings.push('Recording did not finish with a normal Stop.');
  if(quality<.9)warnings.push('GPS gaps or poor fixes reduce route and distance confidence.');
  if(isWalk)warnings.push('The original jitter filter can substantially undercount walking distance.');
+ if(motionExcluded)warnings.push(`Excluded ${motionExcluded} invalid, out-of-window or nonmonotonic motion row${motionExcluded===1?'':'s'}; missing vector axes are not filled with zero.`);
  if(stats.some(s=>s.nonMonotonic||s.maxGap>1&&![5,6].includes(s.type)))warnings.push('Motion timing needs review.');
  if(stats.some(s=>s.clipped))warnings.push('Some sensor axes approached their reported range. Peaks may be clipped.');
  warnings.push(mounted?'Handlebar vibration and mount movement are mixed with road motion; bike lean is not calibrated.':'Pocket/body motion cannot establish motorcycle lean or road impacts.');
  const rawKm=Number(summary.estimated_distance_m)/1000;
- return {schema:1,algorithm:'odo-evidence-1',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,distanceKm:Number.isFinite(rawKm)?rawKm:null,distanceReliable:!isWalk&&isRide&&quality>=.9&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length,averageSpeed:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:off,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
+ return {schema:1,algorithm:'odo-evidence-2',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceKm:Number.isFinite(rawKm)?rawKm:null,distanceReliable:!isWalk&&isRide&&quality>=.9&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length,averageSpeed:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:off,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
 }
 function repeatLocations(rides){const clusters=[];for(const ride of rides.filter(r=>r.recurring&&r.kind==='ride'))for(const e of ride.events){let c=clusters.find(c=>c.kind===e.kind&&c.group===ride.recurring&&c.placement===ride.placement&&distance([c.lon,c.lat],[e.lon,e.lat])<40&&distance(c.start,ride.track[0])<200&&distance(c.end,ride.track.at(-1))<200);if(!c){c={kind:e.kind,group:ride.recurring,placement:ride.placement,lon:e.lon,lat:e.lat,start:ride.track[0],end:ride.track.at(-1),rides:[],evidence:[]};clusters.push(c);}if(!c.rides.includes(ride.id)){c.rides.push(ride.id);c.evidence.push({rideId:ride.id,eventId:e.id});}}return clusters.filter(c=>c.rides.length>=3);}
 function safeShare(r){return {title:'A ride with Odo',activity:r.kind,distanceKm:r.distanceReliable?Math.round(r.distanceKm*10)/10:null,durationMinutes:Math.round(r.duration/60),note:'Private route, speed and sensor data excluded.'};}
@@ -65,6 +72,8 @@ function validateBackup(x){
  for(const r of x.rides){
   if(!/^\d{10,24}$/.test(r.id)||!finite(r.started,0)||!finite(r.duration,0,86400)||!['ride','walk','unclassified'].includes(r.kind)||!Array.isArray(r.track)||r.track.length>50000||!Array.isArray(r.signals)||r.signals.length>86401||!Array.isArray(r.stats)||r.stats.length>20||!Array.isArray(r.events)||r.events.length>20000||!Array.isArray(r.warnings)||r.warnings.length>100)throw Error('Invalid ride in backup.');
   for(const key of ['distanceKm','averageSpeed','maxSpeed','quality','medianAccuracy','gpsRows','motionRows','accepted','duplicates','screenOffSeconds','movingSeconds','stoppedSeconds','observedSeconds','speedIntegratedKm','maxAltitude'])if(r[key]!==null&&!finite(r[key]))throw Error('Invalid measurement in backup.');
+  if(r.motionExcluded!==undefined&&!finite(r.motionExcluded,0))throw Error('Invalid motion exclusion count.');
+  if(r.timeBasis!==undefined&&!['elapsed-realtime','wall-clock-fallback'].includes(r.timeBasis))throw Error('Invalid recording time basis.');
   for(const p of r.track)if(!Array.isArray(p)||p.length!==9||!finite(p[0],-180,180)||!finite(p[1],-90,90)||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid track in backup.');
   for(const p of r.signals)if(!Array.isArray(p)||p.length!==5||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid signal in backup.');
   for(const e of r.events)if(!/^[a-z0-9-]+$/i.test(e.id)||!['impact','braking','acceleration'].includes(e.kind)||!finite(e.t)||!finite(e.g)||!finite(e.lon,-180,180)||!finite(e.lat,-90,90))throw Error('Invalid event in backup.');
