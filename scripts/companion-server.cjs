@@ -23,7 +23,7 @@ function createGateway({key,tokenHash,quota,tls,provider}){
  if(!key)throw Error('Meta provider key is required.');
  if(!/^[a-f0-9]{64}$/i.test(tokenHash||''))throw Error('A SHA-256 digest of a strong client token is required.');
  const expected=Buffer.from(tokenHash,'hex');
- const runtime=createRuntime({key,quota,provider});
+ const runtime=createRuntime({key,quota,provider,imageEnabled:process.env.ODO_META_IMAGE_ENABLED==='1'});
  return https.createServer({...tls,minVersion:'TLSv1.2'},async(req,res)=>{
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');res.setHeader('X-Content-Type-Options','nosniff');
   const reply=(status,body)=>{res.writeHead(status);res.end(JSON.stringify(body));};

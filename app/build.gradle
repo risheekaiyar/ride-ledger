@@ -2,14 +2,14 @@ plugins { id 'com.android.application' }
 android {
     namespace 'app.rideledger'
     compileSdk 35
-    defaultConfig { applicationId 'app.rideledger'; minSdk 26; targetSdk 35; versionCode 11; versionName '0.4.0' }
+    defaultConfig { applicationId 'app.rideledger'; minSdk 26; targetSdk 35; versionCode 12; versionName '0.5.0' }
     defaultConfig.manifestPlaceholders = [odoLabel: 'Odo']
     buildTypes {
         fieldJournal {
             initWith debug
-            applicationIdSuffix '.fieldjournal'
+            applicationIdSuffix '.experience'
             versionNameSuffix '-preview'
-            manifestPlaceholders = [odoLabel: 'ODOme Field Journal']
+            manifestPlaceholders = [odoLabel: 'ODOme Preview']
             matchingFallbacks = ['debug']
         }
     }

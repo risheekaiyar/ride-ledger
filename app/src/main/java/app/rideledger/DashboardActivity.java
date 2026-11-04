@@ -65,7 +65,7 @@ public class DashboardActivity extends Activity {
                 try{startActivityForResult(params.createIntent(),22);return true;}catch(Exception e){fileChoice=null;toast("Cannot open media picker");return false;}
             }
         });
-        web.loadUrl(getPackageName().endsWith(".fieldjournal") ? ORIGIN+"?journal=demo" : ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
+        web.loadUrl(getPackageName().endsWith(".experience") ? ORIGIN+"?experience=demo" : ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
     }
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);if("CONFIGURE_COMPANION".equals(intent.getAction()))companion.configure(this);widgetPending="WIDGET_TOGGLE".equals(intent.getAction());if(hasWindowFocus())onWindowFocusChanged(true);}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&widgetPending){widgetPending=false;if(RideService.running)stopRide();else setupPending=true;}if(focused)openPendingSetup();}

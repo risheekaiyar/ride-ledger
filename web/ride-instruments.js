@@ -15,8 +15,8 @@ function create(host,data){
   if(speed!==null){const a=start+Math.min(scale,speed)/scale*span;ctx.save();ctx.translate(cx,cy);ctx.rotate(a);ctx.shadowBlur=14;ctx.shadowColor='#dce2e7';ctx.beginPath();ctx.moveTo(-18,-5);ctx.lineTo(r-36,0);ctx.lineTo(-18,5);ctx.closePath();ctx.fillStyle='#f5f7f8';ctx.fill();ctx.restore();}
   ctx.beginPath();ctx.arc(cx,cy,13,0,Math.PI*2);ctx.fillStyle='#f5f7f8';ctx.fill();ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.fillStyle='#24282d';ctx.fill();
   text(speed===null?'—':Math.round(speed),cx,cy+58,49,'#f5f7f8','center','500');text('km/h · replay',cx,cy+80,13,'#b0bac2');
-  const values=data.telemetry.seconds,observed=data.telemetry.observed;for(let i=0;i<7;i++){const x=74+i*95;ctx.fillStyle=colors[i];ctx.fillRect(x-18,400,36,3);text((observed?data.bandPercentages[i]:0)+'%',x,433,21,'#f5f7f8','center','600');text(i===6?'100+':data.telemetry.bands[i]+'–'+data.telemetry.bands[i+1],x,456,12,'#b0bac2');}
-  text('SHARE OF OBSERVED TIME / km/h',360,486,11,'#89949d');
+  const observed=data.telemetry.observed;for(let i=0;i<7;i++){const lo=data.telemetry.bands[i],hi=i===6?scale:data.telemetry.bands[i+1],a=start+(lo+hi)/2/scale*span,x=cx+Math.cos(a)*(r+49),y=cy+Math.sin(a)*(r+49);text((observed?data.bandPercentages[i]:0)+'%',x,y,22,colors[i],'center','600');}
+  text('SHARE OF OBSERVED TIME',360,466,12,'#89949d');
  }
  function miniMap(time){
   const x=480,y=111;ctx.save();ctx.translate(x,y);ctx.drawImage(mapLayer,0,0,208,210);const track=ride.track||[];
