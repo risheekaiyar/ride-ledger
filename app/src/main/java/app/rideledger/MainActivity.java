@@ -68,7 +68,6 @@ public class MainActivity extends Activity {
         }
         Intent i=new Intent(this,RideService.class).putExtra("placement",placement.getSelectedItem().toString());
         int[] types=options.entrySet().stream().filter(e->e.getValue().isChecked()).mapToInt(e->e.getKey()).toArray();
-        if(types.length==0){toast("Select at least one sensor");return;}
         i.putExtra("sensorTypes",types);
         try{startForegroundService(i);}catch(RuntimeException e){toast("Cannot start recorder. Keep the app visible, check permissions and retry.");}
     }

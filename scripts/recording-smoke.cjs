@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict'),{chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});try{
+ const p=await browser.newPage({viewport:{width:390,height:844}});p.setDefaultTimeout(10000);const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await p.goto('http://127.0.0.1:4178');await p.waitForSelector('.studio-hero');
+ await p.locator('#record-btn').click();await p.getByText('Record with your Android app',{exact:true}).waitFor();await p.getByRole('button',{name:'Got it',exact:true}).click();
+ await p.evaluate(()=>{
+  window.calls=[];window.capability={schema:1,gps_enabled:false,precise_location:false,notifications:false,sensors:[1,4,11,9,10,2,5,6].map(type=>({type,available:[1,4,9,10].includes(type),name:'Test hardware channel',resolution:.01,maximum_range:20}))};
+  window.RideNative={recordingCapabilities(){return JSON.stringify(window.capability)},openLocationSettings(){window.settingsOpened=true;},start(...args){window.calls.push(args)}};
+ });
+ await p.locator('#record-btn').click();assert(await p.locator('#record-start').isDisabled());
+ await p.getByRole('button',{name:'Open location settings',exact:true}).click();assert(await p.evaluate(()=>window.settingsOpened));assert.equal(await p.evaluate(()=>window.calls.length),0);
+ await p.evaluate(()=>{window.capability.gps_enabled=true;window.dispatchEvent(new Event('focus'));});assert(!(await p.locator('#record-start').isDisabled()));
+ assert.equal(await p.locator('#record-channel-count').textContent(),'4 selected');assert(await p.locator('[name=sensor][value="11"]').isDisabled());
+ await p.locator('[name=placement][value="Rigid mount"]').check();await p.locator('[name=mount_condition]').selectOption('Slipping');await p.locator('[name=bike_type]').selectOption('Adventure');
+ await p.getByText('Mount movement changes the signal.',{exact:true}).waitFor();
+ await p.locator('#modal').evaluate(el=>el.scrollTop=0);await p.screenshot({path:'/tmp/odo-recording-mobile.png'});
+ await p.locator('#record-device-status').evaluate(el=>el.scrollIntoView({block:'start'}));await p.screenshot({path:'/tmp/odo-recording-phone-check.png'});
+ await p.setViewportSize({width:1440,height:1100});await p.locator('#modal').evaluate(el=>el.scrollTop=0);await p.screenshot({path:'/tmp/odo-recording-desktop.png'});
+ await p.locator('#record-start').click();let call=await p.evaluate(()=>window.calls.at(-1));assert.equal(call[0],'Rigid mount');assert.deepEqual(JSON.parse(call[1]),[1,4,9,10]);assert.equal(JSON.parse(call[3]).mount_condition,'Slipping');assert.equal(JSON.parse(call[3]).bike_type,'Adventure');
+ await p.locator('#record-btn').click();assert.equal(await p.locator('[name=mount_condition]').inputValue(),'Unknown','Mount security is not silently carried into the next ride');
+ await p.locator('[name=placement][value=Pocket]').check();assert(await p.locator('#record-mount-label').isHidden());await p.locator('#record-start').click();call=await p.evaluate(()=>window.calls.at(-1));assert.equal(JSON.parse(call[3]).mount_condition,'Not mounted');
+ await p.evaluate(()=>{window.capability.sensors.forEach(s=>s.available=false);recording=true;window.odoOpenRecordingSetup();});
+ assert.equal(await p.locator('#record-selection').textContent(),'GPS only · no phone motion');assert(!(await p.locator('#record-start').isDisabled()));
+ await p.locator('#record-start').click();assert.deepEqual(JSON.parse((await p.evaluate(()=>window.calls.at(-1)))[1]),[]);
+ await p.evaluate(()=>{window.RideNative.recordingCapabilities=()=>'{broken';window.odoOpenRecordingSetup();});await p.getByText('This app version cannot check hardware before recording. Channel availability will be recorded when the journey starts.',{exact:true}).waitFor();
+ assert.equal(await p.locator('[data-hardware-state="1"]').textContent(),'Unchecked');assert.equal(await p.locator('#record-channel-count').textContent(),'5 selected');
+ await p.setViewportSize({width:320,height:740});assert(await p.locator('#modal').evaluate(el=>el.scrollWidth<=el.clientWidth));
+ await p.getByRole('button',{name:'Close recording setup',exact:true}).click();assert.equal(await p.locator('#modal').evaluate(el=>el.classList.contains('recording-modal')),false);
+ assert.deepEqual(errors,[]);console.log('PASS: browser/native setup, hardware availability, location refresh, normalized mount context, fresh mount confirmation, GPS-only recording, old-bridge fallback and narrow layout');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

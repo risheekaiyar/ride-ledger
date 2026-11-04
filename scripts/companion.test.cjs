@@ -1,0 +1,10 @@
+const test=require('node:test'),assert=require('node:assert/strict'),{evidence,comparable}=require('../web/companion.js');
+const ride={id:'a',bike_id:'bike-one',device:'phone-one',kind:'ride',recurring:'Office outbound',bike_type:'Adventure',placement:'Rigid mount',mount_condition:'Stable',duration:600,finalized:true,distanceReliable:true,distanceKm:4.321,quality:98,medianAccuracy:3,screenOffSeconds:300};
+test('comparison requires known compatible setup and same recurring trip',()=>{assert(comparable(ride,{...ride,id:'b'}));for(const override of [{bike_id:'bike-two'},{device:'phone-two'},{bike_type:'Unknown'},{mount_condition:'Slipping'},{placement:'Bag'},{recurring:'Office return'},{source:'GPX export'}])assert(!comparable(ride,{...ride,id:'b',...override}));});
+test('GPX missing measurements are unknown rather than zero',()=>{const p=evidence({...ride,source:'GPX export',distanceReliable:false});for(const k of ['distance_km','gps_accepted_percent','gps_accuracy_m','screen_off_seconds'])assert.equal(p[k],null);assert.equal(p.route_profile,undefined);});
+test('evidence does not leak bike identifiers, routes or private notes',()=>{const p=evidence({...ride,notes:'secret',track:[[77,12]],plate:'secret',roadMemory:{one:'Phone moved',two:'secret'}});assert(!JSON.stringify(p).includes('secret'));assert.deepEqual(p.rider_observations,['Phone moved']);assert.equal(p.distance_km,4.32);});
+test('screen evidence carries observed coverage and preserves measured zero',()=>{
+ const complete=evidence({...ride,screenObservedSeconds:600,screenOffSeconds:0});assert.equal(complete.screen_off_seconds,0);assert.equal(complete.screen_observed_seconds,600);
+ const partial=evidence({...ride,screenObservedSeconds:400});assert.equal(partial.screen_off_seconds,300);assert.equal(partial.screen_observed_seconds,400);
+ for(const value of [evidence(ride),evidence({...ride,screenObservedSeconds:200}),evidence({...ride,screenObservedSeconds:900}),evidence({...ride,source:'GPX export',screenObservedSeconds:600})]){assert.equal(value.screen_off_seconds,null);assert.equal(value.screen_observed_seconds,null);}
+});

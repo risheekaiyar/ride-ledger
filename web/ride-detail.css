@@ -1,0 +1,102 @@
+/* Shared mobile dock and route-first details. */
+.header-rider-menu{display:none}
+.ride-detail-page{max-width:1160px;margin:auto}
+.ride-detail-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px}
+.ride-detail-toolbar button{display:flex;align-items:center;gap:7px;min-height:44px;background:transparent;border:0;padding:8px 0;font-size:13px}
+.ride-detail-toolbar>span{font:10px monospace;color:#aaa0af;letter-spacing:.8px}
+.ride-detail-toolbar .detail-share{padding:8px 15px;border:1px solid #443d48;border-radius:22px}
+.ride-detail-toolbar .icon{width:17px;height:17px}
+.ride-detail-page .track-studio-head h2{display:none}
+.ride-detail-page .track-studio-head{padding:16px 22px;align-items:center}
+.ride-detail-page .track-viewport.track-large{height:530px}
+.ride-summary-sheet{margin-top:22px;border:1px solid #ffffff16;border-radius:26px;background:linear-gradient(140deg,#222026,#17161b);padding:30px}
+.ride-summary-heading{display:flex;justify-content:space-between;gap:18px;align-items:center}
+.ride-summary-heading p{font:10px monospace;letter-spacing:1px;text-transform:uppercase;color:#a59aa8;margin:0 0 15px}
+.ride-summary-heading h1{font:500 42px/1.12 Georgia,serif;letter-spacing:-1px;margin:0;overflow-wrap:anywhere;color:#f2eadc}
+.ride-summary-heading button{padding:0;flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#383139;border-color:#675863}
+.ride-context-pills{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0}
+.ride-context-pills>span{display:flex;gap:8px;align-items:center;border:1px solid #49404b;background:#ffffff04;border-radius:24px;padding:11px 17px;font-size:12px;color:#d7cdd5}
+.ride-context-pills .icon{width:17px;height:17px}
+.ride-distance{position:relative;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:18px 0 28px}
+.ride-distance strong{font:500 86px/.95 Inter,"Segoe UI",Arial,sans-serif;color:#f2eadc;letter-spacing:-5px;font-variant-numeric:tabular-nums}
+.ride-distance>span{font-size:18px;color:#b5a9b7}
+.ride-distance p{font:10px monospace;letter-spacing:.4px;color:#a99bac;width:100%;margin:4px 0 0}
+.ride-summary-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;border-top:1px solid #ffffff10;padding-top:24px}
+.ride-summary-facts span{display:block;color:#aa9dac;font-size:11px;margin-bottom:9px}
+.ride-summary-facts strong{display:block;font:500 26px/1.2 Inter,"Segoe UI",Arial,sans-serif;color:#ebe0d9;font-variant-numeric:tabular-nums}
+.ride-summary-facts small{display:block;margin-top:9px;font-size:10px;line-height:1.6;color:#948998}
+.ride-odo-card{display:flex;gap:23px;padding:30px;margin-top:22px;border:1px solid #66595855;border-radius:24px;background:radial-gradient(ellipse at 10% 40%,#3c3135,#1c1a21 75%)}
+.ride-odo-mark{font-size:40px;color:#e9d8bf;line-height:1;flex:none}
+.ride-odo-card .eyebrow{font-size:9px;color:#bbabbc}
+.ride-odo-card h2{font:27px/1.2 Georgia,serif;color:#f0e3d1;margin:12px 0}
+.ride-odo-card p{font-size:12px;color:#b6a8b9;max-width:560px;line-height:1.7;margin:0 0 20px}
+.ride-odo-card button{font-size:12px;color:#252025;background:#ede3d4;border-color:#ede3d4;border-radius:22px;min-height:44px;padding:10px 18px}
+.ride-odo-card button span{margin-left:15px}
+.ride-detail-page .telemetry-dashboard{background:linear-gradient(145deg,#232026,#16151b)}
+.ride-evidence,.ride-context-section,.ride-source-notes{border:1px solid #39323e;border-radius:22px;background:#19171e}
+.ride-evidence-head{padding:25px 26px 18px}
+.ride-evidence-head h2,.ride-context-section h2{font:26px Georgia,serif;color:#e8ded4;margin:12px 0 0}
+.ride-evidence-rows{padding:0 26px 10px}
+.ride-evidence-rows>div{display:flex;justify-content:space-between;gap:28px;padding:16px 0;border-top:1px solid #ffffff0c;align-items:center}
+.ride-evidence-rows span{font-size:12px;color:#ada0b0}
+.ride-evidence-rows strong{font-size:12px;line-height:1.7;text-align:right;font-weight:400;color:#e0d3df}
+.ride-context-section{padding:26px}
+.ride-context-section p{font-size:12px;color:#b0a3b4;line-height:1.7}
+.ride-context-actions{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0}
+.ride-context-actions button{min-height:44px;border-radius:22px;font-size:11px;background:#2b2630;border-color:#4d4054}
+.ride-notes{border-top:1px solid #ffffff10;padding-top:18px}
+.ride-notes p{margin-bottom:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ride-source-notes{overflow:hidden}
+.ride-source-notes summary{cursor:pointer;padding:23px 26px;font-size:14px;color:#d3c6d7;line-height:1.6}
+.ride-source-notes summary span{float:right;font-size:10px;color:#a494aa}
+.ride-source-body{padding:0 26px 24px}
+.ride-source-body>p{font-size:12px;line-height:1.7;color:#b1a4b6}
+.logo span svg{width:29px;height:29px;fill:none;stroke:currentColor;stroke-width:1.5}
+@media(max-width:650px){
+ .rider-shell .sidebar{left:12px;right:82px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;border:1px solid #514c5666;border-radius:32px;height:66px;padding:0 4px;background:#202025ed;box-shadow:0 8px 30px #0007;backdrop-filter:blur(22px)}
+ .rider-shell nav button[data-page=overview],.rider-shell nav button[data-page=community],.rider-shell nav button[data-page=settings]{display:none}
+ .rider-shell nav button{font-size:10px;min-width:66px;min-height:52px;flex:1;margin-inline:2px;padding:9px 3px;gap:5px;color:#a69dac;border-radius:24px}
+ .rider-shell nav button svg{width:20px;height:20px}
+ .rider-shell nav button.active{background:#4a474e;color:#eeecee}
+ .rider-shell nav{gap:0}
+ .rider-shell .companion-bubble{width:58px;height:58px;right:12px;bottom:max(16px,env(safe-area-inset-bottom));border-radius:50%;padding:0;display:grid;place-items:center;font-size:24px;background:#eee9df;border:1px solid #c4b9a8}
+ .rider-shell .companion-bubble span{display:none}
+ .rider-shell:not(.library-active) .header-rider-menu{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;padding:0;background:#3c323d;border-color:#685869;font:16px Georgia,serif;color:#f3e5d9}
+ .rider-shell:not(.library-active) header #breadcrumb{display:none}
+ .ride-detail-page{margin:-8px 0 0}
+ .ride-detail-toolbar{gap:8px;margin-bottom:12px}
+ .ride-detail-toolbar button{font-size:12px}
+ .ride-detail-toolbar>span{font-size:9px;letter-spacing:.3px}
+ .ride-detail-toolbar .detail-share{padding-inline:12px}
+ .ride-detail-page .track-viewport.track-large{height:clamp(260px,calc(100dvh - 505px),390px)}
+ .ride-detail-page .track-studio-head{padding:8px 12px}
+ .ride-detail-page .track-studio-head .eyebrow{font-size:8px;letter-spacing:1px}
+ .ride-detail-page .track-orbit-hint{top:52px;bottom:auto;left:18px;right:auto}
+ .ride-summary-sheet{padding:24px 20px;border-radius:23px;margin-top:18px}
+ .ride-summary-heading h1{font-size:32px;letter-spacing:-.7px}
+ .ride-summary-heading p{font-size:9px;letter-spacing:.5px}
+ .ride-context-pills{gap:7px;margin:20px 0}
+ .ride-context-pills>span{font-size:11px;padding:9px 12px}
+ .ride-distance strong{font-size:73px;letter-spacing:-3px}
+ .ride-summary-facts{gap:14px;padding-top:20px}
+ .ride-summary-facts span{font-size:10px;line-height:1.4}
+ .ride-summary-facts strong{font-size:19px}
+ .ride-summary-facts small{font-size:9px;line-height:1.5}
+ .ride-odo-card{padding:24px 20px;gap:16px;border-radius:22px;margin-top:18px}
+ .ride-odo-mark{font-size:28px}
+ .ride-odo-card h2{font-size:25px}
+ .ride-evidence-head{padding:22px 18px 18px}
+ .ride-evidence-head h2,.ride-context-section h2{font-size:24px}
+ .ride-evidence-rows{padding-inline:18px}
+ .ride-evidence-rows>div{gap:16px}
+ .ride-evidence-rows span{font-size:11px;max-width:48%}
+ .ride-evidence-rows strong{font-size:11px;max-width:55%}
+ .ride-context-section{padding:22px 18px}
+ .ride-context-actions{display:grid;grid-template-columns:1fr;width:100%}
+ .ride-source-notes summary{padding:20px 18px;font-size:12px}
+ .ride-source-notes summary span{float:none;display:block;margin-top:8px}
+ .ride-source-body{padding-inline:18px}
+ .ride-detail-page .sample-inspector summary{gap:9px}
+ .ride-detail-page .sample-source{font-size:8px}
+}
+.companion-overlay .companion-bubble{display:none}

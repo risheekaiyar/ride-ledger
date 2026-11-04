@@ -1,3 +1,35 @@
+# Odo — Strava for bikers
+
+The `UI-Improvement` branch adds the [ride studio and runtime companion workflow](docs/UI-IMPROVEMENT.md): a motorsport-inspired interface, timed GPX imports, rider context, road observations and exportable story cards. See that guide for verified behavior, Meta runtime setup and platform limitations.
+
+[Animated ride insights](docs/ANIMATED-INSIGHTS.md) turn the debrief into a playable 3D recap: route flyover, speed distribution, a moving/slow/missing-time ring, speed-change moments and an altitude sculpture. At runtime, Meta `muse-spark-1.3` selects chapter order and supported metric emphasis, explains patterns and suggests a next step. The same chapters export as an 18-second story video. [Watch the synthetic recap](docs/previews/insight-recap-synthetic.mp4) (mocked model captions; live Meta access must be configured for the hackathon demo).
+
+The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route into a lit, raised road model with racing kerbs, orbit/chase/overhead cameras, synchronized telemetry and PNG export. No tile service is required.
+
+[Ride films](docs/RIDE-FILM.md) add local 3D video export in story, portrait and square formats, with a motorsport overlay, explicit route/speed sharing choices and Android share-sheet transport. Modern browsers render each frame into a 24 fps MP4. [Watch the synthetic demo](docs/previews/ride-film-synthetic.mp4).
+
+The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Local title/bike/route search and 20-journey batches keep growing journals easy to browse. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the animated-insight entry, the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
+
+The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
+
+The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and source-aware ride totals together, with recording defaults and a debrief of that bike's latest ride.
+
+[Distance confidence](docs/DISTANCE-CONFIDENCE.md) now survives annotation edits and backup restores; missing distance remains unknown and accepted-fix percentage is checked separately from GPS time coverage.
+
+[Screen-state evidence](docs/SCREEN-STATE-EVIDENCE.md) distinguishes observed intervals from missing logs and carries bounded coverage into Meta debriefs.
+
+[Phone signal diagnostics](docs/SENSOR-DIAGNOSTICS.md) expose sample gaps, reported Android statuses and possible range clipping, with bounded motion-channel summaries in the Meta debrief.
+
+[Ride comparison](docs/RIDE-COMPARISON.md) puts two phone recordings side by side, checks setup and sensor quality, and sends the selected pair’s bounded evidence to Meta only on request.
+
+[Signal inspection](docs/SIGNAL-INSPECTION.md) keeps long recordings readable, preserves extrema and gaps, and offers focused 5-minute, 1-minute and 15-second views. Recorded event candidates open their original timestamp and sensor channel directly. Touch and keyboard inspection read original samples, including phone motion from recordings with no usable GPS fixes.
+
+[Focused Meta debriefs](docs/FOCUSED-DEBRIEF.md) let riders ask about a selected trace window. Odo sends bounded motion, observed-speed and source-altitude summaries after explicit review and submission; reply citations return to that interval.
+
+[Odo insight briefs](docs/COMPANION-INSIGHTS.md) present Meta explanations as linked observation cards, with local evidence tiles and six directions covering ride patterns, sensor confidence, setup, comparisons or focused windows, next recordings, and story ideas. Raw, linear and angular phone channels retain their distinct measurements throughout the experience.
+
+The [journal landing and overview](docs/OVERVIEW.md) now open returning riders directly to Rides and keep the latest ride, Odo debrief, source-aware totals and bike profile together.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.
@@ -6,7 +38,7 @@ Independent GitHub build, lint, 10 Java tests, 10 Node tests and APK upload pass
 
 Version **0.3.0** adds a modern Android and web dashboard around the private sensor recorder. Read [the release guide](docs/RELEASE-0.3.md) for implemented features, installation, testing and measurement limits; [VARUN-HANDOFF.md](VARUN-HANDOFF.md) for development; and [MUSE-INTEGRATION.md](docs/MUSE-INTEGRATION.md) for the prepared Meta runtime and coding prompts.
 
-The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay a neon route, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.
+The personal workflow works: record on Android, review saved rides, import/export ZIPs, replay an offline 3D track model, customize stat cards, organize recurring or one-time trips, and maintain a bike profile/manual odometer. Web imports stay in the browser; the hosted interface contains no private recordings. Optional map tiles require an explicit load action and reveal the viewed map area to OpenStreetMap. Android now has Internet permission for these tiles; recording remains local with no automatic upload.
 
 This release does not yet connect Muse, a live multi-user community, automatic cross-device sync, bike Bluetooth or road speed-limit data. Private community drafts omit route/speed/sensor details. Lean, calibrated bike g, confirmed potholes, fuel and safety scores are unavailable. A slipping mount and a pocket both mix phone movement with the riding signal.
 

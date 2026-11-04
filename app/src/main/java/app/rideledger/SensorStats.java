@@ -8,6 +8,7 @@ final class SensorStats {
         add(time,values,false);
     }
     void add(long time,float[] values,boolean scalar){
+        if(values==null||values.length<(scalar?1:3)||time<0||(scalar&&values[0]<0))return;
         double square=0;
         for(int i=0;i<Math.min(scalar?1:3,values.length);i++) {
             if(!Float.isFinite(values[i]))return;

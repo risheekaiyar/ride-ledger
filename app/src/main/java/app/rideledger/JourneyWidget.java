@@ -9,7 +9,7 @@ public class JourneyWidget extends AppWidgetProvider {
     @Override public void onUpdate(Context c,AppWidgetManager manager,int[] ids){for(int id:ids)update(c,manager,id);}
     private static void update(Context c,AppWidgetManager manager,int id){
         RemoteViews views=new RemoteViews(c.getPackageName(),R.layout.journey_widget);
-        views.setTextViewText(R.id.widget_action,RideService.running?"■  Stop & save":"●  Start journey");
+        views.setTextViewText(R.id.widget_action,RideService.running?"■  Stop & save":"●  Set up journey");
         Intent intent=new Intent(c,DashboardActivity.class).setAction("WIDGET_TOGGLE").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         views.setOnClickPendingIntent(R.id.widget_root,PendingIntent.getActivity(c,44,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));manager.updateAppWidget(id,views);
     }
