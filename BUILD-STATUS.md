@@ -1,14 +1,14 @@
-# Current branch build: 0.3.5
+# Current branch build: 0.3.6
 
-Racing arrows replace bike markers in both journey insights and the main 3D replay. The journey uses raised white route walls and cyan progress. Elevation has a source-driven color scale, meter ticks, reference lines and a matching legend. The app, plots, story exports, launcher icon and widget share a black/white/red/cyan palette. See [RACING-RADAR.md](docs/RACING-RADAR.md) for review artifacts and measurement boundaries.
+The journey recap now uses a wide road-map composition with subtle relief, a racing arrow and cyan progress. Its central recording-gap banner and visual discontinuities are removed. Display-only interpolation keeps the story moving between known positions while source measurements, speed availability and Meta evidence remain unchanged. The new showcased demo traces fictional city blocks and winding roads, clearly labeled **DEMO / ILLUSTRATED**. See [RACING-RADAR.md](docs/RACING-RADAR.md).
 
-Work is on `UI-Improvement`. No deployment, merge or environment publication was performed. The APK is `app/build/outputs/apk/debug/app-debug.apk`, copied locally to `dist/ride-ledger-0.3.5-debug.apk` (**version code 8**). Packaged renderers, elevation scale, theme and entry point match source. Asset synchronization now removes deleted generated files; the retired bike-marker artwork is absent from the package.
+Work is on `UI-Improvement`; no deployment, merge or environment publication was performed. The APK is `app/build/outputs/apk/debug/app-debug.apk`, copied locally to `dist/ride-ledger-0.3.6-debug.apk` (**version code 9**). Packaged entry point, renderer, presentation helper and film/UI code match source. The fictional demo fixture is not packaged into the app or added to user journals automatically.
 
-Verified locally: **171 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date). Lint has **0 errors and 9 existing warnings**. Browser checks passed for both route renderers, exact GPS replay/gaps, 360° rotation, meter-axis/legend agreement, 320–1440px layouts, negative/five-digit tick labels, shared theme, Meta personalization, actual MP4 output, lifecycle cleanup, Overview and Garage. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
+Verified locally: **175 Node tests**, Android assemble/lint and the **17-test Java target** (unchanged Java tests were up-to-date). Lint has **0 errors and 9 existing warnings**. Browser checks passed for continuity through missing samples, removal of the central overlay, preserved source data, reverse scrubbing, full rotation, 320–1440px layout, actual MP4 output, mocked Meta personalization and lifecycle cleanup. The reviewed H.264 story is 18 seconds / 432 frames / 720 × 1280.
 
-Meta responses and external reference services were mocked in regression checks. No live Meta key is configured here. Physical Android sensor recording and playback performance still need the demo device check. Garage bike models remain family illustrations.
+Meta responses and external reference tiles were mocked in regression checks. The cloud has no live Meta key. Physical Android recording and playback still need the demo device check. The main Track Studio and measurement views retain their source-quality reporting; continuous interpolation is confined to story playback.
 
-Local APK SHA-256: `9008b57872116d1dcb378db9484995b5c687de04f52a1faf7939e1f50fbbb4b8`.
+Local APK SHA-256: `6ccba91d71caa100ce26cac737436e4b50c5af61009d75fb5b4348cbffd6a122`.
 
 ## Historical releases
 

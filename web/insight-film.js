@@ -16,8 +16,8 @@ function create(host,ride,data,chapters){
   ctx.drawImage(visual,0,302,720,436);
   const ids=c.fact_ids.slice(0,3),column=632/ids.length;ctx.strokeStyle='#89949d66';ctx.beginPath();ctx.moveTo(44,775);ctx.lineTo(676,775);ctx.stroke();
   ids.forEach((id,i)=>{const x=44+i*column,d=OdoInsightReel.definitions[id];ctx.fillStyle='#b0bac2';ctx.font='14px sans-serif';wrap(d.label,x,804,column-16,19,2);ctx.fillStyle='#f5f7f8';ctx.font='500 42px sans-serif';const value=format(id,data.facts[id]);ctx.fillText(value,x,880);const width=ctx.measureText(value).width;ctx.fillStyle='#b0bac2';ctx.font='13px monospace';ctx.fillText(d.unit==='s'?'':d.unit==='candidates'&&data.facts[id]===1?'candidate':d.unit,x+width+6,880);});
-  ctx.fillStyle='#dce2e7';ctx.font='23px sans-serif';wrap(c.insight,44,944,632,33,5);ctx.fillStyle='#b0bac2';ctx.font='13px sans-serif';wrap(c.scene==='route'?'Recorded GPS route · cyan marks replay progress. Raised white trails follow the recorded GPS shape. Gaps stay open.':meta.note,44,1143,632,19,3);
-  ctx.font='12px monospace';ctx.fillText(data.source==='gpx_interval_estimate'?'GPX ESTIMATE / PRIVATE UNTIL SHARED':'PHONE GPS / PRIVATE UNTIL SHARED',44,1220);
+  ctx.fillStyle='#dce2e7';ctx.font='23px sans-serif';wrap(c.insight,44,944,632,33,5);ctx.fillStyle='#b0bac2';ctx.font='13px sans-serif';wrap(c.scene==='route'?'GPS route replay · cyan marks your progress. Missing positions are connected for playback; ride measurements stay source-based.':meta.note,44,1143,632,19,3);
+  ctx.font='12px monospace';ctx.fillText(ride.source==='Synthetic demo'?'SYNTHETIC DEMO / ILLUSTRATED ROUTE':data.source==='gpx_interval_estimate'?'GPX ESTIMATE / PRIVATE UNTIL SHARED':'PHONE GPS / PRIVATE UNTIL SHARED',44,1220);
   for(let i=0;i<chapters.length;i++){const width=(632-(chapters.length-1)*7)/chapters.length,x=44+i*(width+7);ctx.fillStyle='#343a41';ctx.fillRect(x,1243,width,4);ctx.fillStyle='#9beaf0';ctx.fillRect(x,1243,width*(i<index?1:i===index?p:0),4);}
   return canvas;
  }

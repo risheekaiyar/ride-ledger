@@ -1,4 +1,4 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright'),{seed}=require('./studio-fixture.cjs'),{packet}=require('./muse-runtime.cjs'),reel=require('../web/insight-reel.js');
+const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright'),{seed}=require(process.env.ODO_ROAD_DEMO?'./road-fixture.cjs':'./studio-fixture.cjs'),{packet}=require('./muse-runtime.cjs'),reel=require('../web/insight-reel.js');
 (async()=>{
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--enable-unsafe-swiftshader']});
  try{
