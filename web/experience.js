@@ -42,7 +42,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
 document.addEventListener('change',e=>{if(e.target.id==='ex-selection'){const v=e.target.value;if(v.startsWith('j:')){journey=v.slice(2);selected=pool().find(r=>membership(r)===journey)?.id;}else{journey=null;selected=v.slice(2);}render();}});
 document.addEventListener('input',e=>{if(e.target.id==='ex-search'){const pos=e.target.selectionStart;filterText=e.target.value;render();$('#ex-search').focus();try{$('#ex-search').setSelectionRange(pos,pos);}catch{}}});
 document.addEventListener('submit',e=>{if(e.target.id!=='ex-setup-form')return;e.preventDefault();e.stopPropagation();const d=new FormData(e.target);Object.assign(prefs.bike,{name:String(d.get('name')).trim(),type:d.get('type'),notes:d.get('notes')});prefs.recordingSetup={...prefs.recordingSetup,placement:d.get('placement'),bike_type:d.get('type'),mount_condition:d.get('placement')==='Rigid mount'?d.get('mount_condition'):'Not mounted'};save();toast('Defaults saved.');render();},true);
-museSetup=function(){if(recording)return toast('Finish recording before opening insights.');navigate('companion');};
+museSetup=function(options={}){if(location.hash==='#companion-overlay'||options.focus||options.comparisonId)return oldMuse(options);if(recording)return toast('Finish recording before opening insights.');navigate('companion');};
 shareCard=function(){if(current())OdoExperienceCards.open(scoped());};
 const nativeRide=root.odoNativeRide;root.odoNativeRide=async(...args)=>{enterReal();return nativeRide(...args);};
 const nativeState=root.odoNativeState;root.odoNativeState=(active,status)=>{const changed=recording!==active;nativeState(active,status);if(changed&&['detail','companion'].includes(page))render();};

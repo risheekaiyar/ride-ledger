@@ -34,7 +34,7 @@ function museSetup(options={}){
  const focus=options.focus?OdoFocusedEvidence.summarize(ride,options.focus):null;
  if(options.focus&&!focus)return toast('Choose a focused window with at least one complete second.');
  const focusLabel=focus?`${clock(focus.start_second)} – ${clock(focus.end_second)}`:'';
- const comparison=focus?null:options.comparisonId?rides.find(r=>r.id===options.comparisonId&&r.id!==ride.id):rides.find(r=>OdoCompanion.comparable(ride,r));
+ const comparison=focus?null:options.comparisonId?rides.find(r=>r.id===options.comparisonId&&r.id!==ride.id):null;
  const comparisonContext=comparison?OdoCompare.packet(OdoCompare.compare(ride,comparison)):null;
  const selectedRides=[ride,...(comparison?[comparison]:[])];
  const evidence=selectedRides.map(r=>OdoCompanion.evidence(r,r.source==='GPX export'?null:OdoRideInsights.summary(r,OdoRideInsights.analyze(r))));
@@ -53,7 +53,7 @@ function museSetup(options={}){
  odoCompanionRequest('GET').then(v=>{if(!status.isConnected)return;status.textContent=v.enabled?`Meta ready · ${v.remaining} requests remaining`:v.configured?'Request allowance exhausted. Configure a new allowance on the local server.':'Meta is not configured on this server. Your local ride tools remain available.';send.disabled=!v.enabled;}).catch(error=>{if(status.isConnected){status.textContent=error.message||'Meta runtime is not reachable.';send.disabled=true;}});
  form.onsubmit=async e=>{e.preventDefault();if(pending||send.disabled)return;const question=form.elements.question.value.trim();if(!question)return;setPending(true);send.disabled=true;status.textContent='Odo is reading the evidence…';
  const history=conversation.turns.slice(-2).flatMap(t=>[{role:'user',content:t.question},{role:'assistant',content:t.answer.summary.slice(0,600)}]);
- try{const answer=await odoCompanionRequest('POST',{question,rides:evidence,history,...(comparisonContext?{comparison:comparisonContext}:{}),...(focus?{focus}:{})});conversation.turns.push({question,answer});conversation.turns=conversation.turns.slice(-8);if(thread.isConnected&&dialog.open){draw();form.elements.question.value='';status.textContent=`Meta replied · ${answer.remaining} requests remaining`;thread.lastElementChild?.scrollIntoView({block:'start'});send.disabled=answer.remaining===0;}}
+ try{const answer=await odoCompanionRequest('POST',{question,rides:evidence,history,style:'concise',...(comparisonContext?{comparison:comparisonContext}:{}),...(focus?{focus}:{})});conversation.turns.push({question,answer});conversation.turns=conversation.turns.slice(-8);if(thread.isConnected&&dialog.open){draw();form.elements.question.value='';status.textContent=`Meta replied · ${answer.remaining} requests remaining`;thread.lastElementChild?.scrollIntoView({block:'start'});send.disabled=answer.remaining===0;}}
  catch(error){if(status.isConnected){status.textContent=error.message;send.disabled=false;}}
  finally{setPending(false);}
  };
