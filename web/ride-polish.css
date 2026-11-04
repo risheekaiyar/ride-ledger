@@ -1,0 +1,70 @@
+.bike-map-marker{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--bike-color);
+  color:var(--bike-color);background:#141c22;box-shadow:0 3px 12px #0008
+}
+.bike-map-marker svg{width:29px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.header-actions{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.header-actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.header-actions .icon{width:20px;height:20px;flex:none}
+#import-btn .icon{color:#94dbcb}
+#record-btn{border-color:#946052;background:#392a2b;color:#fff0e6}
+#record-btn .icon{color:#ff9172}
+#record-btn[data-recording=true]{background:#622e2e;border-color:#d17466}
+.overview-companion-buttons{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.overview-companion-buttons button{margin:0!important;max-width:100%;white-space:normal}
+.overview-companion-buttons+span{display:block;margin-top:12px}
+.reel-camera{position:absolute;right:12px;bottom:34px;display:flex;gap:6px;z-index:3}
+.reel-camera[hidden]{display:none}
+.reel-camera button,.reel-camera select,.track-actions select{width:auto;padding:5px 9px;font-size:12px;min-height:34px}
+#reel-scene canvas{display:block}
+.reel-elevation-key{width:88px;height:7px;border-radius:6px;background:linear-gradient(90deg,#328b9b,#f6be78)}
+.reel-result-ready{color:#a5e4c9;margin:8px 0;font-size:13px}
+#reel-spot{margin-top:10px}
+#reel-spot-reference{margin-top:14px}
+.reel-spot-heading{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;font-size:13px;margin-bottom:8px}
+.reel-spot-heading time{color:#c1d1ca}
+.reel-spot-map{width:100%;height:160px;position:relative;overflow:hidden;border:1px solid #475756;border-radius:12px;background:#152126}
+.reel-spot-map svg:not(.bike-map-marker svg){height:100%;width:100%}
+.reel-spot-load{margin-top:9px}
+.garage-bike-viewer{position:absolute;inset:0;display:grid;place-items:center}
+.garage-bike-viewer canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.garage-bike-viewer canvas:active{cursor:grabbing}
+.garage-bike-viewer img{width:100%;height:100%;object-fit:contain}
+.garage-modal-photo{max-height:58vh;max-width:100%;object-fit:contain}
+.garage-media-actions,.garage-cluster-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px}
+.garage-media-actions a{font-size:13px;color:#b4dcce;text-underline-offset:3px}
+.garage-cluster{
+  width:min(92%,560px);margin:0 auto;box-sizing:border-box;
+  padding:14px clamp(10px,3vw,24px) 18px;border-radius:42px 42px 35px 35px;
+  background:linear-gradient(155deg,#434b57,#171b22 45%,#343941);border:2px solid #69717a;box-shadow:inset 0 0 0 5px #15181e;
+}
+.cluster-lamps{display:flex;gap:8px;justify-content:space-evenly;padding:2px 10px 8px}
+.cluster-lamps span{font-size:15px;color:#b4c4bc;opacity:.26}
+.cluster-lamps span:nth-child(odd){color:#ff9e6f}
+.cluster-face{padding:12px 14px 14px;color:#e9f8ff;background:linear-gradient(125deg,#182944,#0c1220);border-radius:19px 19px 25px 25px;border:1px solid #6587a1}
+.cluster-lcd .cluster-face{background:linear-gradient(155deg,#d0e3f1,#8ba7c0);color:#142438;border-color:#101a2b}
+.cluster-rev{display:flex;align-items:end;gap:3px;height:31px;border-bottom:2px solid currentColor;padding:0 4px 3px}
+.cluster-rev i{display:block;flex:1;height:calc(9px + min(20px,var(--segment)*2px));background:currentColor;opacity:.23;transform:skewX(-18deg)}
+.cluster-rev i:nth-last-child(-n+3){background:#fb655e}
+.cluster-odo{display:flex;justify-content:space-between;gap:10px;align-items:end;margin-top:8px;min-width:0;font:600 11px system-ui}
+.cluster-odo strong{font:700 clamp(24px,6vw,54px)/1.1 ui-monospace,monospace;display:block;font-variant-numeric:tabular-nums;letter-spacing:-.05em}
+.cluster-odo strong small{font:600 12px system-ui;margin-left:5px;letter-spacing:0}
+.cluster-odo>span{text-align:right;border-left:1px solid currentColor;padding-left:10px}
+.cluster-starting .cluster-rev i{animation:odo-sweep .76s ease-out both;animation-delay:calc(var(--segment)*24ms)}
+.cluster-starting .cluster-lamps span{animation:odo-sweep .78s ease-out both}
+.cluster-starting .cluster-odo strong{animation:odo-reading .85s ease-out both}
+@keyframes odo-sweep{0%,100%{opacity:.25}45%{opacity:1}}
+@keyframes odo-reading{0%,32%{opacity:0}100%{opacity:1}}
+.garage-cluster-actions{justify-content:center}
+.garage-odo-ask{margin:0 16px 14px}
+.odo-confirm{display:flex;align-items:center;gap:8px;margin-top:10px}
+.garage-editor input[type=color]{height:40px;padding:4px}
+@media(max-width:520px){
+ .header-actions button{padding:8px;gap:5px;font-size:11px}
+ .header-actions .icon{width:17px;height:17px}
+ .overview-companion-buttons{display:grid;justify-items:start}
+ .reel-camera{bottom:28px}
+}
+@media(prefers-reduced-motion:reduce){
+ .cluster-starting .cluster-rev i,.cluster-starting .cluster-lamps span,.cluster-starting .cluster-odo strong{animation:none}
+}
