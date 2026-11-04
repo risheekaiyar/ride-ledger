@@ -22,6 +22,8 @@ The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and sou
 
 [Signal inspection](docs/SIGNAL-INSPECTION.md) keeps long recordings readable, preserves extrema and gaps, and lets you inspect original samples with touch or keyboard.
 
+The [journal landing and overview](docs/OVERVIEW.md) now open returning riders directly to Rides and keep the latest ride, Odo debrief, source-aware totals and bike profile together.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.

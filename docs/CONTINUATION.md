@@ -8,6 +8,8 @@ The user subsequently requested commits and pushes approximately every 30 minute
 
 ## Current capabilities
 
+- Returning riders now land on the Ryval-style Rides sheet; empty journals get a new welcome with a bundled motorcycle illustration. Overview shows the latest ride, Meta debrief, customizable source-aware totals and manual odometer (zero preserved), without a duplicate WebGL scene. Its floating companion and story/debrief actions target the displayed latest ride. Startup waits for DOMContentLoaded before native readiness. SVG arrows replace missing glyphs. See OVERVIEW.md.
+
 - Signal charts now render bounded min/max ranges for long traces, mark subpixel missing intervals and preserve original samples for touch/keyboard inspection. Comparison shows both actual time bins at the same elapsed percentage; single-ride motion no longer bridges missing bins. 86,399-bin comparison and 50,000-fix browser fixtures pass. Large altitude arrays avoid argument limits; hour-long timestamps use h:mm:ss. Companion history resets when the selected pair changes even if summaries match. See SIGNAL-INSPECTION.md.
 
 - Route Lab now has explicit two-ride comparison, setup and coarse same-direction GPS checks, three gap-aware phone-signal charts, equal-weight complete-second median/P95 summaries, and blocked deltas for insufficient diagnostics. The selected pair and failed checks enter bounded Meta evidence without identifiers or coordinates. Context editing preserves pair selection. See RIDE-COMPARISON.md.
@@ -35,7 +37,7 @@ The user subsequently requested commits and pushes approximately every 30 minute
 
 ## Next local improvements — no external prerequisites
 
-1. Polish the overview and returning-user landing. The app still always boots into the older overview; consider opening the reviewed Ryval-style Rides sheet when saved rides exist. Preserve recording-widget and companion-overlay readiness behavior. The old overview also treats manual odometer zero as absent and duplicates the full ride renderer under its hero; the garage already handles zero correctly.
+1. Improve large-library rendering. Rides currently renders every saved route silhouette; consider accessible incremental loading while preserving filters, map consent and navigation. Returning riders now open this screen by default.
 2. Add useful time-window zoom or targeted navigation for long-recording inspection. Readable axes, bounded extrema-preserving traces, gap rails and original-bin scrubbing are implemented; actual bike calibration still needs labelled recordings.
 3. Improve motion/story composition using actual exported frames and clips. Video export is now implemented and inspected; consider other aspect ratios or camera treatments while retaining source labels and opt-in speed. Keep native hardware behavior explicitly unverified until a physical test.
 4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
@@ -70,9 +72,10 @@ node scripts/film-codec-smoke.cjs
 node scripts/compare-smoke.cjs
 node scripts/comparison-inspector-smoke.cjs
 node scripts/long-trace-smoke.cjs
+node scripts/overview-smoke.cjs
 ```
 
-Latest checks: 119 Node tests pass; Android assembly/lint pass. Previous checkpoint ran 17 Java tests successfully; this chart pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
+Latest checks: 119 Node tests pass; Android assembly/lint pass. Previous checkpoint ran 17 Java tests successfully; this overview pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 

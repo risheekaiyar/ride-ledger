@@ -1,0 +1,37 @@
+const assert=require('node:assert/strict'),{chromium}=require('playwright'),{ride}=require('./compare-fixture.cjs');
+(async()=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--enable-unsafe-swiftshader']});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[],requests=[];page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.method()==='POST')requests.push(r.url());});
+  await page.route('**/api/muse/status',r=>r.fulfill({json:{enabled:false,configured:false,remaining:0}}));
+  await page.goto('http://127.0.0.1:4178');await page.waitForSelector('.overview-welcome');assert.equal(await page.evaluate(()=>page),'overview');assert.equal(await page.locator('.stat').count(),0);assert.equal(await page.locator('canvas').count(),0);
+  await page.getByText('Companion not connected',{exact:true}).waitFor();await page.screenshot({path:'/tmp/odo-overview-empty-mobile.png'});
+  await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/tmp/odo-overview-empty-desktop.png'});
+  for(const width of [320,390,650,768,1050,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width,`Empty overview overflow at ${width}`);}
+  await page.getByRole('button',{name:'Debrief with Odo',exact:false}).click();await page.getByText('Your companion starts with your ride.',{exact:true}).waitFor();await page.getByRole('button',{name:'Close',exact:true}).click();
+  await page.getByRole('button',{name:'Start a journey',exact:true}).click();await page.getByText('Record with your Android app',{exact:true}).waitFor();await page.getByRole('button',{name:'Got it',exact:true}).click();
+  await page.evaluate(()=>{window.stops=0;window.RideNative={stop(){window.stops++}};recording=true;});await page.getByRole('button',{name:'Start a journey',exact:true}).click();assert.equal(await page.evaluate(()=>window.stops),0);await page.evaluate(()=>{recording=false;delete window.RideNative;});
+  const a=ride(),b={...ride(1),distanceIntegrity:false},gpx={...ride(2),source:'GPX export',stats:[],signals:[],distanceKm:.7},walk={...ride(3),kind:'walk'};b.stats=b.stats.map(s=>({...s,peak:25}));
+  a.track=a.track.map((p,i)=>[77+Math.sin(i/8)*.0008+i*.00002,12+i*.00004,...p.slice(2)]);
+  await page.evaluate(async records=>{for(const r of records)await saveRide(r);prefs.bike.odometer=0;prefs.bike.name='Synthetic · Sunday machine';prefs.widgets=['distance','time','rides','phone'];savePrefs();selected=records[1].id;navigate('overview');},[a,b,gpx,walk]);
+  assert.equal(await page.locator('.overview-latest h2').textContent(),a.title);assert.equal(await page.locator('canvas').count(),0);assert.equal(await page.locator('.overview-bike-reading strong').textContent(),'0 km');
+  assert.match(await page.locator('[data-widget="distance"] .number').textContent(),/0.4/);assert.match(await page.locator('[data-widget="rides"] .number').textContent(),/^3/);assert.equal(await page.evaluate(()=>totalStats().distance),.36);assert.equal(await page.evaluate(()=>totalStats().phone),a.stats[0].peak/9.80665);
+  assert.match(await page.locator('[data-widget="distance"] .tiny').textContent(),/1 of 3/);
+  await page.getByRole('button',{name:'Open Odo Meta companion',exact:true}).click();assert.match(await page.locator('#modal').textContent(),new RegExp(a.title));await page.getByRole('button',{name:'Close companion',exact:true}).click();
+  await page.locator('[data-overview-debrief]').click();assert.equal(await page.evaluate(()=>selected),a.id);assert.match(await page.locator('#modal').textContent(),new RegExp(a.title));await page.getByRole('button',{name:'Close companion',exact:true}).click();
+  await page.evaluate(id=>selected=id,b.id);await page.locator('[data-overview-story]').click();assert.equal(await page.evaluate(()=>selected),a.id);await page.locator('#story-canvas').waitFor();await page.getByRole('button',{name:'Close',exact:true}).click();
+  await page.getByRole('button',{name:'Customize stats',exact:true}).click();await page.locator('#widgets-form [value="phone"]').uncheck();await page.locator('#widgets-form [value="quality"]').check();await page.getByRole('button',{name:'Apply widgets',exact:true}).click();assert.equal(await page.locator('[data-widget="quality"]').count(),1);
+  await page.locator('[data-move="0"][data-dir="1"]').click();assert.equal(await page.locator('[data-widget]').first().getAttribute('data-widget'),'time');await page.getByRole('button',{name:'Finish editing',exact:true}).click();
+  await page.evaluate(()=>window.scrollTo(0,0));await page.locator('#toast').waitFor({state:'hidden'});await page.setViewportSize({width:1440,height:1100});await page.screenshot({path:'/tmp/odo-overview-desktop.png'});
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/odo-overview-mobile.png'});
+  await page.evaluate(()=>{prefs.name='R'.repeat(40);prefs.bike.name='M'.repeat(100);rides[0].title='Long ride title '.repeat(15);render();});
+  for(const width of [320,390,650,768,1050,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width,`Overview overflow at ${width}`);}
+  await page.locator('.overview-latest [data-ride]').click();await page.locator('.track-studio').waitFor();await page.locator('a.logo').click();await page.locator('.rides-experience').waitFor();
+  await page.reload();await page.locator('.rides-experience').waitFor();assert.equal(await page.evaluate(()=>page),'journeys');assert.equal(await page.locator('.library-ride').count(),4);
+  await page.evaluate(async id=>{const imported=rides.find(r=>r.id===id);imported.started=rides[0].started+86400000;await saveRide(imported);prefs.bike.odometer='';navigate('overview');},gpx.id);assert.match(await page.locator('.overview-latest-stats').textContent(),/Mapped distance/);assert.equal(await page.evaluate(()=>totalStats().phone),null);assert.equal(await page.locator('.overview-bike-reading strong').textContent(),'— km');
+  // Readiness arrives after the final UI scripts and after the returning rider's sheet renders.
+  await page.addInitScript(()=>{window.RideNative={ready(){window.readyState={page:page,rides:rides.length,rendered:!!document.querySelector('.rides-experience'),comparison:typeof OdoSignalView,overview:typeof overviewWelcome};window.odoOpenRecordingSetup();},listRides(){},state(){},recordingCapabilities(){return JSON.stringify({schema:1,gps_enabled:true,precise_location:true,notifications:true,sensors:[]});}};});
+  await page.reload();await page.locator('#record-form').waitFor();assert.deepEqual(await page.evaluate(()=>window.readyState),{page:'journeys',rides:4,rendered:true,comparison:'object',overview:'function'});await page.getByRole('button',{name:'Close recording setup',exact:true}).click();
+  assert.equal(requests.length,0);assert.deepEqual(errors,[]);console.log('PASS: first-run/returning landing, no automatic model requests or replay canvas, source-aware totals, manual zero, latest-ride actions, customization, home link and native readiness');
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

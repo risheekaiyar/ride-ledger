@@ -13,11 +13,11 @@ const input=()=>({name:'synthetic-integrity.zip',mimeType:'application/zip',buff
  await p.waitForFunction(()=>!document.querySelector('#modal').open);
  let state=await p.evaluate(()=>({integrity:current().distanceIntegrity,confidence:current().distanceReliable,distance:totalStats().distance,meta:OdoCompanion.evidence(current()).distance_km}));
  assert.deepEqual(state,{integrity:false,confidence:false,distance:null,meta:null});assert.equal(await p.locator('.ride-distance strong').textContent(),'—');
- await p.reload();await p.waitForSelector('.studio-hero');assert.equal(await p.evaluate(()=>rides[0].notes),'Keep my observations');assert.equal(await p.evaluate(()=>rides[0].distanceReliable),false);
+ await p.reload();await p.waitForSelector('.rides-experience');assert.equal(await p.evaluate(()=>rides[0].notes),'Keep my observations');assert.equal(await p.evaluate(()=>rides[0].distanceReliable),false);
  // Reimporting an intact original can establish evidence; editing annotations cannot.
  files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),motion_samples:1});await p.locator('#zip-input').setInputFiles(input());await p.waitForFunction(()=>!importBusy&&rides[0].distanceIntegrity===true);
  assert.equal(await p.evaluate(()=>rides.length),1);assert.equal(await p.evaluate(()=>rides[0].title),'Keep my title');assert.equal(await p.evaluate(()=>rides[0].notes),'Keep my observations');assert.equal(await p.evaluate(()=>rides[0].distanceReliable),true);assert.equal(await p.evaluate(()=>totalStats().distance),.03);assert.equal(await p.evaluate(()=>totalStats().distanceRides),1);
  await p.evaluate(async()=>{const r=rides[0];delete r.distanceIntegrity;r.duration=100;r.distanceReliable=true;await dbRequest('readwrite',s=>s.put(r));});
- await p.reload();await p.waitForSelector('.studio-hero');assert.equal(await p.evaluate(()=>rides[0].distanceReliable),false);assert.equal(await p.evaluate(()=>rides[0].distanceKm),.03);assert.equal(await p.evaluate(()=>rides[0].notes),'Keep my observations');
+ await p.reload();await p.waitForSelector('.rides-experience');assert.equal(await p.evaluate(()=>rides[0].distanceReliable),false);assert.equal(await p.evaluate(()=>rides[0].distanceKm),.03);assert.equal(await p.evaluate(()=>rides[0].notes),'Keep my observations');
  assert.deepEqual(errors,[]);console.log('PASS: import integrity survives actual edit/save/reload, unsupported distance stays out of totals/Meta, corrected original restores confidence without losing notes, legacy coverage recheck');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exitCode=1});

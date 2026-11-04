@@ -1,7 +1,7 @@
 /* Conversations are scoped to the current ride and retained only in memory. */
 const odoConversations=new Map();
 function museSetup(options={}){
- const ride=current();
+ const ride=page==='overview'?rides[0]:current();
  if(!ride){modal(`<h2>Your companion starts with your ride.</h2><p class="subtle">Import a recording or record with the Android app. Odo will help explain the evidence, compare compatible journeys and shape your ride story.</p><div class="actions"><button data-action="close">Close</button><button id="companion-import" class="primary">Import a ride</button></div>`);$('#companion-import').onclick=()=>{$('#modal').close();$('#zip-input').click();};return;}
  const comparison=options.comparisonId?rides.find(r=>r.id===options.comparisonId&&r.id!==ride.id):rides.find(r=>OdoCompanion.comparable(ride,r));
  const comparisonContext=comparison?OdoCompare.packet(OdoCompare.compare(ride,comparison)):null;

@@ -56,7 +56,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   await page.getByRole('button',{name:'Edit bike details',exact:true}).click();await page.getByRole('button',{name:'Remove saved photo',exact:true}).click();
   assert.equal(await page.locator('.garage-hero-visual img').count(),0);
   await page.locator('#photo-input').setInputFiles(photo);await page.locator('.garage-hero-visual img').waitFor();
-  await page.reload();await page.waitForSelector('.studio-hero');await page.evaluate(()=>navigate('garage'));await page.locator('.garage-hero-visual img').waitFor();
+  await page.reload();await page.waitForSelector('.rides-experience');await page.evaluate(()=>navigate('garage'));await page.locator('.garage-hero-visual img').waitFor();
   await page.getByRole('button',{name:'Edit bike details',exact:true}).click();await field('name').fill('Another nickname');await field('type').selectOption('Unknown');
   await page.getByRole('button',{name:'Save bike details',exact:true}).click();
   assert.equal(await values.nth(0).textContent(),'0');assert.equal(await values.nth(2).textContent(),'— km');
