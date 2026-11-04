@@ -8,6 +8,8 @@ The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference wi
 
 The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
 
+[Distance confidence](docs/DISTANCE-CONFIDENCE.md) now survives annotation edits and backup restores; missing distance remains unknown and accepted-fix percentage is checked separately from GPS time coverage.
+
 # Odo / Ride Ledger — private riding journal
 
 A local Muse runtime has been tested against Meta using synthetic cases and an owner-approved, location-free summary of two real commutes. See [Muse runtime status](docs/MUSE-RUNTIME-STATUS.md). The published website and installed APK are not yet connected to that local runtime.

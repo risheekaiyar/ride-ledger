@@ -1,4 +1,4 @@
-/* Odo evidence pipeline v2. No model calls; no raw-sample uploads. */
+/* Odo evidence pipeline v3. No model calls; no raw-sample uploads. */
 (function(root){
 'use strict';
 const G=9.80665, num=v=>v===''||v==null?null:(Number.isFinite(+v)?+v:null);
@@ -52,17 +52,39 @@ function analyze(files,name='Recording'){
  let off=0,screenOffAt=null;
  if(files['events.csv'])for(const e of csv(files['events.csv'])){const t=(+e.elapsed_ns-start)/1e9;if(e.event.endsWith('screen_off')){if(screenOffAt===null)screenOffAt=Math.max(0,t);}else if(e.event.endsWith('screen_on')&&screenOffAt!==null){off+=Math.max(0,Math.min(duration,t)-screenOffAt);screenOffAt=null;}}
  if(screenOffAt!==null)off+=duration-screenOffAt;
- const isWalk=meta.activity_type==='walk'||/walk/i.test(name),isRide=meta.activity_type==='ride'||/rideoffice|homerigid|mount/i.test(name),quality=gps.length?accepted/gps.length:0;
+ const namedActivity=['ride','walk','unclassified'].includes(meta.activity_type);
+ const isWalk=meta.activity_type==='walk'||(!namedActivity&&/walk/i.test(name)),isRide=meta.activity_type==='ride'||(!namedActivity&&/rideoffice|homerigid|mount/i.test(name)),quality=gps.length?accepted/gps.length:0;
  if(summary.gps_samples!==gps.length||summary.motion_samples!==motion.length)warnings.push('File counts disagree with the recorder summary.');
  if(summary.end_reason!=='user_stopped')warnings.push('Recording did not finish with a normal Stop.');
  if(quality<.9)warnings.push('GPS gaps or poor fixes reduce route and distance confidence.');
+ const locationCoverage=locationTimeCoverage(track,duration);
+ if(locationCoverage<.9)warnings.push('Connected GPS fixes cover less than 90% of the recording time; full-ride distance remains uncertain.');
  if(isWalk)warnings.push('The original jitter filter can substantially undercount walking distance.');
  if(motionExcluded)warnings.push(`Excluded ${motionExcluded} invalid, out-of-window or nonmonotonic motion row${motionExcluded===1?'':'s'}; missing vector axes are not filled with zero.`);
  if(stats.some(s=>s.nonMonotonic||s.maxGap>1&&![5,6].includes(s.type)))warnings.push('Motion timing needs review.');
  if(stats.some(s=>s.clipped))warnings.push('Some sensor axes approached their reported range. Peaks may be clipped.');
  warnings.push(mounted?'Handlebar vibration and mount movement are mixed with road motion; bike lean is not calibrated.':'Pocket/body motion cannot establish motorcycle lean or road impacts.');
- const rawKm=Number(summary.estimated_distance_m)/1000;
- return {schema:1,algorithm:'odo-evidence-2',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceKm:Number.isFinite(rawKm)?rawKm:null,distanceReliable:!isWalk&&isRide&&quality>=.9&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length,averageSpeed:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:off,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
+ // The recorder rejects distance steps at >=70 m/s. Allow one metre for summary rounding.
+ const rawMeters=summary.estimated_distance_m,rawKm=Number.isFinite(rawMeters)&&rawMeters>=0&&rawMeters<=duration*70+1?rawMeters/1000:null;
+ const distanceIntegrity=rawKm!==null&&summary.gps_samples===gps.length&&summary.motion_samples===motion.length;
+ if(rawKm===null)warnings.push('Recorder distance is missing or invalid; distance and its full-trip average remain unknown.');
+ const ride={schema:1,algorithm:'odo-evidence-3',id:String(meta.started_epoch_ms),title:isWalk?'Office walk':/home.*rigid|mount/i.test(name)?'The ride home':/rideoffice/i.test(name)?'Home → office':name.replace(/\.zip$/i,''),kind:isWalk?'walk':isRide?'ride':'unclassified',recurring:isWalk?'Office walk':'',placement:meta.placement||'Unknown',device:meta.device,bike_id:typeof meta.ride_context?.bike_id==='string'?meta.ride_context.bike_id.slice(0,100):'',bike_type:meta.ride_context?.bike_type||'Unknown',mount_condition:meta.ride_context?.mount_condition||'Unknown',started:meta.started_epoch_ms,duration,timeBasis,motionExcluded,distanceIntegrity,distanceKm:rawKm,distanceReliable:false,averageSpeed:rawKm===null?null:rawKm/(duration/3600),maxSpeed:quantile(track.map(p=>p[3]),1),quality:quality*100,medianAccuracy:median(track.map(p=>p[4])),gpsRows:gps.length,motionRows:motion.length,accepted,duplicates,screenOffSeconds:off,movingSeconds,stoppedSeconds,observedSeconds,speedIntegratedKm:speedIntegral/1000,track,signals,events:events.sort((a,b)=>a.t-b.t),stats,warnings,notes:'',finalized:summary.end_reason==='user_stopped',altitudeDatum:'Android GPS altitude; no vertical accuracy logged',maxAltitude:quantile(track.map(p=>p[5]),1),lean:null};
+ ride.distanceReliable=distanceSupported(ride);return ride;
+}
+function locationTimeCoverage(track,duration){
+ if(!Array.isArray(track)||!Number.isFinite(duration)||duration<=0)return 0;
+ let observed=0,lastEnd=0;
+ for(let i=1;i<track.length;i++){const a=track[i-1],b=track[i],start=a[2],end=b[2],dt=end-start;if(!Number.isFinite(start)||!Number.isFinite(end)||a[7]!==b[7]||dt<=0||dt>3||start<0||end>duration||start<lastEnd)continue;observed+=dt;lastEnd=end;}
+ return Math.min(1,observed/duration);
+}
+function distanceSupported(r){return r.source!=='GPX export'&&r.kind==='ride'&&r.finalized===true&&Number.isFinite(r.quality)&&r.quality>=90&&r.quality<=100&&Number.isFinite(r.distanceKm)&&r.distanceKm>=0&&locationTimeCoverage(r.track,r.duration)>=.9&&(typeof r.distanceIntegrity==='boolean'?r.distanceIntegrity:r.distanceReliable===true);}
+function editRide(r,fields){
+ // Older records retain their existing confidence; annotations cannot establish missing provenance.
+ const integrity=typeof r.distanceIntegrity==='boolean'?r.distanceIntegrity:distanceSupported(r);
+ const result={...r,distanceIntegrity:integrity};
+ for(const [key,limit] of [['title',100],['recurring',60],['notes',2000]])if(typeof fields[key]==='string')result[key]=fields[key].slice(0,limit);
+ if(['ride','walk','unclassified'].includes(fields.kind))result.kind=fields.kind;
+ result.distanceReliable=distanceSupported(result);return result;
 }
 function repeatLocations(rides){const clusters=[];for(const ride of rides.filter(r=>r.recurring&&r.kind==='ride'))for(const e of ride.events){let c=clusters.find(c=>c.kind===e.kind&&c.group===ride.recurring&&c.placement===ride.placement&&distance([c.lon,c.lat],[e.lon,e.lat])<40&&distance(c.start,ride.track[0])<200&&distance(c.end,ride.track.at(-1))<200);if(!c){c={kind:e.kind,group:ride.recurring,placement:ride.placement,lon:e.lon,lat:e.lat,start:ride.track[0],end:ride.track.at(-1),rides:[],evidence:[]};clusters.push(c);}if(!c.rides.includes(ride.id)){c.rides.push(ride.id);c.evidence.push({rideId:ride.id,eventId:e.id});}}return clusters.filter(c=>c.rides.length>=3);}
 function safeShare(r){return {title:'A ride with Odo',activity:r.kind,distanceKm:r.distanceReliable?Math.round(r.distanceKm*10)/10:null,durationMinutes:Math.round(r.duration/60),note:'Private route, speed and sensor data excluded.'};}
@@ -74,12 +96,17 @@ function validateBackup(x){
   for(const key of ['distanceKm','averageSpeed','maxSpeed','quality','medianAccuracy','gpsRows','motionRows','accepted','duplicates','screenOffSeconds','movingSeconds','stoppedSeconds','observedSeconds','speedIntegratedKm','maxAltitude'])if(r[key]!==null&&!finite(r[key]))throw Error('Invalid measurement in backup.');
   if(r.motionExcluded!==undefined&&!finite(r.motionExcluded,0))throw Error('Invalid motion exclusion count.');
   if(r.timeBasis!==undefined&&!['elapsed-realtime','wall-clock-fallback'].includes(r.timeBasis))throw Error('Invalid recording time basis.');
+  if(r.distanceIntegrity!==undefined&&typeof r.distanceIntegrity!=='boolean')throw Error('Invalid distance integrity.');
+  for(const key of ['distanceReliable','finalized'])if(typeof r[key]!=='boolean')throw Error('Invalid recording confidence.');
+  if(r.distanceIntegrity!==undefined&&r.distanceReliable&&!distanceSupported(r))throw Error('Distance confidence disagrees with its source evidence.');
   for(const p of r.track)if(!Array.isArray(p)||p.length!==9||!finite(p[0],-180,180)||!finite(p[1],-90,90)||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid track in backup.');
   for(const p of r.signals)if(!Array.isArray(p)||p.length!==5||p.some(v=>v!==null&&!finite(v)))throw Error('Invalid signal in backup.');
   for(const e of r.events)if(!/^[a-z0-9-]+$/i.test(e.id)||!['impact','braking','acceleration'].includes(e.kind)||!finite(e.t)||!finite(e.g)||!finite(e.lon,-180,180)||!finite(e.lat,-90,90))throw Error('Invalid event in backup.');
   for(const s of r.stats)if(![s.type,s.n,s.hz,s.maxGap,s.nonMonotonic,s.median,s.p95,s.peak,s.clipped].every(v=>finite(v)))throw Error('Invalid sensor summary in backup.');
+  // Accept old backups, preserving their measurements/annotations while rechecking display confidence.
+  if(r.distanceIntegrity===undefined)r.distanceReliable=distanceSupported(r);
  }
  return x;
 }
-const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
+const api={analyze,csv,median,distance,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage};if(typeof module!=='undefined')module.exports=api;root.OdoAnalysis=api;
 })(typeof self!=='undefined'?self:globalThis);

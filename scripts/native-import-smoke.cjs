@@ -10,7 +10,7 @@ const zip=Buffer.from(zipSync(Object.fromEntries(Object.entries(files).map(([key
  const p=await browser.newPage({viewport:{width:390,height:844}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('http://127.0.0.1:4178');await p.waitForSelector('.studio-hero');
  const input={name:'synthetic-clock-change.zip',mimeType:'application/zip',buffer:zip};await p.locator('#zip-input').setInputFiles(input);await p.waitForFunction(()=>rides.length===1);
  const data=await p.evaluate(()=>({duration:rides[0].duration,basis:rides[0].timeBasis,excluded:rides[0].motionExcluded,stats:rides[0].stats[0].n,algorithm:rides[0].algorithm}));
- assert.deepEqual(data,{duration:11,basis:'elapsed-realtime',excluded:3,stats:3,algorithm:'odo-evidence-2'});
+ assert.deepEqual(data,{duration:11,basis:'elapsed-realtime',excluded:3,stats:3,algorithm:'odo-evidence-3'});
  await p.locator('[data-ride]').first().click();assert.match(await p.locator('.sample-note').textContent(),/Android monotonic clock/);await p.evaluate(()=>seekTrackTime(1));assert.equal(await p.locator('#sample-acceleration').textContent(),'1.00 g');
  await p.evaluate(async()=>{current().title='Preserve my title';current().notes='Private annotation';await saveRide(current());});await p.locator('#zip-input').setInputFiles(input);await p.waitForFunction(()=>!importBusy);assert.equal(await p.evaluate(()=>rides.length),1);assert.equal(await p.evaluate(()=>rides[0].title),'Preserve my title');assert.equal(await p.evaluate(()=>rides[0].notes),'Private annotation');
  await p.reload();await p.waitForSelector('.studio-hero');assert.equal(await p.evaluate(()=>rides[0].timeBasis),'elapsed-realtime');assert.deepEqual(errors,[]);

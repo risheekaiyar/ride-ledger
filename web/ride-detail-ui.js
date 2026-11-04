@@ -9,7 +9,7 @@ rideDetail=function(){
   ['Sensor samples',fmt(r.motionRows,0)],
   ['Screen-off time',imported?'Not supplied':duration(r.screenOffSeconds)],
   ['Observed low-speed time',imported?'Not supplied':duration(r.stoppedSeconds)],
-  ['GPS observation coverage',imported?'Not supplied':fmt(r.observedSeconds/r.duration*100,1)+'%'],
+  ['GPS time coverage',imported?'Source accuracy unknown':fmt(OdoAnalysis.locationTimeCoverage(r.track,r.duration)*100,1)+'% · connected fixes'],
   ['Source peak altitude',fmt(imported?t.altitudeMax:r.maxAltitude,0)+' m · unverified datum/accuracy'],
   ['Bike lean','Requires mount calibration'],
   ['Legal speed adherence','No verified limit dataset connected']

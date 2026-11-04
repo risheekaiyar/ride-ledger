@@ -1,4 +1,4 @@
-const test=require('node:test'),assert=require('node:assert/strict'),{analyze,repeatLocations,safeShare,validateBackup}=require('../web/analysis.js');
+const test=require('node:test'),assert=require('node:assert/strict'),{analyze,repeatLocations,safeShare,validateBackup,distanceSupported,editRide,locationTimeCoverage}=require('../web/analysis.js');
 const base={
  'metadata.json':JSON.stringify({started_epoch_ms:100000,started_elapsed_ns:1000000000,placement:'Pocket',device:'synthetic',sensors:[{type:5,label:'Light',maximum_range:65535}]}),
  'summary.json':JSON.stringify({ended_epoch_ms:110000,estimated_distance_m:30,gps_samples:3,motion_samples:3,end_reason:'user_stopped'}),
@@ -42,4 +42,61 @@ test('new timing diagnostics remain optional for legacy backups and validated wh
  const r=analyze(base);r.id='1793676718164';const backup=ride=>({type:'odo-backup',version:1,rides:[ride]});
  const legacy={...r};delete legacy.timeBasis;delete legacy.motionExcluded;assert.equal(validateBackup(backup(legacy)).rides.length,1);
  assert.throws(()=>validateBackup(backup({...r,timeBasis:'invented'})),/time basis/);assert.throws(()=>validateBackup(backup({...r,motionExcluded:-1})),/exclusion/);
+});
+function intactFiles(activity='ride'){
+ return {...base,'metadata.json':JSON.stringify({...JSON.parse(base['metadata.json']),activity_type:activity}),
+  'summary.json':JSON.stringify({...JSON.parse(base['summary.json']),ended_epoch_ms:102000}),
+  'gps.csv':base['gps.csv'].replace('2000000000,12','1000000000,12').replace('3000000000,12,77.0001,100,60','2000000000,12,77.0001,2,10').replace('4000000000,12','3000000000,12').replace('false,false,0','true,false,0')};
+}
+test('editing annotations cannot repair a source count-integrity failure',()=>{
+ const files=intactFiles();files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),motion_samples:999});
+ const ride=analyze(files);assert.equal(ride.quality,100);assert.equal(ride.distanceIntegrity,false);assert.equal(ride.distanceReliable,false);
+ const edited=editRide(ride,{title:'New title',kind:'ride',notes:'A smooth ride',distanceIntegrity:true,distanceReliable:true});
+ assert.equal(edited.title,'New title');assert.equal(edited.distanceIntegrity,false);assert.equal(edited.distanceReliable,false);
+ assert.equal(require('../web/companion.js').evidence(edited).distance_km,null);assert.equal(safeShare(edited).distanceKm,null);
+});
+test('classification can use intact source evidence and can be reversed without losing it',()=>{
+ const ride=analyze(intactFiles('unclassified'),'mount-commute.zip');assert.equal(ride.kind,'unclassified');assert.equal(ride.distanceReliable,false);assert.equal(ride.distanceIntegrity,true);
+ const classified=editRide(ride,{kind:'ride'});assert.equal(classified.distanceReliable,true);
+ const walk=editRide(classified,{kind:'walk'});assert.equal(walk.distanceReliable,false);assert.equal(editRide(walk,{kind:'ride'}).distanceReliable,true);
+});
+test('missing, malformed, negative and impossible recorder distances remain unknown',()=>{
+ for(const value of [null,undefined,'',false,'30',-1,Infinity,1000000]){
+  const files=intactFiles();files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),estimated_distance_m:value});
+  const ride=analyze(files);assert.equal(ride.distanceKm,null);assert.equal(ride.averageSpeed,null);assert.equal(ride.distanceIntegrity,false);assert.equal(ride.distanceReliable,false);
+ }
+ const files=intactFiles();files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),estimated_distance_m:0});const zero=analyze(files);assert.equal(zero.distanceKm,0);assert.equal(zero.averageSpeed,0);assert.equal(zero.distanceReliable,true);
+});
+test('explicit native activity wins over filename heuristics',()=>{
+ assert.equal(analyze(intactFiles('ride'),'boardwalk.zip').kind,'ride');
+ assert.equal(analyze(intactFiles('walk'),'rideoffice.zip').kind,'walk');
+ assert.equal(analyze(intactFiles('unclassified'),'rideoffice.zip').kind,'unclassified');
+});
+test('accepted-fix percentage does not imply full-ride GPS time coverage',()=>{
+ const files=intactFiles();files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),ended_epoch_ms:110000});const ride=analyze(files);
+ assert.equal(ride.quality,100);assert.equal(locationTimeCoverage(ride.track,ride.duration),.2);assert.equal(ride.distanceReliable,false);
+ const t=(time,segment=0)=>[77,12,time,null,2,null,null,segment,null];
+ assert.equal(locationTimeCoverage([t(0),t(1),t(8,1),t(10,1)],10),.3);
+ assert.equal(locationTimeCoverage([t(0),t(1),t(0),t(1)],10),.1);
+});
+test('abnormal finalization and legacy uncertainty survive annotation edits',()=>{
+ const files=intactFiles();files['summary.json']=JSON.stringify({...JSON.parse(files['summary.json']),end_reason:'storage_error'});const interrupted=analyze(files);
+ assert.equal(interrupted.distanceReliable,false);assert.equal(editRide(interrupted,{kind:'ride'}).distanceReliable,false);
+ const legacy=analyze(intactFiles());delete legacy.distanceIntegrity;legacy.distanceReliable=false;assert.equal(editRide(legacy,{kind:'ride'}).distanceReliable,false);
+ legacy.distanceReliable=true;assert.equal(editRide(legacy,{notes:'Renamed'}).distanceReliable,true);
+});
+test('backups retain integrity evidence and reject contradictory confidence',()=>{
+ const ride=analyze(intactFiles());ride.id='1793676718164';const backup=r=>({type:'odo-backup',version:1,rides:[r]});
+ assert.equal(validateBackup(backup(ride)).rides[0].distanceIntegrity,true);
+ assert.throws(()=>validateBackup(backup({...ride,distanceIntegrity:'true'})),/integrity/);
+ assert.throws(()=>validateBackup(backup({...ride,distanceIntegrity:false})),/confidence/);
+ assert.throws(()=>validateBackup(backup({...ride,finalized:false})),/confidence/);
+ assert.throws(()=>validateBackup(backup({...ride,distanceReliable:'false'})),/confidence/);
+ assert.equal(distanceSupported({...ride,source:'GPX export'}),false);
+});
+
+test('legacy backup recheck preserves measurements and notes while reducing unsupported confidence',()=>{
+ const ride=analyze(intactFiles());ride.id='1793676718164';delete ride.distanceIntegrity;ride.duration=100;ride.distanceReliable=true;ride.notes='Keep this note';
+ const restored=validateBackup({type:'odo-backup',version:1,rides:[ride]}).rides[0];
+ assert.equal(restored.distanceReliable,false);assert.equal(restored.distanceKm,.03);assert.equal(restored.notes,'Keep this note');assert.equal(restored.track.length,3);
 });
