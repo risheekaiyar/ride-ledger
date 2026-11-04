@@ -20,7 +20,7 @@ Demo: import a ride, classify it, set its bike/phone context, label a candidate 
 
 Android includes an explicitly enabled draggable chat overlay with a foreground notification, collapse and dismissal actions. It loads only local app assets and uses the native HTTPS transport. Overlay permission is granted in system settings; permission revocation is checked while running. Hardware validation, keyboard/task-switch testing and a live gateway connection are still required. iOS has no equivalent arbitrary cross-app overlay. The Android transport and authenticated HTTPS gateway are implemented; see [gateway setup](COMPANION-GATEWAY.md). Settings opens a native connection dialog. The client token is encrypted using an Android Keystore key and is never returned to JavaScript. Provider keys remain on the server. No reachable production gateway or live provider credentials have been configured here, so live model behavior inside the APK remains unverified.
 
-Existing route replay and tilted MapLibre maps remain available. This is not a terrain mesh, satellite flyover or video exporter. Direct manufacturer/CaliMoto account sync, community accounts, real-time routing and bike telemetry require separate integrations and representative exports or API access.
+The default route view is now the offline [3D Track Studio](TRACK-STUDIO.md), with a road mesh, kerbs, lighting, replay cameras and opt-in source altitude. An optional geographic MapLibre view remains available. Satellite terrain and video export are not implemented. Direct manufacturer/CaliMoto account sync, community accounts, real-time routing and bike telemetry require separate integrations and representative exports or API access.
 
 ## Validation
 
