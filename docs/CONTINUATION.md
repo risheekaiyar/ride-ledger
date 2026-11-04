@@ -8,6 +8,8 @@ The user subsequently requested commits and pushes approximately every 30 minute
 
 ## Current capabilities
 
+- Recorded moments now open their exact time in a 15-second speed or motion window from both ride details and Route Lab review. The source-labelled list starts with three candidates and appends six with keyboard focus. Invalid/duplicate/out-of-window candidates are excluded; source arrays, summary values and the live detail camera remain intact. Missing GPS or channels stay unknown. See SIGNAL-INSPECTION.md and moments-smoke.cjs.
+
 - Focused Meta debriefs now attach a bounded complete-second summary from a selected trace window, with explicit payload review/send, one-ride scope and citations that restore the original range/channel. GPS coverage, phone-motion bin summaries and source-altitude fixes remain separate; recording-wide diagnostics are labelled. Fractional timing, zero GPS, private-field exclusion, server validation and responsive layouts are tested. See FOCUSED-DEBRIEF.md.
 
 - Full 3D Track Studio now has brighter asphalt, taller contrasting side walls, wider kerbs and a lower overview angle for phone readability. Open segment ends are capped, and coincident route endpoints use a continuous closed curve with matching normals. Tall story posters use a dedicated camera angle; source samples/elevation are preserved. Track, poster and real 24 fps MP4 checks pass; reviewed track/open-route/film/poster artifacts are refreshed. See TRACK-STUDIO.md.
@@ -46,7 +48,7 @@ The user subsequently requested commits and pushes approximately every 30 minute
 ## Next local improvements — no external prerequisites
 
 1. Continue improving large-library storage and import performance. Initial preview rendering now uses 20-row batches; IndexedDB still loads all analyzed recordings. Consider loading lightweight journal metadata separately from full sample arrays while preserving backups and evidence access.
-2. Improve targeted navigation for long-recording inspection, such as selecting a recorded event and opening its focused signal window. Fixed time-window zoom, readable axes, bounded extrema-preserving traces, gap rails and original-bin scrubbing are implemented; actual bike calibration still needs labelled recordings.
+2. Continue refining long-recording inspection. Recorded candidates now open their exact timestamp and focused signal window. Consider a clearer overview of recording gaps or more direct source-channel selection; actual bike calibration still needs labelled recordings.
 3. Improve motion/story composition using actual exported frames and clips. Video export is now implemented and inspected; consider other aspect ratios or camera treatments while retaining source labels and opt-in speed. Keep native hardware behavior explicitly unverified until a physical test.
 4. Refine garage and empty-state layouts on narrow screens. Audit contrast and touch targets.
 5. Improve story composition and editable captions; inspect exported images and their privacy defaults.
@@ -72,6 +74,7 @@ node scripts/story-smoke.cjs
 node scripts/gpx-smoke.cjs
 node scripts/inspector-smoke.cjs
 node scripts/trace-window-smoke.cjs
+node scripts/moments-smoke.cjs
 node scripts/focused-companion-smoke.cjs
 node scripts/native-import-smoke.cjs
 node scripts/recording-smoke.cjs
@@ -86,7 +89,7 @@ node scripts/long-trace-smoke.cjs
 node scripts/overview-smoke.cjs
 ```
 
-Latest checks: 134 Node tests pass; Android assembly/lint pass. The focused debrief passes explicit-send, privacy, interval restoration, fractional timing, zero-GPS and responsive browser checks, plus existing comparison, general UI, trace-window and overlay regressions. No live model request was made in this pass. The 3D refinement passes track, poster and actual H.264 export browser checks, with reviewed open-route and refreshed motion artifacts. The preceding focused-window pass verified original-sample, telemetry, long-trace and 3D replay regressions. The preceding library batching/search pass also passed library, overview and UI browser checks. Previous checkpoints ran 17 Java tests successfully; this focused-window pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
+Latest checks: 137 Node tests pass; Android assembly/lint pass. Moment navigation covers chronological batches, exact seeking, camera/source retention, gaps, missing channels and short recordings in 320–1440px Chromium layouts. Existing trace-window, focused-companion and comparison checks pass. The focused debrief passes explicit-send, privacy, interval restoration, fractional timing, zero-GPS and responsive browser checks, plus existing comparison, general UI, trace-window and overlay regressions. No live model request was made in this pass. The 3D refinement passes track, poster and actual H.264 export browser checks, with reviewed open-route and refreshed motion artifacts. The preceding focused-window pass verified original-sample, telemetry, long-trace and 3D replay regressions. The preceding library batching/search pass also passed library, overview and UI browser checks. Previous checkpoints ran 17 Java tests successfully; this focused-window pass changes no Java. Comparison browser checks cover pair selection, context editing, explicit mocked Meta requests, citation navigation and 320–1440px widths. Motion export, 3D track and poster browser checks pass, including actual H.264 frame count/duration inspection and explicit sharing. Earlier checks cover sensor diagnostics, native ZIP import, sample inspection, confidence persistence, companion, recording setup and route library. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots and clips are review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 

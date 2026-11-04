@@ -22,9 +22,20 @@ Motion bins can also be inspected when there are **no usable GPS fixes**. GPS fi
 
 [Focused view on mobile](previews/trace-window-mobile-synthetic.png) · [Focused view on desktop](previews/trace-window-desktop-synthetic.png). These fixtures deliberately include a phone acceleration spike inside a GPS gap.
 
+## Moments to inspect
+
+Ride details and Route Lab's single-ride review now show existing event candidates in time order. The compact list starts with three; **Show more moments** appends six at a time, announces progress and moves keyboard focus to the first added row without replacing the 3D scene. Phone raw peaks and GPS speed-change estimates have separate source labels. No new detection thresholds or road-cause classifications are introduced.
+
+Selecting a candidate opens its original timestamp in the corresponding phone-motion or speed channel, with a surrounding 15-second window. Windows clamp at recording boundaries; rides of 15 seconds or less use the whole recording. Selection within ride details preserves the camera and canvas. Route Lab selection opens the same inspector. A phone peak can still be inspected inside a GPS gap; absent channels remain unavailable. The candidate's value and context appear only while inspecting that time and channel, and reset when the page is rendered again.
+
+This view excludes invalid times/magnitudes, unsupported kinds and ambiguous duplicate IDs. GPX imports do not inherit native recorder candidates. It does not change stored samples, detection results or ride-wide summaries. The focused Meta entry remains an explicit review-and-send action.
+
+[Moments on mobile](previews/moments-mobile-synthetic.png) · [Moments on desktop](previews/moments-desktop-synthetic.png) · [Selected moment and trace](previews/moment-window-mobile-synthetic.png)
+
 ## Verification
 
-- `node --test --test-isolation=none scripts/*.test.cjs`: 134 tests pass, including full-day bounds, retained extrema, gap marking, measured zero, partial intervals, focused-window clipping, focused Meta evidence and a 150,000-point altitude array.
+- `node --test --test-isolation=none scripts/*.test.cjs`: 137 tests pass, including full-day bounds, retained extrema, gap marking, measured zero, partial intervals, focused-window clipping, focused Meta evidence, candidate validation and a 150,000-point altitude array.
+- `node scripts/moments-smoke.cjs`: chronological batches, source labels, keyboard focus, exact event timestamps, camera/canvas retention, unchanged source evidence, Route Lab navigation, missing channels, short recordings, focused Meta entry and 320–1440px layouts. No model request is made.
 - `node scripts/trace-window-smoke.cjs`: a one-hour recording with GPS/motion gaps; window controls, actual source inspection, click/keyboard range mapping, camera/canvas retention, unchanged full-ride summaries, empty windows, zero-GPS motion inspection and layouts from 320 to 1440 pixels.
 - `node scripts/comparison-inspector-smoke.cjs`: different-duration mapping, touch/keyboard controls, original-bin values, gaps/endpoints, narrow layouts and 86,399 valid bins per full-day trace.
 - `node scripts/long-trace-smoke.cjs`: 50,000 GPS fixes and 25,000 motion bins, original-sample seeking, extremes, gaps and layouts from 320 to 1440 pixels.
