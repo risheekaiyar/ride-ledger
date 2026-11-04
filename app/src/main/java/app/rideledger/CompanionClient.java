@@ -18,6 +18,7 @@ import org.json.*;
 /** Native-only client credential storage and TLS transport. Never exposes tokens to JavaScript. */
 public final class CompanionClient {
     private static final String ALIAS="odo-companion-client-v1";
+    static final int FRAME_BODY_LIMIT=136000;
     private final Context context;
     private final android.content.SharedPreferences prefs;
     public CompanionClient(Context context){this.context=context;this.prefs=context.getSharedPreferences("odo-companion",Context.MODE_PRIVATE);}
@@ -52,14 +53,17 @@ public final class CompanionClient {
         try{
             String endpoint=prefs.getString("endpoint","");
             if(endpoint.isEmpty())return new JSONObject().put("ok",false).put("error","Configure your HTTPS companion gateway in Settings first.");
-            if(!method.equals("GET")&&!method.equals("POST"))throw new IllegalArgumentException();
-            byte[] bytes=body.getBytes(StandardCharsets.UTF_8);if(bytes.length>12000)throw new IllegalArgumentException();
-            URL url=new URL(CompanionEndpoint.validate(endpoint)+(method.equals("GET")?"/api/muse/status":"/api/muse/insights"));
+            boolean frame=method.equals("FRAME");
+            boolean creative=method.equals("POST")&&new JSONObject(body).has("creative");
+            if(!frame&&!method.equals("GET")&&!method.equals("POST"))throw new IllegalArgumentException();
+            byte[] bytes=body.getBytes(StandardCharsets.UTF_8);if(bytes.length>(frame?FRAME_BODY_LIMIT:12000))throw new IllegalArgumentException();
+            URL url=new URL(CompanionEndpoint.validate(endpoint)+(method.equals("GET")?"/api/muse/status":frame?"/api/muse/frame":"/api/muse/insights"));
+            if(frame)method="POST";
             connection=(HttpsURLConnection)url.openConnection();connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(10000);connection.setReadTimeout(55000);connection.setRequestMethod(method);connection.setRequestProperty("Authorization","Bearer "+token());
             if(method.equals("POST")){connection.setDoOutput(true);connection.setRequestProperty("Content-Type","application/json");connection.setFixedLengthStreamingMode(bytes.length);try(OutputStream out=connection.getOutputStream()){out.write(bytes);}}
             int status=connection.getResponseCode();if(status>=300&&status<400)throw new IOException("Redirect rejected");
             InputStream stream=status>=400?connection.getErrorStream():connection.getInputStream();if(stream==null)throw new IOException();
-            try(InputStream in=stream;ByteArrayOutputStream buffer=new ByteArrayOutputStream()){byte[] chunk=new byte[4096];int n;while((n=in.read(chunk))!=-1){if(buffer.size()+n>65536)throw new IOException();buffer.write(chunk,0,n);}JSONObject data=new JSONObject(buffer.toString("UTF-8"));return new JSONObject().put("ok",status>=200&&status<300).put("data",data);}
+            try(InputStream in=stream;ByteArrayOutputStream buffer=new ByteArrayOutputStream()){byte[] chunk=new byte[4096];int n;while((n=in.read(chunk))!=-1){if(buffer.size()+n>(creative?8*1024*1024:65536))throw new IOException();buffer.write(chunk,0,n);}JSONObject data=new JSONObject(buffer.toString("UTF-8"));return new JSONObject().put("ok",status>=200&&status<300).put("data",data);}
         }catch(Exception e){try{return new JSONObject().put("ok",false).put("error","Connection failed. Check the gateway address, trusted TLS certificate, client token and server allowance.");}catch(JSONException impossible){throw new IllegalStateException(impossible);}}
         finally{if(connection!=null)connection.disconnect();}
     }

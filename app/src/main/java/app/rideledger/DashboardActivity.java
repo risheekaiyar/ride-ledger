@@ -49,7 +49,7 @@ public class DashboardActivity extends Activity {
                 Uri u=request.getUrl();
                 if("https".equals(u.getScheme())&&"odo.local".equals(u.getHost())){
                     String p=u.getPath();if(p==null||p.contains("..")||p.contains("\\"))return blocked();if(p.equals("/"))p="/index.html";
-                    try{String mime=p.endsWith(".js")?"text/javascript":p.endsWith(".css")?"text/css":p.endsWith(".svg")?"image/svg+xml":p.endsWith(".webmanifest")?"application/manifest+json":"text/html";
+                    try{String mime=p.endsWith(".js")?"text/javascript":p.endsWith(".css")?"text/css":p.endsWith(".svg")?"image/svg+xml":p.endsWith(".webm")?"video/webm":p.endsWith(".jpg")?"image/jpeg":p.endsWith(".json")?"application/json":p.endsWith(".webmanifest")?"application/manifest+json":"text/html";
                         WebResourceResponse response=new WebResourceResponse(mime,"UTF-8",getAssets().open("odo"+p));
                         response.setResponseHeaders(Collections.singletonMap("Content-Security-Policy","default-src 'self'; script-src 'self' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://upload.wikimedia.org; media-src 'self' blob:; connect-src 'self' https://tile.openstreetmap.org https://commons.wikimedia.org; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"));return response;
                     }catch(IOException e){return blocked();}
@@ -62,10 +62,10 @@ public class DashboardActivity extends Activity {
         web.setWebChromeClient(new WebChromeClient(){
             @Override public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(fileChoice!=null)fileChoice.onReceiveValue(null);fileChoice=callback;
-                try{startActivityForResult(params.createIntent(),22);return true;}catch(Exception e){fileChoice=null;toast("Cannot open photo picker");return false;}
+                try{startActivityForResult(params.createIntent(),22);return true;}catch(Exception e){fileChoice=null;toast("Cannot open media picker");return false;}
             }
         });
-        web.loadUrl(ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
+        web.loadUrl(getPackageName().endsWith(".experience") ? ORIGIN+"?experience=demo" : ORIGIN);if("CONFIGURE_COMPANION".equals(getIntent().getAction()))main.post(()->companion.configure(this));widgetPending="WIDGET_TOGGLE".equals(getIntent().getAction());
     }
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);if("CONFIGURE_COMPANION".equals(intent.getAction()))companion.configure(this);widgetPending="WIDGET_TOGGLE".equals(intent.getAction());if(hasWindowFocus())onWindowFocusChanged(true);}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&widgetPending){widgetPending=false;if(RideService.running)stopRide();else setupPending=true;}if(focused)openPendingSetup();}
@@ -96,7 +96,7 @@ public class DashboardActivity extends Activity {
     public final class CompanionBridge {
         @JavascriptInterface public void configure(){main.post(()->companion.configure(DashboardActivity.this));}
         @JavascriptInterface public void request(String id,String method,String body){
-            if(!id.matches("[0-9]{1,12}")||body==null||body.length()>12000||!Arrays.asList("GET","POST").contains(method))return;
+            if(!id.matches("[0-9]{1,12}")||body==null||body.length()>("FRAME".equals(method)?CompanionClient.FRAME_BODY_LIMIT:12000)||!Arrays.asList("GET","POST","FRAME").contains(method))return;
             io.execute(()->{JSONObject result=companion.request(method,body);js("window.odoCompanionReply&&window.odoCompanionReply("+JSONObject.quote(id)+","+result.toString()+")");});
         }
     }
