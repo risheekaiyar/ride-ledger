@@ -6,7 +6,7 @@ The offline [3D Track Studio](docs/TRACK-STUDIO.md) turns each recorded route in
 
 [Ride films](docs/RIDE-FILM.md) add local 3D portrait video export with a motorsport overlay, explicit route/speed sharing choices and Android share-sheet transport. Modern browsers render each frame into a 24 fps MP4. [Watch the synthetic demo](docs/previews/ride-film-synthetic.mp4).
 
-The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
+The [ride library](docs/RIDE-LIBRARY.md) follows the supplied Ryval reference with white raised route silhouettes, a dark rounded ride sheet, and source-aware peak-speed readouts. Local title/bike/route search and 20-journey batches keep growing journals easy to browse. Geographic map tiles remain opt-in. [Ride details](docs/RIDE-DETAIL.md) lead with the track, a large distance summary and an Odo debrief card, followed by the full measurement evidence.
 
 The [recording setup](docs/RECORDING-SETUP.md) now checks Android sensor availability and permissions, supports GPS-only capture, and keeps bike/placement context consistent.
 

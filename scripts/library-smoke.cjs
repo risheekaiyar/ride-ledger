@@ -36,7 +36,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   assert.equal(await page.locator('#modal').evaluate(d=>d.open),false);
   assert.equal(await page.evaluate(()=>window.scrollY),0);
   await page.evaluate(()=>navigate('journeys'));
-  await page.getByRole('button',{name:'Filter journeys',exact:true}).click();
+  await page.getByRole('button',{name:'Search and filter journeys',exact:true}).click();
   await page.locator('[data-filter=ride]').click();
   assert.equal(await page.locator('[data-ride]').count(),0);
   await page.getByText('No journeys in this view.',{exact:true}).waitFor();
