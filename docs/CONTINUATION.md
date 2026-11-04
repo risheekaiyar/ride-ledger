@@ -8,7 +8,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 - Offline 3D Track Studio: raised road mesh, red/white kerbs, lit plinth, orbit/flyover/chase/overhead cameras, expanded presentation view with preserved playback, gap-aware replay, source altitude and opt-in PNG export. Browser screenshots were inspected on desktop and portrait, and are committed under docs/previews. WebGL fallback and scene cleanup are tested.
 
-- Dark motorsport/editorial mobile presentation, real route thumbnails, explicit source badges and mobile Settings navigation.
+- Ryval-style dark ride library with white raised route silhouettes, date/time/details and teal source-aware peak speeds. Map background is opt-in, filters and rider menu work at narrow widths, and the companion sits beside a readable three-item library dock. Reviewed screenshots are in docs/previews/ride-library-*.png.
 - Sample inspector with explicit measurement provenance, keyboard-accessible chart seeking and elapsed-time inspection of phone motion during GPS gaps.
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
 - Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
@@ -22,7 +22,7 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 
 ## Next local improvements — no external prerequisites
 
-1. CURRENT USER PRIORITY: match the newly supplied Ryval-style rides library reference. Compact raised white route silhouettes with shaded vertical sides, a dark map-backed rounded sheet, date/time/details and muted teal peak-speed typography. Preserve source labels and actual route geometry; map tiles stay opt-in.
+1. Continue polishing the ride-detail and recording interfaces around the supplied Ryval visual direction. The library reference pass is now implemented and checked; keep route shape, gaps and measurement provenance intact. Improve legibility and touch targets without obscuring ride evidence.
 2. Offline replay video export is feasible: Chromium reported MP4/H.264 and WebM encoders available. This was capability detection only; no video exporter is implemented yet. Verify encoding and native transport before claiming support.
 3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
 4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
@@ -49,7 +49,7 @@ node scripts/inspector-smoke.cjs
 node scripts/native-import-smoke.cjs
 ```
 
-Latest checks: 63 Node tests pass; Android assembly/lint pass with 14 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
+Latest checks: 69 Node tests pass; Android assembly/lint pass with 14 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
 
 ## External checks, kept separate from local progress
 
