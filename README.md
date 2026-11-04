@@ -22,6 +22,8 @@ The [garage](docs/GARAGE.md) keeps a local bike profile, manual odometer and sou
 
 [Signal inspection](docs/SIGNAL-INSPECTION.md) keeps long recordings readable, preserves extrema and gaps, and offers focused 5-minute, 1-minute and 15-second views. Touch and keyboard inspection read original samples, including phone motion from recordings with no usable GPS fixes.
 
+[Focused Meta debriefs](docs/FOCUSED-DEBRIEF.md) let riders ask about a selected trace window. Odo sends bounded motion, observed-speed and source-altitude summaries after explicit review and submission; reply citations return to that interval.
+
 The [journal landing and overview](docs/OVERVIEW.md) now open returning riders directly to Rides and keep the latest ride, Odo debrief, source-aware totals and bike profile together.
 
 # Odo / Ride Ledger — private riding journal
