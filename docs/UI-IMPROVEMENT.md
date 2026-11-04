@@ -39,3 +39,9 @@ Histogram durations are time-weighted and split at speed-band crossings. Native 
 GPX summary cards show mapped distance and estimated interval speeds while stating that fix accuracy is unknown. Empty motion channels and missing raw sensors have explicit empty states. `node scripts/telemetry-smoke.cjs` checks channel selection, timeline seeking, GPX traces, mobile Settings and mobile/desktop overflow. Synthetic traces test the interval calculations; they do not establish real-world sensor accuracy.
 
 The ride library now shows real route thumbnails and explicit import/phone-source labels. A shared local projection keeps thumbnails and replay aligned and unwraps dateline crossings. GPS samples outside recording duration are rejected before entering event evidence. `node scripts/library-smoke.cjs` checks synthetic route thumbnails, long-title wrapping and mobile replay geometry.
+
+## Poster studio
+
+Share cards now have racing typography, finish-line details, orange/ice editions and responsive compositions for all three social formats. The route-free edition is the default. Explicitly enabling the route builds the same offline 3D track model into the poster; WebGL failure uses the shared gap-aware/dateline-aware 2D projection. Source altitude stays off for these exports. No coordinates, dates, bike identifiers or raw samples are printed. GPX mapped distance is rounded and labelled an estimate; unavailable native distance remains blank.
+
+The editor releases its temporary WebGL scene after rendering each format. Downloads and native image sharing use the existing PNG transport. `node scripts/story-smoke.cjs` verifies route opt-in, real 3D image creation, three sizes, two editions, export, mobile layout and cleanup. The exported PNGs were visually reviewed. [Story preview](previews/poster-story-synthetic.png) and [square preview](previews/poster-square-synthetic.png) use the synthetic circuit fixture, not a user recording.

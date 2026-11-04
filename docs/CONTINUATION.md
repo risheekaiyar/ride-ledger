@@ -12,14 +12,14 @@ The user explicitly wants iterative improvements to aesthetics and technical dat
 - Ride instrument panel with playhead speed, channel tabs, time-weighted speed histogram, known/unknown interval breakdown and gap-aware charts. GPX estimates are distinguished from unknown source accuracy; source altitude is not claimed as measured ascent.
 - Shared route geometry for thumbnails and replay, including dateline crossings. GPS samples outside the recorded time window are excluded.
 - Timed GPX import with content-based IDs separate from native IDs. Native ZIP import preserves bike/placement/mount metadata and user annotations.
+- Redesigned motorsport poster editor with orange/ice editions and opt-in 3D route models. Exported PNGs inspected at all three aspect ratios.
 - Story PNGs in three formats, explicit route-silhouette opt-in, browser download/share and native Android share-sheet transport through a read-only provider.
 - Meta companion evidence preview, bounded follow-ups and citations; compatible-ride selection requires known matching bike/phone/setup.
 - Authenticated HTTPS gateway with persistent SQLite request reservations; encrypted Android token storage and a draggable chat overlay. These are built and locally tested; live/hardware behavior remains unverified.
 
 ## Next local improvements — no external prerequisites
 
-1. Continue the 3D presentation into motorsport share cards; preserve route privacy defaults and inspect exported images.
-2. Strengthen GPX/XML input handling (missing coordinate attributes, timezone ambiguity, duplicate samples, format-specific error messages), keeping source uncertainty explicit.
+1. Strengthen GPX/XML input handling (missing coordinate attributes, timezone ambiguity, duplicate samples, format-specific error messages), keeping source uncertainty explicit.
 2. Improve chart accessibility and keyboard inspection; keep route, telemetry cursor and visible sample readouts synchronized.
 3. Refine garage, recording-setup and empty-state layouts on narrow screens. Audit contrast and touch targets.
 4. Improve story composition and editable captions; inspect exported images and their privacy defaults.
@@ -40,6 +40,7 @@ node scripts/overlay-smoke.cjs
 node scripts/telemetry-smoke.cjs
 node scripts/library-smoke.cjs
 node scripts/track-smoke.cjs
+node scripts/story-smoke.cjs
 ```
 
 Latest checks: 52 Node tests pass; Android assembly/lint pass with 12 Java tests; browser checks pass for companion, sharing, recording bridge, telemetry, route library and mobile/desktop overflow. Run only checks relevant to each next change. Chromium scripts use synthetic data and mock model responses. Screenshots are temporary review artifacts, not product example rides.
